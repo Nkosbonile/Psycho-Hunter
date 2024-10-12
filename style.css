@@ -1,0 +1,132 @@
+body { 
+    margin: 0; 
+    background: linear-gradient(to bottom, #2c3e50, #34495e); /* Darker gradient for a mysterious vibe */
+    font-family: 'Arial', sans-serif; 
+    position: relative; /* Position relative for hint positioning */
+}
+
+canvas { 
+    display: block; 
+}
+
+.controls {
+    position: absolute;
+    bottom: 50px; /* Position from the bottom */
+    left: 20px; /* Position from the left */
+    display: flex;
+    flex-direction: column; /* Arrange buttons in a column */
+    align-items: center; /* Center buttons horizontally */
+    width: 80px; /* Width for the controls container */
+}
+
+.controls button {
+    margin: 10px 0; /* Vertical margin for spacing between buttons */
+    padding: 15px; /* Increased padding for larger buttons */
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 50%; /* Make buttons circular */
+    color: white; /* Text color */
+    background-color: #c0392b; /* Dark red for a dramatic effect */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth color transition */
+    width: 70px; /* Fixed width for circular buttons */
+    height: 70px; /* Fixed height for circular buttons */
+}
+
+.controls button:hover {
+    background-color: #e74c3c; /* Lighter red on hover */
+}
+
+.controls button:active {
+    background-color: #a93226; /* Darker red when clicked */
+    transform: translateY(2px); /* Simulate button press */
+}
+
+.controls button:focus {
+    outline: none; /* Remove outline on focus */
+}
+
+/* Position buttons in a circular manner */
+.controls button:nth-child(1) { transform: translate(80px, 20px); } /* Center */
+.controls button:nth-child(2) { transform: translate(0, 20px); } /* Below */
+.controls button:nth-child(3) { transform: translate(80px, 40px); } /* Bottom Right */
+.controls button:nth-child(4) { transform: translate(180px, -160px); } /* Bottom Left */
+.controls button:nth-child(5) { transform: translate(100px, 60px); } /* Bottom Center */
+
+/* Hint message styling */
+.hint-message {
+    position: absolute; 
+    top: 10px; /* Adjust to desired position */
+    left: 50%; 
+    transform: translateX(-50%);
+    background: rgba(44, 62, 80, 0.9); /* Dark background with opacity */
+    color: #ecf0f1; /* Light text color for contrast */
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); /* Strong shadow for depth */
+    font-size: 18px;
+    z-index: 10; /* Ensure the hint is above other elements */
+    text-align: center;
+    display: none; /* Initially hidden */
+}
+
+/* Hint message popup styles */
+.riddle-hint-message {
+    display: none; /* Initially hidden */
+    position: absolute;
+    top: 20px; /* Adjusted for better visibility */
+    left: 20px; /* Adjusted for better visibility */
+    background: rgba(255, 255, 255, 0.9); /* White background for contrast */
+    color: red; /* Text color changed to red */
+    padding: 20px; /* More spacing around the text */
+    border-radius: 10px; /* More pronounced rounded corners */
+    font-family: 'Arial', sans-serif; /* Font style */
+    font-size: 18px; /* Slightly larger font size */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); /* Deeper shadow for depth */
+    transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth transition */
+    opacity: 0; /* Initial opacity for fade effect */
+    transform: translateY(-10px); /* Slight upward shift for the pop effect */
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+/* Additional style for when the message is visible */
+.riddle-hint-message.show {
+    display: block; /* Show the message */
+    opacity: 1; /* Fully visible */
+    transform: translateY(0); /* Reset position to normal */
+}
+
+
+.custom-alert {
+    display: none; /* Initially hidden */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1000;
+    width: 300px;
+}
+
+.custom-alert p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.custom-alert button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+
+.custom-alert button:hover {
+    background-color: #0056b3;
+}
