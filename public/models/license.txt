@@ -1,0 +1,11 @@
+Model Information:
+* title:	HAUNTED MANSION
+* source:	https://sketchfab.com/3d-models/haunted-mansion-94e1f8e882014d95a0ab14f195372443
+* author:	n-malmberg (https://sketchfab.com/n-malmberg)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "HAUNTED MANSION" (https://sketchfab.com/3d-models/haunted-mansion-94e1f8e882014d95a0ab14f195372443) by n-malmberg (https://sketchfab.com/n-malmberg) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
