@@ -1,49 +1,71 @@
-// camera.js
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-// Function to create the camera and controls
-export function createCamera(renderer) {
-    const camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-    camera.position.set(0, 1.5, 10); // Start camera facing front of the house
-    camera.lookAt(0, 1.5, 0); // Look at the front of the house
+let isFirstPerson = false;
+let firstPersonYaw = 0;  // Horizontal rotation (yaw)
+let firstPersonPitch = 0;  // Vertical rotation (pitch)
 
-    // Set up OrbitControls
-    const controls = new OrbitControls(camera, renderer.domElement);
+let isMouseDown = false;  // Flag to track if mouse button is held down
+
+// Function to create the cameras
+export function createCameras(renderer) {
+    const thirdPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    thirdPersonCamera.position.set(0, 1.5, 10); // Position it behind the character
+    thirdPersonCamera.lookAt(0, 1.5, 0);
+
+    const firstPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    firstPersonCamera.position.set(0, 1.5, 0); // First-person view from head height
+
+    const controls = new OrbitControls(thirdPersonCamera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.enableZoom = false;
     controls.enablePan = false;
 
-    return { camera, controls };
+    return { thirdPersonCamera, firstPersonCamera, controls };
 }
 
-// Function to move the camera
-export function moveCamera(camera, direction, speed) {
-    switch (direction) {
-        case 'up':
-            camera.position.z -= speed;
-            break;
-        case 'down':
-            camera.position.z += speed;
-            break;
-        case 'left':
-            camera.position.x -= speed;
-            break;
-        case 'right':
-            camera.position.x += speed;
-            break;
-        default:
-            break;
+// Function to switch between first-person and third-person views
+export function switchCamera(thirdPersonCamera, firstPersonCamera) {
+    isFirstPerson = !isFirstPerson; // Toggle between views
+    return isFirstPerson ? firstPersonCamera : thirdPersonCamera;
+}
+
+// Function to update first-person camera based on mouse movement
+export function updateFirstPersonCamera(camera, characterPosition) {
+    // Keep the camera at the character's head level
+    camera.position.set(characterPosition.x, characterPosition.y + 1.5, characterPosition.z);
+
+    // Apply mouse-based yaw and pitch
+    camera.rotation.set(firstPersonPitch, firstPersonYaw, 0);  // Ensure roll (z-axis) is always 0 to prevent tilting
+}
+
+// Function to handle mouse movement for first-person view
+function onMouseMove(event) {
+    if (isFirstPerson && isMouseDown) {
+        const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+        const deltaY = event.movementY || event.mozMovementY || 0;
+
+        // Adjust yaw (horizontal rotation) and pitch (vertical rotation)
+        firstPersonYaw -= deltaX * 0.002;  // Adjust sensitivity as needed
+        firstPersonPitch -= deltaY * 0.002;
+
+        // Limit pitch to avoid flipping over (looking too far up/down)
+        const maxPitch = Math.PI / 2 - 0.1;  // Slightly below 90 degrees
+        const minPitch = -Math.PI / 2 + 0.1; // Slightly above -90 degrees
+        firstPersonPitch = Math.max(minPitch, Math.min(maxPitch, firstPersonPitch));
     }
 }
 
-// Function to update camera aspect on resize
+// Mouse event listeners for first-person camera
+document.addEventListener('mousedown', () => {
+    if (isFirstPerson) isMouseDown = true;
+});
+document.addEventListener('mouseup', () => {
+    isMouseDown = false;
+});
+document.addEventListener('mousemove', onMouseMove);
+
 export function onWindowResize(camera, renderer) {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
