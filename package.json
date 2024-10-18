@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
+    "gsap": "^3.12.5",
     "three": "^0.169.0"
   },
   "devDependencies": {
