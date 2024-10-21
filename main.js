@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createCameras,switchCamera ,updateThirdPersonCamera, onWindowResize, updateFirstPersonCamera  } from './camera.js';
 import { createCharacter, moveCharacter } from './character.js';
+import { showHint, updateHintPosition, resetHint } from './hintSystem.js';
 
 let scene, renderer, keys = {}, mixer, walkAction, idleAction, activeAction, character;
 let thirdPersonCamera, firstPersonCamera, currentCamera, controls;
@@ -100,6 +101,18 @@ function init() {
             deadBody.position.set(4, houseGroundLevel+4.5, 0);  // Set the dead body at the same ground level as the house
             scene.add(deadBody);
         });
+        
+        // Load and position the blood splatter model
+        loader.load('./assets/models/blood_spattered/scene.gltf', (gltf) => {
+            const bloodSplatter = gltf.scene;
+            bloodSplatter.scale.set(0.05, 0.05, 0.05); // Adjust the scale as needed
+            bloodSplatter.position.set(2, houseGroundLevel+4.5, 3); // Position it in the scene
+            scene.add(bloodSplatter);
+
+            // Start animation loop
+          animate();
+            
+        });
     });
 
     // Add basic lighting
@@ -134,6 +147,18 @@ function animate() {
     }
 
     if (mixer) mixer.update(0.016);  // Update animations
+    
+    // Check if the player is close to the blood splatter
+    const bloodSplatterPosition = new THREE.Vector3(2, houseGroundLevel+4.5, 3); // Position of the blood splatter
+    const distanceToBloodSplatter = character.position.distanceTo(bloodSplatterPosition);
+    const showHintThreshold = 2; // Adjust the distance threshold as needed
+
+    if (distanceToBloodSplatter < showHintThreshold) {
+        showHint(scene, currentCamera, 'This blood splatter is a clue. Where could the body be?');
+    }
+
+    // Update hint position to always face the camera
+    updateHintPosition(currentCamera);
 
     renderer.render(scene, currentCamera);  // Render the scene from the active camera
 }
@@ -185,6 +210,21 @@ function switchAnimation(newAction) {
     newAction.reset().fadeIn(0.5).play(); // Fade into the new action
     activeAction = newAction; // Update the current action
 }
+
+// function showHint() {
+//     // Create a new DOM element to display the hint/riddle
+//     const hintElement = document.createElement('div');
+//     hintElement.classList.add('hint');
+//     hintElement.textContent = 'This blood splatter is a clue. Where could the body be?';
+  
+//     // Append the hint element to the page
+//     document.body.appendChild(hintElement);
+  
+//     // Add a timer to remove the hint after a few seconds
+//     setTimeout(() => {
+//       document.body.removeChild(hintElement);
+//     }, 5000); // Remove the hint after 5 seconds
+//   }
 
 
 
