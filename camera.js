@@ -10,8 +10,8 @@ let isMouseDown = false;  // Flag to track if mouse button is held down
 // Function to create the cameras
 export function createCameras(renderer) {
     const thirdPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    thirdPersonCamera.position.set(0, 1.5, 10); // Position it behind the character
-    thirdPersonCamera.lookAt(0, 1.5, 0);
+    thirdPersonCamera.position.set(0, 0.8, 5); // Position it behind the character
+    thirdPersonCamera.lookAt(0, 0.5, 0);
 
     const firstPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     firstPersonCamera.position.set(0, 1.5, 0); // First-person view from head height
@@ -42,7 +42,7 @@ export function updateThirdPersonCamera(camera, character) {
     const cameraPosition = character.position.clone().add(direction.multiplyScalar(-2)); // Adjust distance behind character
     
     // Set camera's new position and height
-    camera.position.lerp(new THREE.Vector3(cameraPosition.x, character.position.y + 1.5, cameraPosition.z), 0.1);
+    camera.position.lerp(new THREE.Vector3(cameraPosition.x, character.position.y + 0.9, cameraPosition.z), 0.1);
     
     // Make the camera look at the character
     camera.lookAt(character.position.x, character.position.y + 1.5, character.position.z);

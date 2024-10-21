@@ -51,51 +51,43 @@ export function createCharacter(gltf) {
 }
 
 export function moveCharacter(camera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel) {
-  const speed = 0.01;  // Adjust movement speed
-  const direction = new THREE.Vector3();  // Movement direction vector
+  const speed = 0.1;  // Movement speed
+  const rotationSpeed = 0.05;  // Rotation speed
+  const moveDirection = new THREE.Vector3();  // Direction for movement
 
+  // Forward and right directions based on character's current rotation
+  let forward = new THREE.Vector3(0, 0, 1).applyQuaternion(character.quaternion).normalize();
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(character.quaternion).normalize();
+
+  // If in first-person mode, invert forward and backward logic
   if (isFirstPerson) {
-      // Handle first-person movement
-      const forwardDirection = new THREE.Vector3();
-      camera.getWorldDirection(forwardDirection);
-      forwardDirection.y = 0;  // Ignore Y axis movement (vertical)
-      forwardDirection.normalize();
+      forward.negate();  // Invert the forward direction
+  }
 
-      // Compute the right direction
-      const rightDirection = new THREE.Vector3();
-      rightDirection.crossVectors(forwardDirection, camera.up).normalize();
+  // Update movement direction based on key inputs
+  if (keys['w']) {
+      moveDirection.add(forward);  // Move forward
+  }
+  if (keys['s']) {
+      moveDirection.sub(forward);  // Move backward
+  }
+  if (keys['a']) {
+      // Rotate the character to the left
+      character.rotation.y += rotationSpeed;
+  }
+  if (keys['d']) {
+      // Rotate the character to the right
+      character.rotation.y -= rotationSpeed;
+  }
 
-      let moveDirection = new THREE.Vector3();  // Initialize movement direction vector
+  // Apply movement to character's position
+  if (moveDirection.length() > 0) {
+      moveDirection.normalize();
+      character.position.add(moveDirection.multiplyScalar(speed));
+  }
 
-      if (keys['w']) character.position.z -= speed;
-      if (keys['s']) character.position.z += speed;
-      if (keys['a']) character.position.x -= speed;
-      if (keys['d']) character.position.x += speed;
-
-      if (character.position.y < houseGroundLevel) {
-          character.position.y = houseGroundLevel;
-      }
-  } else {
-      // Handle third-person movement logic
-      const forwardDirection = new THREE.Vector3(0, 0, 1).applyQuaternion(character.quaternion);
-
-      if (keys['w']) direction.add(forwardDirection);
-      if (keys['s']) direction.sub(forwardDirection);
-      if (keys['a']) direction.add(new THREE.Vector3(-1, 0, 0));
-      if (keys['d']) direction.add(new THREE.Vector3(1, 0, 0));
-
-      if (keys['e'] || keys[' ']) {
-          if (character.position.y <= houseGroundLevel) {
-              const newPosition = character.position.clone();
-              newPosition.y = houseUpperFloorLevel;
-              character.position.copy(newPosition);
-          }
-      }
-
-      if (direction.length() > 0) {
-          direction.normalize();
-          const newPosition = character.position.clone().add(direction.multiplyScalar(speed));
-          character.position.copy(newPosition);
-      }
+  // Keep character on the ground
+  if (character.position.y < houseGroundLevel) {
+      character.position.y = houseGroundLevel;
   }
 }
