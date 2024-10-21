@@ -1,5 +1,5 @@
-import * as THREE from "./node_modules/three/build/three.module.js";
-import { GLTFLoader } from "./node_modules/three/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 class Character {
   constructor(modelUrl) {
@@ -50,76 +50,52 @@ export function createCharacter(gltf) {
   return character;
 }
 
-// Function to move the character relative to the camera
-export function moveCharacter(camera, keys, character, isFirstPerson) {
-  const speed = 0.1; // Adjust movement speed
-  const direction = new THREE.Vector3(); // Direction vector
+export function moveCharacter(camera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel) {
+  const speed = 0.01;  // Adjust movement speed
+  const direction = new THREE.Vector3();  // Movement direction vector
 
   if (isFirstPerson) {
-    // Get the camera's forward direction
-    const forwardDirection = new THREE.Vector3();
-    camera.getWorldDirection(forwardDirection); // Get camera forward direction
-    forwardDirection.y = 0; // Ignore the vertical movement
-    forwardDirection.normalize();
+      // Handle first-person movement
+      const forwardDirection = new THREE.Vector3();
+      camera.getWorldDirection(forwardDirection);
+      forwardDirection.y = 0;  // Ignore Y axis movement (vertical)
+      forwardDirection.normalize();
 
-    // Get the right direction relative to the camera's forward direction
-    const rightDirection = new THREE.Vector3();
-    rightDirection.crossVectors(forwardDirection, camera.up).normalize(); // Right direction
+      // Compute the right direction
+      const rightDirection = new THREE.Vector3();
+      rightDirection.crossVectors(forwardDirection, camera.up).normalize();
 
-    // Move the character relative to the camera's orientation
-    const moveDirection = new THREE.Vector3();
+      let moveDirection = new THREE.Vector3();  // Initialize movement direction vector
 
-    if (keys["w"]) moveDirection.add(forwardDirection); // Move forward
-    if (keys["s"]) moveDirection.add(forwardDirection.clone().negate()); // Move backward
-    if (keys["a"]) moveDirection.add(rightDirection.clone().negate()); // Move left
-    if (keys["d"]) moveDirection.add(rightDirection); // Move right
+      if (keys['w']) character.position.z -= speed;
+      if (keys['s']) character.position.z += speed;
+      if (keys['a']) character.position.x -= speed;
+      if (keys['d']) character.position.x += speed;
 
-    // Normalize and apply movement
-    if (moveDirection.length() > 0) {
-      moveDirection.normalize();
-      character.position.add(moveDirection.multiplyScalar(speed));
-    }
-
-    // Optional: You can rotate the character to face the direction of movement in first-person
-    if (moveDirection.length() > 0) {
-      const targetPosition = character.position.clone().add(moveDirection);
-      character.lookAt(targetPosition);
-    }
+      if (character.position.y < houseGroundLevel) {
+          character.position.y = houseGroundLevel;
+      }
   } else {
-    // Get the camera's forward and right directions
-    const forwardDirection = new THREE.Vector3();
-    camera.getWorldDirection(forwardDirection); // Get camera forward direction
-    forwardDirection.y = 0; // Ignore the vertical movement
-    forwardDirection.normalize();
+      // Handle third-person movement logic
+      const forwardDirection = new THREE.Vector3(0, 0, 1).applyQuaternion(character.quaternion);
 
-    const rightDirection = new THREE.Vector3();
-    rightDirection.crossVectors(forwardDirection, camera.up); // Right direction relative to forward
-    rightDirection.normalize();
+      if (keys['w']) direction.add(forwardDirection);
+      if (keys['s']) direction.sub(forwardDirection);
+      if (keys['a']) direction.add(new THREE.Vector3(-1, 0, 0));
+      if (keys['d']) direction.add(new THREE.Vector3(1, 0, 0));
 
-    let moveDirection = new THREE.Vector3();
+      if (keys['e'] || keys[' ']) {
+          if (character.position.y <= houseGroundLevel) {
+              const newPosition = character.position.clone();
+              newPosition.y = houseUpperFloorLevel;
+              character.position.copy(newPosition);
+          }
+      }
 
-    // Check which keys are pressed and move the character in the respective direction
-    if (keys["w"]) moveDirection.add(forwardDirection); // Move forward
-    if (keys["s"])
-      moveDirection.add(forwardDirection.clone().multiplyScalar(-1)); // Move backward
-    if (keys["a"]) moveDirection.add(rightDirection.clone().multiplyScalar(-1)); // Strafe left
-    if (keys["d"]) moveDirection.add(rightDirection); // Strafe right
-
-    // Normalize the direction to avoid diagonal speed boost
-    if (moveDirection.length() > 0) {
-      moveDirection.normalize();
-      character.position.add(moveDirection.multiplyScalar(speed));
-
-      // Make the character face the direction of movement
-      const lookAtTarget = character.position.clone().add(moveDirection);
-      character.lookAt(lookAtTarget);
-    }
+      if (direction.length() > 0) {
+          direction.normalize();
+          const newPosition = character.position.clone().add(direction.multiplyScalar(speed));
+          character.position.copy(newPosition);
+      }
   }
 }
-
-// Function to return the character object
-export function getCharacter() {
-  return Character;
-}
-
-export default Character;

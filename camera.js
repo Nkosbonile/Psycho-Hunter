@@ -24,21 +24,42 @@ export function createCameras(renderer) {
 
     return { thirdPersonCamera, firstPersonCamera, controls };
 }
-
 // Function to switch between first-person and third-person views
 export function switchCamera(thirdPersonCamera, firstPersonCamera) {
     isFirstPerson = !isFirstPerson; // Toggle between views
     return isFirstPerson ? firstPersonCamera : thirdPersonCamera;
 }
 
-// Function to update first-person camera based on mouse movement
-export function updateFirstPersonCamera(camera, characterPosition) {
-    // Keep the camera at the character's head level
-    camera.position.set(characterPosition.x, characterPosition.y + 1.5, characterPosition.z);
 
-    // Apply mouse-based yaw and pitch
-    camera.rotation.set(firstPersonPitch, firstPersonYaw, 0);  // Ensure roll (z-axis) is always 0 to prevent tilting
+export function updateThirdPersonCamera(camera, character) {
+    const offset = new THREE.Vector3(0, 1.5, -2);  // Position behind the character (negative Z means behind)
+    
+    // Create a direction vector based on the character's current rotation
+    const direction = new THREE.Vector3(0, 0, 1);  // The direction vector representing the forward direction
+    direction.applyQuaternion(character.quaternion);  // Apply the character's current rotation to the direction vector
+
+    // Calculate the camera position behind the character by adding the offset to the character's position
+    const cameraPosition = character.position.clone().add(direction.multiplyScalar(-2)); // Adjust distance behind character
+    
+    // Set camera's new position and height
+    camera.position.lerp(new THREE.Vector3(cameraPosition.x, character.position.y + 1.5, cameraPosition.z), 0.1);
+    
+    // Make the camera look at the character
+    camera.lookAt(character.position.x, character.position.y + 1.5, character.position.z);
 }
+
+
+// Function to update first-person camera based on mouse movement
+export function updateFirstPersonCamera(camera, character) {
+    camera.position.copy(character.position); // Position the camera at the character's position
+    camera.position.y += 1.5; // Adjust height to eye level (tweak as necessary)
+    
+    // Make the camera look in the same direction as the character
+    const direction = new THREE.Vector3();
+    character.getWorldDirection(direction);
+    camera.quaternion.copy(character.quaternion); // Align camera rotation with character's
+}
+
 
 // Function to handle mouse movement for first-person view
 function onMouseMove(event) {

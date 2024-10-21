@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { createCameras, switchCamera, onWindowResize, updateFirstPersonCamera } from './camera.js';
+import { createCameras,switchCamera ,updateThirdPersonCamera, onWindowResize, updateFirstPersonCamera  } from './camera.js';
 import { createCharacter, moveCharacter } from './character.js';
 
 let scene, renderer, keys = {}, mixer, walkAction, idleAction, activeAction, character;
@@ -8,6 +8,7 @@ let thirdPersonCamera, firstPersonCamera, currentCamera, controls;
 let isFirstPerson = false;
 let houseGroundLevel = 0;  // Ground level of the house
 const walls = [];
+let houseUpperFloorLevel = 0;
 
     let currentClueIndex = 0;
     let timeLeft = 600;
@@ -40,6 +41,8 @@ function init() {
         // Calculate the house's ground level using bounding box
         const houseBox = new THREE.Box3().setFromObject(house);
         houseGroundLevel = houseBox.min.y;  // Save ground level for later use
+        houseUpperFloorLevel = houseGroundLevel + 4;
+
 
         // Traverse through the house model and log texture info
         house.traverse((node) => {
@@ -69,7 +72,7 @@ function init() {
           scene.add(character);
           character.scale.set(0.5, 0.5, 0.5);
 
-          character.position.set(0, houseGroundLevel + 4.5, 2.5);
+          character.position.set(0,houseGroundLevel + 4.7,5)
           character.rotation.y = Math.PI; 
 
           // Set up animations
@@ -113,27 +116,26 @@ function animate() {
 
     const isMoving = keys['w'] || keys['a'] || keys['s'] || keys['d'];
 
-    // Transition to walk if moving, idle if not moving
+    // Switch between animations
     if (isMoving && activeAction !== walkAction) {
         switchAnimation(walkAction);
     } else if (!isMoving && activeAction !== idleAction) {
         switchAnimation(idleAction);
     }
 
-    // Move character and camera
-    moveCharacter(currentCamera, keys, character, isFirstPerson);  // Pass isFirstPerson
+    // Move the character
+    moveCharacter(currentCamera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel);
 
+    // Update the camera based on the mode
     if (isFirstPerson) {
-        updateFirstPersonCamera(firstPersonCamera, character.position); // Update first-person camera position
+        updateFirstPersonCamera(firstPersonCamera, character);  // Update first-person camera
+    } else {
+        updateThirdPersonCamera(thirdPersonCamera, character);  // Update third-person camera
     }
 
-    if (mixer) mixer.update(0.016); // Update animations
+    if (mixer) mixer.update(0.016);  // Update animations
 
-    if (!isFirstPerson) {
-        controls.update();  // Update controls only in third-person view
-    }
-
-    renderer.render(scene, currentCamera);  // Render the scene with the current camera
+    renderer.render(scene, currentCamera);  // Render the scene from the active camera
 }
 /// Function to show the popup when the player fails to find the body (time's up)
 function showFailPopup() {
@@ -177,8 +179,6 @@ function startTimer() {
 
 
 
-
-
 // Switch between animations
 function switchAnimation(newAction) {
     activeAction.fadeOut(0.5); // Smooth transition
@@ -186,27 +186,27 @@ function switchAnimation(newAction) {
     activeAction = newAction; // Update the current action
 }
 
-// Key event handlers
-window.addEventListener('keydown', (event) => {
-    keys[event.key.toLowerCase()] = true; // Set the key as pressed
 
-    // Switch between first-person and third-person view on pressing 'V'
-    if (event.key.toLowerCase() === 'v') {
-        currentCamera = switchCamera(thirdPersonCamera, firstPersonCamera);
-        isFirstPerson = !isFirstPerson;
-        controls.enabled = !isFirstPerson; // Disable OrbitControls in first-person view
+
+window.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    
+    if (key === 'v') {
+        isFirstPerson = !isFirstPerson;  // Toggle between first-person and third-person
+        currentCamera = isFirstPerson ? firstPersonCamera : thirdPersonCamera;  // Switch the camera
+        console.log(`Switched to ${isFirstPerson ? 'First-Person' : 'Third-Person'} Camera`);
     }
+
+    keys[key] = true;  // Set the key as pressed
+    console.log('Key Down:', key);  // Log pressed key
 });
 
 window.addEventListener('keyup', (event) => {
-    keys[event.key.toLowerCase()] = false; // Set the key as released
+    keys[event.key.toLowerCase()] = false;  // Set the key as released
+    console.log('Key Up:', event.key.toLowerCase());  // Log released key
 });
 
 // Start the application
 init();
 startTimer();
 
-// Event listener for restart button in fail popup
-document.getElementById('failRestartButton').addEventListener('click', () => {
-    location.reload(); // Reload the game (or handle the restart logic as needed)
-});
