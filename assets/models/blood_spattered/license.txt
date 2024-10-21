@@ -1,0 +1,11 @@
+Model Information:
+* title:	BLOOD SPATTERED
+* source:	https://sketchfab.com/3d-models/blood-spattered-2797a131014a489f8c92e3398e354efa
+* author:	adolfochs (https://sketchfab.com/adolfochs)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "BLOOD SPATTERED" (https://sketchfab.com/3d-models/blood-spattered-2797a131014a489f8c92e3398e354efa) by adolfochs (https://sketchfab.com/adolfochs) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
