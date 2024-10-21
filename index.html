@@ -3,33 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Game</title>
-    <link rel="stylesheet" href="style.css">
+    <title>3D Game</title>
+   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- <div class="controls">
-        <button id="moveUp">Forward</button>
-        <button id="moveLeft">Left</button>
-        <button id="moveDown">Backward</button>
-        <button id="moveRight">Right</button>
-        <button id="interact">Interact</button> 
-        <button id="showHint">Show Hint</button>
 
-    </div>
-    <div id="customAlert" class="custom-alert">
-      <p id="customAlertMessage">You need to enter the house to get a hint!</p>
-      <button id="closeAlert">OK</button>
+  <div class="controls">
+      <button id="up">W</button>
+      <button id="left">A</button>
+      <button id="down">S</button>
+      <button id="right">D</button>
   </div>
+
+  <button id="clueButton">Show Clue</button>
   
-    <div class="hint" id="hintMessage">Press the door to enter the house!</div> 
-    
-    <div id="riddleHintMessage" class="riddle-hint-message">
-      I have keys but open no locks. I have space but no room. You can enter, but you can’t go outside. What am I?
-  </div>
-  -->
-  
-    <script type="module" src="main.js" defer></script> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
-  
+  <div id="clueDisplay">This is your clue. Use it wisely.</div>
+  <div id="timer">00:00</div>
+   
+  <div id="gameOverPopupFail">
+    <h1 id="gameOverFailTitle">Game Over</h1>
+    <p id="gameOverFailMessage">Your time is up!</p>
+    <button id="failRestartButton">Restart Game</button>
+</div>
+
+<!-- Popup for when the player finds the body -->
+<div id="gameOverPopupSuccess">
+    <h1 id="gameOverSuccessTitle">You Found the Body!</h1>
+    <p id="gameOverSuccessMessage">Congrats! What would you like to do next?</p>
+    <button id="nextLevelButton">Next Level</button>
+    <button id="successRestartButton">Restart Game</button>
+</div>
+
+  <script type="module" src="main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+
 </body>
 </html>

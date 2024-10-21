@@ -9,11 +9,11 @@ let isMouseDown = false;  // Flag to track if mouse button is held down
 
 // Function to create the cameras
 export function createCameras(renderer) {
-    const thirdPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    thirdPersonCamera.position.set(0, 1.5, 10); // Position it behind the character
+    const thirdPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000);
+    thirdPersonCamera.position.set(0, 1.5, 4); // Inside the house behind the character
     thirdPersonCamera.lookAt(0, 1.5, 0);
 
-    const firstPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const firstPersonCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000);
     firstPersonCamera.position.set(0, 1.5, 0); // First-person view from head height
 
     const controls = new OrbitControls(thirdPersonCamera, renderer.domElement);
@@ -31,20 +31,41 @@ export function switchCamera(thirdPersonCamera, firstPersonCamera) {
     return isFirstPerson ? firstPersonCamera : thirdPersonCamera;
 }
 
-// Function to update first-person camera based on mouse movement
-export function updateFirstPersonCamera(camera, characterPosition) {
-    // Keep the camera at the character's head level
-    camera.position.set(characterPosition.x, characterPosition.y + 1.5, characterPosition.z);
+export function updateThirdPersonCamera(camera, character) {
+    const cameraOffset = new THREE.Vector3(0, 1.5, 4);  // Offset for third-person camera
+    const cameraPosition = cameraOffset.applyMatrix4(character.matrixWorld);  // Apply character's transformation to the offset
+    camera.position.lerp(cameraPosition, 0.1);  // Smooth transition to new position
+    camera.lookAt(character.position.x, character.position.y + 1.5, character.position.z);  // Keep looking at the character
+  }
 
-    // Apply mouse-based yaw and pitch
-    camera.rotation.set(firstPersonPitch, firstPersonYaw, 0);  // Ensure roll (z-axis) is always 0 to prevent tilting
+//   export function updateThirdPersonCamera(camera, character) {
+//     const offset = new THREE.Vector3(0, 2, -5);  // Position behind and above the character
+//     const characterPosition = character.position.clone();
+    
+//     // Set the camera position behind the character
+//     camera.position.copy(characterPosition).add(offset);
+    
+//     // Make the camera look at the character
+//     camera.lookAt(character.position);
+// }
+
+
+// Function to update first-person camera based on mouse movement
+export function updateFirstPersonCamera(camera, character) {
+    camera.position.copy(character.position); // Position the camera at the character's position
+    camera.position.y += 1.5; // Adjust height to eye level (tweak as necessary)
+    
+    // Make the camera look in the same direction as the character
+    const direction = new THREE.Vector3();
+    character.getWorldDirection(direction);
+    camera.quaternion.copy(character.quaternion); // Align camera rotation with character's
 }
 
 // Function to handle mouse movement for first-person view
 function onMouseMove(event) {
     if (isFirstPerson && isMouseDown) {
         const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-        const deltaY = event.movementY || event.mozMovementY || 0;
+        const deltaY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
         // Adjust yaw (horizontal rotation) and pitch (vertical rotation)
         firstPersonYaw -= deltaX * 0.002;  // Adjust sensitivity as needed
@@ -57,17 +78,24 @@ function onMouseMove(event) {
     }
 }
 
-// Mouse event listeners for first-person camera
-document.addEventListener('mousedown', () => {
-    if (isFirstPerson) isMouseDown = true;
-});
-document.addEventListener('mouseup', () => {
-    isMouseDown = false;
-});
-document.addEventListener('mousemove', onMouseMove);
+// Function to handle mouse button press
+function onMouseDown(event) {
+    isMouseDown = true;
+}
 
+// Function to handle mouse button release
+function onMouseUp(event) {
+    isMouseDown = false;
+}
+
+// Function to handle window resize
 export function onWindowResize(camera, renderer) {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+// Add event listeners for mouse movements and button press/release
+window.addEventListener('mousemove', onMouseMove);
+window.addEventListener('mousedown', onMouseDown);
+window.addEventListener('mouseup', onMouseUp);
