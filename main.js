@@ -73,7 +73,7 @@ function init() {
           scene.add(character);
           character.scale.set(0.5, 0.5, 0.5);
 
-          character.position.set(0,houseGroundLevel + 4.7,5)
+          character.position.set(5,houseGroundLevel + 4.7,6)
           character.rotation.y = Math.PI; 
 
           // Set up animations
@@ -98,7 +98,7 @@ function init() {
         loader.load('./assets/models/dead_body/scene.gltf', function (gltf) {
             const deadBody = gltf.scene;
             deadBody.scale.set(0.5, 0.5, 0.5);  // Adjust size
-            deadBody.position.set(4, houseGroundLevel+4.5, 0);  // Set the dead body at the same ground level as the house
+            deadBody.position.set(-6, houseGroundLevel+4.5, -5);  // Set the dead body at the same ground level as the house
             scene.add(deadBody);
         });
         
@@ -106,12 +106,28 @@ function init() {
         loader.load('./assets/models/blood_spattered/scene.gltf', (gltf) => {
             const bloodSplatter = gltf.scene;
             bloodSplatter.scale.set(0.05, 0.05, 0.05); // Adjust the scale as needed
-            bloodSplatter.position.set(2, houseGroundLevel+4.5, 3); // Position it in the scene
+            bloodSplatter.position.set(4, houseGroundLevel+4.5, 0); // Position it in the scene
             scene.add(bloodSplatter);
 
             // Start animation loop
           animate();
             
+        });
+
+        // Load and position weapon
+        loader.load('./assets/models/nail_bat_--_nailed_nightmare/scene.gltf', (gltf) => {
+            const weapon = gltf.scene;
+            weapon.scale.set(0.7, 0.7, 0.7);
+            weapon.position.set(8.5, houseGroundLevel+4.45, -6.5);
+            scene.add(weapon);
+        });
+
+        // Load and position weapon
+        loader.load('./assets/models/used_canguro_shoes_____free/scene.gltf', (gltf) => {
+            const shoe = gltf.scene;
+            shoe.scale.set(0.02, 0.02, 0.02);
+            shoe.position.set(-3.5, houseGroundLevel+4.59, -5.7);
+            scene.add(shoe);
         });
     });
 
@@ -149,7 +165,7 @@ function animate() {
     if (mixer) mixer.update(0.016);  // Update animations
     
     // Check if the player is close to the blood splatter
-    const bloodSplatterPosition = new THREE.Vector3(2, houseGroundLevel+4.5, 3); // Position of the blood splatter
+    const bloodSplatterPosition = new THREE.Vector3(4, houseGroundLevel+4.5, 0); // Position of the blood splatter
     const distanceToBloodSplatter = character.position.distanceTo(bloodSplatterPosition);
     const showHintThreshold = 2; // Adjust the distance threshold as needed
 
