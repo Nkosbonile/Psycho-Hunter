@@ -130,3 +130,215 @@ canvas {
 .custom-alert button:hover {
     background-color: #0056b3;
 }
+
+
+
+
+
+#gameCanvas {
+    display: block;
+}
+
+/* Center the control buttons in a circular form */
+.controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.controls button {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    margin: 5px;
+    border-radius: 50%;
+    border: none;
+    background-color: #621a1a;
+    color: white;
+    opacity: 0.8;
+}
+
+.controls button:active {
+    background-color: #971f1f;
+}
+
+/* Circular button positioning */
+#up {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#down {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#left {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#right {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+
+/* Riddle display box */
+#riddleDisplay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border: 2px solid #444;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    color: black;
+}
+
+#riddleText {
+    margin-bottom: 10px;
+}
+
+/* Clue display box */
+#clueDisplay {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #481d1d;
+    padding: 10px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    display: none;
+}
+
+/* Popup for when the player fails (time runs out) */
+#gameOverPopupFail {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9); /* Semi-transparent black background */
+    color: white;
+    text-align: center;
+    padding: 20px;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Popup for when the player finds the body (success) */
+#gameOverPopupSuccess {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Styling for both titles */
+#gameOverFailTitle, #gameOverSuccessTitle {
+    font-size: 3em;
+    margin-bottom: 10px;
+    color: #ff3d3d;
+}
+
+/* Styling for both messages */
+#gameOverFailMessage, #gameOverSuccessMessage {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+/* Buttons for both popups */
+#failRestartButton, #successRestartButton, #nextLevelButton {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#failRestartButton:hover, #successRestartButton:hover, #nextLevelButton:hover {
+    background-color: #e60000; /* Darken the button on hover */
+}
+
+#failRestartButton:active, #successRestartButton:active, #nextLevelButton:active {
+    background-color: #b30000; /* Even darker when clicked */
+}
+
+/* Next Level button with distinct color for success popup */
+#nextLevelButton {
+    background-color: #28a745; /* Green color for the next level button */
+}
+
+#nextLevelButton:hover {
+    background-color: #218838;
+}
+
+#nextLevelButton:active {
+    background-color: #1e7e34;
+}
+
+
+/* Clue button */
+#clueButton {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #6d230e;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#clueButton:hover {
+    background-color: #720c30f5;
+}
+
+#timer {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #ffdd00;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border: 2px solid #444;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    z-index: 100;
+}

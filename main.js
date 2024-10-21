@@ -7,6 +7,11 @@ let scene, renderer, keys = {}, mixer, walkAction, idleAction, activeAction, cha
 let thirdPersonCamera, firstPersonCamera, currentCamera, controls;
 let isFirstPerson = false;
 let houseGroundLevel = 0;  // Ground level of the house
+const walls = [];
+
+    let currentClueIndex = 0;
+    let timeLeft = 600;
+    let timerId;
 
 // Initialize the scene
 function init() {
@@ -21,6 +26,7 @@ function init() {
     thirdPersonCamera = cameras.thirdPersonCamera;
     firstPersonCamera = cameras.firstPersonCamera;
     controls = cameras.controls;
+
 
     currentCamera = thirdPersonCamera; // Start with third-person camera
     window.addEventListener('resize', () => onWindowResize(currentCamera, renderer));
@@ -39,9 +45,12 @@ function init() {
         house.traverse((node) => {
             if (node.isMesh) {
                 const material = node.material;
-                console.log(node.material.map);       // Check if diffuse map is loaded
-                console.log(node.material.normalMap);  // Check if normal map is loaded
-                console.log(node.material.specularMap);  // Check if specular map is loaded
+   
+
+                
+                const box = new THREE.Box3().setFromObject(node);
+                walls.push(box);
+
 
                 // Apply the diffuse texture manually if it's not applied automatically
                 if (material.map === null && material.userData.diffuseTexture) {
@@ -56,25 +65,29 @@ function init() {
 
         // Load the character model
         loader.load('./assets/models/iwi_male_character_02/scene.gltf', (gltf) => {
-            character = createCharacter(gltf);
-            scene.add(character);
-            character.scale.set(0.5, 0.5, 0.5);
+          character = createCharacter(gltf);
+          scene.add(character);
+          character.scale.set(0.5, 0.5, 0.5);
 
-            // Set character on the house ground level
-            character.position.y = houseGroundLevel+4.5;
+          character.position.set(0, houseGroundLevel + 4.5, 2.5);
+          character.rotation.y = Math.PI; 
 
-            // Set up animations
-            mixer = new THREE.AnimationMixer(character);
-            const animations = gltf.animations;
-            walkAction = mixer.clipAction(THREE.AnimationClip.findByName(animations, 'Rig|walk'));
-            idleAction = mixer.clipAction(THREE.AnimationClip.findByName(animations, 'Rig|idle'));
+          // Set up animations
+          mixer = new THREE.AnimationMixer(character);
+          const animations = gltf.animations;
+          walkAction = mixer.clipAction(
+            THREE.AnimationClip.findByName(animations, "Rig|walk")
+          );
+          idleAction = mixer.clipAction(
+            THREE.AnimationClip.findByName(animations, "Rig|idle")
+          );
 
-            // Set idle as the default active action
-            activeAction = idleAction;
-            idleAction.play();
+          // Set idle as the default active action
+          activeAction = idleAction;
+          idleAction.play();
 
-            // Start animation loop
-            animate();
+          // Start animation loop
+          animate();
         });
 
         // Load the dead body model and position it
@@ -122,6 +135,49 @@ function animate() {
 
     renderer.render(scene, currentCamera);  // Render the scene with the current camera
 }
+/// Function to show the popup when the player fails to find the body (time's up)
+function showFailPopup() {
+    document.getElementById('gameOverPopupFail').style.display = 'flex';
+    disableGameControls(); // Disable controls when showing the fail popup
+}
+
+// Function to show the popup when the player finds the body
+function showSuccessPopup() {
+    document.getElementById('gameOverPopupSuccess').style.display = 'flex';
+    disableGameControls(); // Disable controls when showing the success popup
+}
+
+let isCorrectBody = false; // This variable will track whether the body is correct or not
+
+
+function startTimer() {
+  const timerDisplay = document.getElementById("timer");
+
+  timerId = setInterval(() => {
+    // Calculate minutes and seconds
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+
+    // Format the time as MM:SS
+    const formattedTime = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    timerDisplay.innerText = `Time Left: ${formattedTime}`;
+
+    // Decrement the time left
+    timeLeft--;
+
+    // Check if the time has run out
+    if (timeLeft < 0) {
+      clearInterval(timerId);
+      timerDisplay.innerText = "Time's Up!";
+      showFailPopup(); // Show fail popup when time's up
+      // You can also disable the game controls here
+    }
+  }, 1000); // Update every second
+}
+
+
+
+
 
 // Switch between animations
 function switchAnimation(newAction) {
@@ -148,3 +204,9 @@ window.addEventListener('keyup', (event) => {
 
 // Start the application
 init();
+startTimer();
+
+// Event listener for restart button in fail popup
+document.getElementById('failRestartButton').addEventListener('click', () => {
+    location.reload(); // Reload the game (or handle the restart logic as needed)
+});
