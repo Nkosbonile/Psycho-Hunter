@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psycho Hunter</title>
+   <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- <div class="controls">
+      <button id="up">W</button>
+      <button id="left">A</button>
+      <button id="down">S</button>
+      <button id="right">D</button>
+  </div> -->
+
+  <button id="clueButton">Show Clue</button>
+  
+  <div id="clueDisplay">This is your clue. Use it wisely.</div>
+  <div id="timer">00:00</div>
+   
+  <div id="gameOverPopupFail">
+    <h1 id="gameOverFailTitle">Game Over</h1>
+    <p id="gameOverFailMessage">Your time is up!</p>
+    <button id="failRestartButton">Restart Game</button>
+</div>
+
+<!-- Popup for when the player finds the body -->
+<div id="gameOverPopupSuccess">
+    <h1 id="gameOverSuccessTitle">You Found the Body!</h1>
+    <p id="gameOverSuccessMessage">Congrats! What would you like to do next?</p>
+    <button id="nextLevelButton">Next Level</button>
+    <button id="successRestartButton">Restart Game</button>
+</div>
+
+  <script type="module" src="main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+
+</body>
+</html>
