@@ -50,26 +50,37 @@ function createHintSprite(message) {
     return sprite;
 }
 
-export function showHint(scene, camera, message) {
-    if (!hintShown) {
-        hintSprite = createHintSprite(message);
-        scene.add(hintSprite);
-        hintShown = true;
+// export function showHint(scene, camera, message) {
+//     if (!hintShown) {
+//         hintSprite = createHintSprite(message);
+//         scene.add(hintSprite);
+//         hintShown = true;
 
-        // Position the sprite in front of the camera
-        const distance = 2; // Distance from camera
-        const vector = new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion);
-        hintSprite.position.copy(camera.position).add(vector);
+//         // Position the sprite in front of the camera
+//         const distance = 2; // Distance from camera
+//         const vector = new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion);
+//         hintSprite.position.copy(camera.position).add(vector);
 
-        // Remove the hint after 5 seconds
-        setTimeout(() => {
-            if (hintSprite) {
-                scene.remove(hintSprite);
-                hintSprite = null;
-            }
-        }, 5000);
-    }
-}
+//         // Remove the hint after 5 seconds
+//         setTimeout(() => {
+//             if (hintSprite) {
+//                 scene.remove(hintSprite);
+//                 hintSprite = null;
+//             }
+//         }, 5000);
+//     }
+// }
+
+export function showHint(message) {
+    const hintElement = document.getElementById('hintMessage');
+    hintElement.textContent = message;
+    hintElement.style.display = 'block';
+  
+    setTimeout(() => {
+      hintElement.style.display = 'none';
+    }, 3000); // Remove hint after 3 seconds
+  }
+
 
 export function updateHintPosition(camera) {
     if (hintSprite) {
