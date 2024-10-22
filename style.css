@@ -360,8 +360,8 @@ canvas {
 }
   #clueButton {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    bottom: 10px;
+    right: 10px;
     padding: 20px; /* Increased padding to make it larger */
     background-color: rgba(161, 72, 3, 0.8); /* Dark orange background */
     color: #fff;

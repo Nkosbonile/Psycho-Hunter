@@ -205,6 +205,59 @@ backgroundMusic.loop = true;
 backgroundMusic.volume = 0.5; // Adjust as needed
 backgroundMusic.play();
 
+function createControlButtons() {
+  const controlDiv = document.createElement('div');
+  controlDiv.className = 'controls';
+
+  const upButton = createButton('W', 'up');
+  const leftButton = createButton('A', 'left');
+  const downButton = createButton('S', 'down');
+  const rightButton = createButton('D', 'right');
+  
+  controlDiv.appendChild(upButton);
+  controlDiv.appendChild(leftButton);
+  controlDiv.appendChild(downButton);
+  controlDiv.appendChild(rightButton);
+  
+  document.body.appendChild(controlDiv);
+
+  // Event listeners for control buttons
+  upButton.addEventListener("mousedown", () => { keys["w"] = true; });
+  upButton.addEventListener("mouseup", () => { keys["w"] = false; });
+
+  leftButton.addEventListener("mousedown", () => { keys["a"] = true; });
+  leftButton.addEventListener("mouseup", () => { keys["a"] = false; });
+
+  downButton.addEventListener("mousedown", () => { keys["s"] = true; });
+  downButton.addEventListener("mouseup", () => { keys["s"] = false; });
+
+  rightButton.addEventListener("mousedown", () => { keys["d"] = true; });
+  rightButton.addEventListener("mouseup", () => { keys["d"] = false; });
+}
+function createButton(label, id) {
+  const button = document.createElement('button');
+  button.id = id;
+  button.textContent = label;
+  button.style.width = '50px';
+  button.style.height = '50px';
+  button.style.margin = '5px';
+  button.style.fontSize = '20px';
+  button.style.border = 'none';
+  button.style.borderRadius = '5px';
+  button.style.backgroundColor =  "#621a1a";
+  button.style.color = 'white';
+  button.style.cursor = 'pointer';
+
+  button.addEventListener('mouseover', () => {
+    button.style.backgroundColor = '#971f1f;'; // Darker green on hover
+  });
+
+  button.addEventListener('mouseout', () => {
+    button.style.backgroundColor = '#621a1a'; // Reset to original color
+  });
+
+  return button;
+}
 
 
 function loadDeadBody() {
@@ -522,3 +575,4 @@ document.getElementById('successRestartButton').addEventListener('click', () => 
 // Start the application
 init();
 startTimer();
+createControlButtons();

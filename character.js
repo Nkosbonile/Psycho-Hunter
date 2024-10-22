@@ -52,7 +52,7 @@ export function createCharacter(gltf) {
 }
 
 export function moveCharacter(camera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel) {
-  const speed = 0.1;  // Movement speed
+  const speed = 0.01;  // Movement speed
   const rotationSpeed = 0.05;  // Rotation speed
   const moveDirection = new THREE.Vector3();  // Direction for movement
 

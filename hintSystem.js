@@ -78,7 +78,7 @@ export function showHint(message) {
   
     setTimeout(() => {
       hintElement.style.display = 'none';
-    }, 3000); // Remove hint after 3 seconds
+    }, 10000); // Remove hint after 3 seconds
   }
 
 

@@ -133,7 +133,7 @@ function startGame() {
   overlay.style.display = "none"; // Hide overlay
   // Navigate to the main game after a slight delay to allow audio to play
   setTimeout(() => {
-    window.location.href = "main.html";
+    window.location.href = "level1.html";
   }, 500); // Adjust the delay as necessary
 }
 
