@@ -12,7 +12,7 @@ Welcome to the **Murder Mystery Game**, a 3D investigative adventure built with 
 ## Gameplay Structure
 
 ### Level 1: Dead Body
-- **Objective**: Find the dead body within a single room.
+- **Objective**: Find the dead body outside the house.
 - **Riddles**: Simple puzzles featuring visual clues, such as blood trails and broken items. The aim is to familiarize players with the game mechanics.
 
 ### Level 2: Murder Weapon
