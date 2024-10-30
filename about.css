@@ -1,0 +1,114 @@
+/* Background and Container */
+body {
+    background-image: url('home.webp'); /* Replace with the path to your dark forest background */
+    background-size: cover;
+    background-position: center;
+    font-family: 'Courier New', Courier, monospace;
+    color: #fff;
+}
+
+.about-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+    padding: 20px;
+}
+
+header .game-title {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #d90429;
+    text-shadow: 0px 0px 20px #d90429, 0px 0px 10px #000;
+    margin-bottom: 20px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+}
+
+
+/* About Content Section */
+.about-content {
+    max-width: 700px;
+    background-color: rgba(20, 20, 20, 0.9);
+    border: 2px solid #333;
+    padding: 25px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.7);
+    text-align: left;
+}
+
+.description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #bbb;
+    margin-bottom: 20px;
+    text-shadow: 0px 0px 5px rgba(255, 0, 0, 0.2);
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: #d90429;
+    margin: 25px 0 10px;
+    text-shadow: 0px 0px 8px rgba(255, 0, 0, 0.8);
+}
+
+/* Lists Styling */
+.features-list, .credits-list {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.features-list li, .credits-list li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 1.1rem;
+    color: #ddd;
+    margin: 10px 0;
+}
+
+.features-list li::before, .credits-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #d90429;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+/* Positioning the Back Button in the Bottom Right Corner */
+.back-btn {
+    position: fixed;  /* Fixes the button position on screen */
+    bottom: 20px;     /* Distance from the bottom of the viewport */
+    right: 20px;      /* Distance from the right of the viewport */
+    background-color: #444;
+    border: 2px solid #d90429;
+    color: #fff;
+    padding: 10px 25px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+    text-shadow: 0px 0px 5px #000;
+    z-index: 1000;    /* Ensures the button is above other elements */
+}
+
+.back-btn:hover {
+    background-color: #d90429;
+    color: #fff;
+    transform: scale(1.05);
+}
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2.5rem; /* Smaller title on mobile */
+    }
+    
+    .description, .features-list li, .credits-list li {
+        font-size: 1rem; /* Smaller text for readability */
+    }
+    
+    .back-btn {
+        font-size: 1rem; /* Adjust button size */
+        padding: 8px 20px; /* Adjust button padding */
+    }
+}

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Murder Mystery Game Intro</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+      #introText {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Arial", sans-serif;
+        font-size: 28px;
+        color: white;
+        text-align: center;
+        max-width: 80%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        z-index: 2;
+      }
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8)
+          url("/assets/models/cover/actualcover.png") no-repeat center center; /* Image background */
+        background-size: contain; /* Cover entire area */
+        display: none; /* Initially hidden */
+        z-index: 1; /* Overlay on top */
+      }
+      #startButton {
+        position: fixed;
+        top: 80%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Arial", sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        padding: 15px 30px;
+        color: #fff;
+        background-color: #333;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: none;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4),
+          0 0 10px rgba(255, 0, 0, 0.6);
+        transition: all 0.3s ease;
+        z-index: 3;
+        /* Add transform-origin for consistent scaling */
+        transform-origin: center center;
+      }
+
+      #startButton:hover {
+        background-color: #555;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.6),
+          0 0 20px rgba(255, 0, 0, 0.8);
+        /* Combine both the horizontal centering and scale */
+        transform: translateX(-50%) scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay"></div>
+    <div id="introText"></div>
+    <button id="startButton" onclick="startGame()">Begin Investigation</button>
+
+    <audio id="backgroundMusic" loop>
+      <source
+        src="мистичная тема.mp3"
+        type="audio/mpeg"
+      />
+      Your browser does not support the audio element.
+    </audio>
+
+    <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Murder Mystery Game Intro</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      
+      }
+      /* canvas {
+        display: block;
+      } */
+      #introText {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Arial", sans-serif;
+        font-size: 28px;
+        color: white;
+        text-align: center;
+        max-width: 80%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        z-index: 2;
+      }
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8)
+          url("/assets/models/cover/actualcover.png") no-repeat center center; /* Image background */
+        background-size: contain; /* Cover entire area */
+        display: none; /* Initially hidden */
+        z-index: 1; /* Overlay on top */
+      }
+      #startButton {
+        position: fixed;
+        top: 80%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Arial", sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        padding: 15px 30px;
+        color: #fff;
+        background-color: #333;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: none;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4),
+          0 0 10px rgba(255, 0, 0, 0.6);
+        transition: all 0.3s ease;
+        z-index: 3;
+        /* Add transform-origin for consistent scaling */
+        transform-origin: center center;
+      }
+
+      #startButton:hover {
+        background-color: #555;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.6),
+          0 0 20px rgba(255, 0, 0, 0.8);
+        /* Combine both the horizontal centering and scale */
+        transform: translateX(-50%) scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay"></div>
+    <div id="introText"></div>
+    <audio id="backgroundMusic" loop>
+      <source src="мистичная тема.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+    <button id="startButton" onclick="startGame()">Begin Investigation</button>
+    </audio>
+    <script src="intro.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+    
+  </body>
+</html>
+
+

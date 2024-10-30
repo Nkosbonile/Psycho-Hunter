@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Psycho Hunter</title>
+    <link rel="stylesheet" href="setting.css">
+</head>
+<body>
+    <audio id="background-music" loop>
+        <source src="мистичная тема.mp3" type="audio/mpeg"> <!-- Default track -->
+        Your browser does not support the audio element.
+    </audio>
+    <div class="settings-container">
+        <header>
+            <h1 class="settings-title">Game Settings</h1>
+        </header>
+        <main>
+            <section class="settings-content">
+                <h2 class="section-title">Audio Settings</h2>
+                <label for="music-track">Select Music Track:</label>
+                <select id="music-track">
+                    <option value="мистичная тема.mp3">Mystical Theme</option>
+                    <option value="Dark Intro.ogg">Haunting Melody</option>
+                    <option value="alarm.ogg">Dark Ambient</option>
+                </select>
+                <label for="music-volume">Music Volume:</label>
+                <input type="range" id="music-volume" min="0" max="100" value="50">
+                <span id="music-volume-value">50%</span>
+
+                <h2 class="section-title">Graphics Settings</h2>
+                <label for="graphics-quality">Graphics Quality:</label>
+                <select id="graphics-quality">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+
+                <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+            </section>
+        </main>
+        <footer>
+            <button class="back-btn" onclick="goBack()">Back</button>
+        </footer>
+    </div>
+    <script src="setting.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Background and Font */
+body {
+    background-image: url('home.webp'); /* Update with the path to your eerie background image */
+    background-size: cover;
+    background-position: center;
+    font-family: 'Courier New', Courier, monospace;
+    color: #ddd;
+}
+
+/* Dark Overlay Container */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.9); /* Dark overlay for added depth */
+    padding: 20px;
+}
+
+/* Game Title Styling */
+.game-title {
+    font-size: 4rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    color: #fff;
+    text-shadow: 0px 0px 20px #d90429, 0px 0px 15px rgba(255, 0, 0, 0.7);
+    margin-bottom: 30px;
+    animation: glow 1.5s infinite alternate;
+}
+
+/* Glow Animation for Game Title */
+@keyframes glow {
+    from {
+        text-shadow: 0 0 20px #d90429, 0 0 10px rgba(255, 0, 0, 0.7);
+    }
+    to {
+        text-shadow: 0 0 30px #d90429, 0 0 20px rgba(255, 0, 0, 0.9);
+    }
+}
+
+/* Main Start Button */
+.main-start-btn {
+    background-color: #222;
+    border: 2px solid #d90429;
+    color: #fff;
+    padding: 12px 25px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.8), 0px 0px 5px #d90429;
+    margin-bottom: 50px;
+}
+
+.main-start-btn:hover {
+    background-color: #d90429;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0px 0px 20px #d90429, 0px 0px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* Menu Container */
+.menu {
+    display: flex;
+    gap: 20px;
+}
+
+/* Menu Button Styling */
+.menu-item .menu-btn {
+    background-color: #111;
+    border: 2px solid #333;
+    color: #bbb;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.6), 0px 0px 5px #222;
+}
+
+.menu-item .menu-btn:hover {
+    background-color: #d90429;
+    color: #fff;
+    border-color: #d90429;
+    transform: scale(1.05);
+    box-shadow: 0px 0px 15px rgba(255, 0, 0, 0.7), 0px 0px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* Button Hover Effects */
+.menu-item .menu-btn:hover,
+.main-start-btn:hover {
+    box-shadow: 0px 0px 20px rgba(255, 0, 0, 0.6), 0px 0px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* Dark Hover Glow */
+.menu-item .menu-btn:hover,
+.main-start-btn:hover {
+    box-shadow: 0px 0px 20px rgba(255, 0, 0, 0.7), 0px 0px 15px rgba(0, 0, 0, 0.9);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
