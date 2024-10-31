@@ -25,7 +25,7 @@ const walls = [];
 let houseUpperFloorLevel = 0;
 
 let currentClueIndex = 0;
-let timeLeft = 2000;
+let timeLeft = 60;
 let timerId;
 let fog;
 let bloodSplatter, weapon, shoe, deadBody;
@@ -199,6 +199,94 @@ function init() {
   });
 }
 
+// Define sets of hints for different game restarts
+const HINT_SETS = [
+  // Set 1
+  {
+      bloodSplatter: "I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see.",
+      weapon: "I strike with might, unseen by the night. Solve me, and a shoe will point you right.",
+      shoe: "I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray."
+  },
+  // Set 2
+  {
+      bloodSplatter: "Crimson traces tell a tale, of violence that did not fail. Follow my trail, and find what caused my stain.",
+      weapon: "Steel and shadows intertwine, I was the tool of dark design. Near me lies a lost sole's sign.",
+      shoe: "A lonely wanderer's last stride, in dusty corners I reside. Follow where I point, and death's secret you'll find."
+  },
+  // Set 3
+  {
+      bloodSplatter: "Where life force meets floor, stories of gore. Seek me to unlock death's door.",
+      weapon: "Instrument of final sleep, in darkness I now keep. Find me where shadows creep.",
+      shoe: "Silent steps now cease their sound, upon this haunted ground. Where I rest, truth is found."
+  },
+  // Set 4
+  {
+      bloodSplatter: "Paint of life spilled in haste, upon these floors now placed. Follow my scarlet guide with taste.",
+      weapon: "Death's companion cold and stern, waiting for your eyes to learn. Find me where shadows turn.",
+      shoe: "Journey's end marked by leather, clues all come together. Where I point, gather."
+  },
+  // Set 5
+  {
+      bloodSplatter: "Ruby drops mark the scene, of what has been unseen. Follow me to what violence means.",
+      weapon: "I dealt the final blow, now in shadow low. Find me where dark winds blow.",
+      shoe: "Last steps taken in fear, tell you death is near. Follow where I disappear."
+  }
+];
+
+let currentHintSetIndex = 0;
+
+// Function to initialize a new hint set
+function initializeNewHintSet() {
+  // Get a random hint set index different from the current one
+  let newIndex;
+  do {
+      newIndex = Math.floor(Math.random() * HINT_SETS.length);
+  } while (newIndex === currentHintSetIndex && HINT_SETS.length > 1);
+  
+  currentHintSetIndex = newIndex;
+  return HINT_SETS[currentHintSetIndex];
+}
+
+// Function to get the current hint for a specific clue
+function getCurrentHint(clueType) {
+  const currentSet = HINT_SETS[currentHintSetIndex];
+  return currentSet[clueType];
+}
+
+// Add this to your game restart logic
+function restartGame() {
+  // Reset game state
+  cluesSolved = 0;
+  timeLeft = 60; // Reset timer
+  
+  // Reset visibility of objects
+  weapon.visible = false;
+  shoe.visible = false;
+  deadBody.visible = false;
+  
+  // Initialize new set of hints
+  initializeNewHintSet();
+  
+  // Reset other necessary game elements
+  resetHint(); // Clear any displayed hints
+  
+  document.getElementById("gameOverPopupSuccess").style.display = "none"; // Hide success/failure pop-ups
+  document.getElementById("gameOverPopupFail").style.display = "none";
+
+  character.position.set(5, houseGroundLevel + 4.7, 6); // Reset character position
+  character.rotation.y = Math.PI;
+  
+  // Start the timer again
+  clearInterval(timerId);
+  startTimer();
+
+  // Reset game-ended state and re-enable controls
+  gameEnded = false;
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+  document.addEventListener("click", handleClick);
+}
+
 // Create audio objects
 const clueSound = new Audio("alarm.ogg");
 const backgroundMusic = new Audio("Dark Intro.ogg");
@@ -294,11 +382,15 @@ function loadDeadBody() {
 
 function solveClue() {
   cluesSolved++;
+  const currentHints = HINT_SETS[currentHintSetIndex];
+
   if (cluesSolved === 1) {
     weapon.visible = true; // Show weapon after solving first clue
+    showHint(currentHints.weapon);
     console.log("Blood splatter clue solved.");
   } else if (cluesSolved === 2) {
     shoe.visible = true; // Show shoe after solving second clue
+    showHint(currentHints.shoe);
     console.log("Weapon clue solved.");
   } else if (cluesSolved === 3) {
     // Show the dead body after solving all clues
@@ -309,27 +401,23 @@ function solveClue() {
 const glowThreshold = 1.5; // Distance threshold for glow effect
 
 document.getElementById("clueButton").addEventListener("click", () => {
+  const currentHints = HINT_SETS[currentHintSetIndex];
+
   if (isNearClue(bloodSplatter)) {
     console.log("Near blood splatter");
-    showHint(
-      "I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see."
-    );
+    showHint(currentHints.bloodSplatter);
     clueSound.play();
     playPickUpAnimation();
     solveClue();
   } else if (isNearClue(weapon)) {
     console.log("Near weapon");
-    showHint(
-      "I strike with might, unseen by the night. Solve me, and a shoe will point you right."
-    );
+    showHint(currentHints.weapon);
     clueSound.play();
     playPickUpAnimation();
     solveClue();
   } else if (isNearClue(shoe)) {
     console.log("Near shoe");
-    showHint(
-      "I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray."
-    );
+    showHint(currentHints.shoe);
     playPickUpAnimation();
     clueSound.play();
     solveClue();
@@ -601,7 +689,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 document.getElementById("failRestartButton").addEventListener("click", () => {
-  location.reload(); // Reload the game (or handle the restart logic as needed)
+  restartGame();
 });
 
 document.getElementById("nextLevelButton").addEventListener("click", () => {
@@ -611,7 +699,7 @@ document.getElementById("nextLevelButton").addEventListener("click", () => {
 document
   .getElementById("successRestartButton")
   .addEventListener("click", () => {
-    location.reload(); // Reload the game (or handle the restart logic as needed)
+    restartGame();
   });
 
 // Initialize the game
