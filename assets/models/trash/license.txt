@@ -1,0 +1,11 @@
+Model Information:
+* title:	Minneapolis Trash bin LOWPOLY
+* source:	https://sketchfab.com/3d-models/minneapolis-trash-bin-lowpoly-27c3a05198484217b0651c64f9efa44e
+* author:	EvanLegrand (https://sketchfab.com/evan4129)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Minneapolis Trash bin LOWPOLY" (https://sketchfab.com/3d-models/minneapolis-trash-bin-lowpoly-27c3a05198484217b0651c64f9efa44e) by EvanLegrand (https://sketchfab.com/evan4129) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
