@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Level</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #111; /* Dark background */
+            color: #ff0000; /* Blood-red text color */
+            font-family: Arial, sans-serif;
+            text-shadow: 0 0 5px #ff0000;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-family: "Creepster", Arial, sans-serif; /* Horror-style font */
+            color: #ff0000;
+            animation: flicker 2s infinite;
+            text-align: center;
+        }
+
+        button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 20px;
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+            background-color: #222;
+            color: #ff0000;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-family: "Arial", sans-serif;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7), inset 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        button:hover {
+            background-color: #550000;
+            color: #ffcccc;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8), inset 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                opacity: 1;
+            }
+            20%, 24%, 55% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <audio id="backgroundMusic" loop>
+        <source src="мистичная тема.mp3" type="audio/mpeg" />
+        Your browser does not support the audio element.
+    </audio>
+
+    <h1>Select a Level</h1>
+    <button onclick="startLevel('level1.html')">Level 1</button>
+    <button onclick="startLevel('level2.html')">Level 2</button>
+    <button onclick="startLevel('level3.html')">Level 3</button>
+
+    <script>
+        window.addEventListener("load", () => {
+            const music = document.getElementById("backgroundMusic");
+            music.volume = 0.3;  // Adjust volume level (0.0 - 1.0)
+            music.play().catch(error => {
+                console.log("Background music playback failed:", error);
+            });
+        });
+
+        function startLevel(level) {
+            window.location.href = level; // Navigate to the selected level page
+        }
+    </script>
+</body>
+</html>

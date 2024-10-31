@@ -9,3 +9,7 @@ function openAbout() {
 function openSettings() {
     window.location.href = "setting.html";
 }
+function selectGameLevel() {
+    // Redirect to the game level selection page
+    window.location.href = 'levelSelection.html'; // Update with the correct path
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 3 - Suspect Identification</title>
+    <style>
+        /* Full-screen background setup */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-image: url('level3.webp'); /* Use your background image path */
+            background-size: cover;
+            background-position: center;
+            color: hsl(0, 27%, 96%); /* Blood-red color for the mystery vibe */
+            text-shadow: 1px 1px 3px rgba(248, 3, 3, 0.97); /* Shadow for added depth */
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: flicker 1.5s infinite; /* Flicker animation for an eerie effect */
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            color: #ff0000;
+            background-color: #222;
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #550000;
+            color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        }
+
+        /* Flicker animation for h1 */
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                opacity: 1;
+            }
+            20%, 24%, 55% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Suspect Identification</h1>
+    <p>Analyze the profiles carefully and pick the suspect with the strongest evidence against them.</p>
+    <button onclick="startIdentification()">Identify Suspect</button>
+    <audio id="backgroundMusic" loop>
+        <source
+          src="мистичная тема.mp3"
+          type="audio/mpeg"
+        />
+        Your browser does not support the audio element.
+      </audio>
+    <script>
+         document.getElementById("backgroundMusic").play(); 
+        function startIdentification() {
+            // Navigate to the suspect analysis or identification part of the game
+            window.location.href = 'main.html'; // Replace with the correct level link
+        }
+    </script>
+</body>
+</html>

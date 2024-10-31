@@ -29,6 +29,7 @@ let timeLeft = 2000;
 let timerId;
 let fog;
 let bloodSplatter, weapon, shoe, deadBody;
+let pickUpAction; // Declare the pick-up action
 
 let cluesSolved = 0;
 let weaponClueEnabled = false;
@@ -141,6 +142,9 @@ function init() {
         THREE.AnimationClip.findByName(animations, "Rig|idle")
       );
 
+      pickUpAction = mixer.clipAction(
+        THREE.AnimationClip.findByName(animations, "Rig|pickUp")
+      );
       // Set idle as the default active action
       activeAction = idleAction;
       idleAction.play();
@@ -311,6 +315,7 @@ document.getElementById("clueButton").addEventListener("click", () => {
       "I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see."
     );
     clueSound.play();
+    playPickUpAnimation();
     solveClue();
   } else if (isNearClue(weapon)) {
     console.log("Near weapon");
@@ -318,12 +323,14 @@ document.getElementById("clueButton").addEventListener("click", () => {
       "I strike with might, unseen by the night. Solve me, and a shoe will point you right."
     );
     clueSound.play();
+    playPickUpAnimation();
     solveClue();
   } else if (isNearClue(shoe)) {
     console.log("Near shoe");
     showHint(
       "I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray."
     );
+    playPickUpAnimation();
     clueSound.play();
     solveClue();
   } else if (isNearClue(deadBody)) {
@@ -336,6 +343,20 @@ document.getElementById("clueButton").addEventListener("click", () => {
   }
 });
 
+function playPickUpAnimation() {
+  if (pickUpAction && activeAction !== pickUpAction) {
+    // Fade out the current action and fade in the pick-up animation
+    activeAction.fadeOut(0.2); // Smooth transition
+    pickUpAction.reset().fadeIn(0.2).play();
+    activeAction = pickUpAction;
+
+    // After the pick-up animation ends, return to idle
+    mixer.addEventListener("finished", () => {
+      activeAction = idleAction;
+      idleAction.play();
+    });
+  }
+}
 function hideHintMessage() {
   const hintMessageDiv = document.getElementById("hintMessage");
   hintMessageDiv.style.display = "none"; // Hide the message
@@ -584,7 +605,7 @@ document.getElementById("failRestartButton").addEventListener("click", () => {
 });
 
 document.getElementById("nextLevelButton").addEventListener("click", () => {
-  window.location.href = "_intro.html"; // Reload the game (or handle the restart logic as needed)
+  window.location.href = "level2.html"; // Reload the game (or handle the restart logic as needed)
 });
 
 document

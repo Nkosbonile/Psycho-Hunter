@@ -127,15 +127,17 @@ function startGame() {
       console.error("Error playing audio:", error);
     });
   }
-  
+
   introText.style.opacity = 0;
   startButton.style.display = "none";
   overlay.style.display = "none"; // Hide overlay
-  // Navigate to the main game after a slight delay to allow audio to play
+
+  // Navigate to the level selection page
   setTimeout(() => {
-    window.location.href = "level1.html";
+    window.location.href = "levelSelection.html"; // Redirect to level selection
   }, 500); // Adjust the delay as necessary
 }
+
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
