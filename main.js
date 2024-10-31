@@ -25,7 +25,7 @@ const walls = [];
 let houseUpperFloorLevel = 0;
 
 let currentClueIndex = 0;
-let timeLeft = 60;
+let timeLeft = 160;
 let timerId;
 let fog;
 let bloodSplatter, weapon, shoe, deadBody;
@@ -257,7 +257,7 @@ function getCurrentHint(clueType) {
 function restartGame() {
   // Reset game state
   cluesSolved = 0;
-  timeLeft = 60; // Reset timer
+  timeLeft = 150; // Reset timer
   
   // Reset visibility of objects
   weapon.visible = false;
