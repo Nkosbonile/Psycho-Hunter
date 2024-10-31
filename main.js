@@ -8,7 +8,7 @@ import {
   updateFirstPersonCamera,
 } from "./camera.js";
 import { createCharacter, moveCharacter } from "./character.js";
-import { showHint ,updateHintPosition, resetHint } from "./hintSystem.js";
+import { showHint, updateHintPosition, resetHint } from "./hintSystem.js";
 
 let scene,
   renderer,
@@ -25,7 +25,7 @@ const walls = [];
 let houseUpperFloorLevel = 0;
 
 let currentClueIndex = 0;
-let timeLeft = 120;
+let timeLeft = 2000;
 let timerId;
 let fog;
 let bloodSplatter, weapon, shoe, deadBody;
@@ -34,13 +34,15 @@ let cluesSolved = 0;
 let weaponClueEnabled = false;
 let shoeClueEnabled = false;
 
+let characterLight; // Declare a variable for the character's light
+
 // Initialize the scene
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x001829);
 
   // Add fog to the scene
-  fog = new THREE.FogExp2(0x001829, 0.05);
+  fog = new THREE.FogExp2(0x001829, 0.4);
   scene.fog = fog;
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -147,18 +149,18 @@ function init() {
       animate();
     });
 
-  // Load the dead body model and position it
-loader.load("./assets/models/dead_body/scene.gltf", (gltf) => {
-  deadBody = gltf.scene;
-  deadBody.scale.set(0.5, 0.5, 0.5); // Adjust size
-  deadBody.position.set(-6, houseGroundLevel + 4.5, -5); // Set the dead body at the same ground level as the house
-  scene.add(deadBody);
-  deadBody.visible = false; // Initially hide the dead body
-});
+    // Load the dead body model and position it
+    loader.load("./assets/models/dead_body/scene.gltf", (gltf) => {
+      deadBody = gltf.scene;
+      deadBody.scale.set(0.5, 0.5, 0.5); // Adjust size
+      deadBody.position.set(-6, houseGroundLevel + 4.5, -5); // Set the dead body at the same ground level as the house
+      scene.add(deadBody);
+      deadBody.visible = false; // Initially hide the dead body
+    });
 
     // Load and position the blood splatter model
     loader.load("./assets/models/blood_spattered/scene.gltf", (gltf) => {
-       bloodSplatter = gltf.scene;
+      bloodSplatter = gltf.scene;
       bloodSplatter.scale.set(0.05, 0.05, 0.05); // Adjust the scale as needed
       bloodSplatter.position.set(4, houseGroundLevel + 4.5, 0); // Position it in the scene
       scene.add(bloodSplatter);
@@ -171,7 +173,7 @@ loader.load("./assets/models/dead_body/scene.gltf", (gltf) => {
     loader.load(
       "./assets/models/nail_bat_--_nailed_nightmare/scene.gltf",
       (gltf) => {
-         weapon = gltf.scene;
+        weapon = gltf.scene;
         weapon.scale.set(0.7, 0.7, 0.7);
         weapon.position.set(8.4, houseGroundLevel + 4.5, -5.5);
         scene.add(weapon);
@@ -193,12 +195,11 @@ loader.load("./assets/models/dead_body/scene.gltf", (gltf) => {
   });
 }
 
-
 // Create audio objects
-const clueSound = new Audio('alarm.ogg');
-const backgroundMusic = new Audio('Dark Intro.ogg');
-const successSound = new Audio('audio/success.mp3');
-const failSound = new Audio('audio/fail.mp3');
+const clueSound = new Audio("alarm.ogg");
+const backgroundMusic = new Audio("Dark Intro.ogg");
+const successSound = new Audio("audio/success.mp3");
+const failSound = new Audio("audio/fail.mp3");
 
 // Start background music
 backgroundMusic.loop = true;
@@ -206,65 +207,82 @@ backgroundMusic.volume = 0.5; // Adjust as needed
 backgroundMusic.play();
 
 function createControlButtons() {
-  const controlDiv = document.createElement('div');
-  controlDiv.className = 'controls';
+  const controlDiv = document.createElement("div");
+  controlDiv.className = "controls";
 
-  const upButton = createButton('W', 'up');
-  const leftButton = createButton('A', 'left');
-  const downButton = createButton('S', 'down');
-  const rightButton = createButton('D', 'right');
-  
+  const upButton = createButton("W", "up");
+  const leftButton = createButton("A", "left");
+  const downButton = createButton("S", "down");
+  const rightButton = createButton("D", "right");
+
   controlDiv.appendChild(upButton);
   controlDiv.appendChild(leftButton);
   controlDiv.appendChild(downButton);
   controlDiv.appendChild(rightButton);
-  
+
   document.body.appendChild(controlDiv);
 
   // Event listeners for control buttons
-  upButton.addEventListener("mousedown", () => { keys["w"] = true; });
-  upButton.addEventListener("mouseup", () => { keys["w"] = false; });
-
-  leftButton.addEventListener("mousedown", () => { keys["a"] = true; });
-  leftButton.addEventListener("mouseup", () => { keys["a"] = false; });
-
-  downButton.addEventListener("mousedown", () => { keys["s"] = true; });
-  downButton.addEventListener("mouseup", () => { keys["s"] = false; });
-
-  rightButton.addEventListener("mousedown", () => { keys["d"] = true; });
-  rightButton.addEventListener("mouseup", () => { keys["d"] = false; });
-}
-function createButton(label, id) {
-  const button = document.createElement('button');
-  button.id = id;
-  button.textContent = label;
-  button.style.width = '50px';
-  button.style.height = '50px';
-  button.style.margin = '5px';
-  button.style.fontSize = '20px';
-  button.style.border = 'none';
-  button.style.borderRadius = '5px';
-  button.style.backgroundColor =  "#621a1a";
-  button.style.color = 'white';
-  button.style.cursor = 'pointer';
-
-  button.addEventListener('mouseover', () => {
-    button.style.backgroundColor = '#971f1f;'; // Darker green on hover
+  upButton.addEventListener("mousedown", () => {
+    keys["w"] = true;
+  });
+  upButton.addEventListener("mouseup", () => {
+    keys["w"] = false;
   });
 
-  button.addEventListener('mouseout', () => {
-    button.style.backgroundColor = '#621a1a'; // Reset to original color
+  leftButton.addEventListener("mousedown", () => {
+    keys["a"] = true;
+  });
+  leftButton.addEventListener("mouseup", () => {
+    keys["a"] = false;
+  });
+
+  downButton.addEventListener("mousedown", () => {
+    keys["s"] = true;
+  });
+  downButton.addEventListener("mouseup", () => {
+    keys["s"] = false;
+  });
+
+  rightButton.addEventListener("mousedown", () => {
+    keys["d"] = true;
+  });
+  rightButton.addEventListener("mouseup", () => {
+    keys["d"] = false;
+  });
+}
+function createButton(label, id) {
+  const button = document.createElement("button");
+  button.id = id;
+  button.textContent = label;
+  button.style.width = "50px";
+  button.style.height = "50px";
+  button.style.margin = "5px";
+  button.style.fontSize = "20px";
+  button.style.border = "none";
+  button.style.borderRadius = "5px";
+  button.style.backgroundColor = "#621a1a";
+  button.style.color = "white";
+  button.style.cursor = "pointer";
+
+  button.addEventListener("mouseover", () => {
+    button.style.backgroundColor = "#971f1f;"; // Darker green on hover
+  });
+
+  button.addEventListener("mouseout", () => {
+    button.style.backgroundColor = "#621a1a"; // Reset to original color
   });
 
   return button;
 }
 
-
 function loadDeadBody() {
   if (deadBody) {
     deadBody.visible = true; // Make the dead body visible when all clues are solved
     console.log("Dead body revealed.");
-    showHint("I once breathed air, now none to spare. Find me, and your search will end where I lay bare."); // Optional: show a hint when the dead body is revealed
+    showHint(
+      "I once breathed air, now none to spare. Find me, and your search will end where I lay bare."
+    ); // Optional: show a hint when the dead body is revealed
   } else {
     console.error("Dead body model is not loaded yet.");
   }
@@ -289,32 +307,38 @@ const glowThreshold = 1.5; // Distance threshold for glow effect
 document.getElementById("clueButton").addEventListener("click", () => {
   if (isNearClue(bloodSplatter)) {
     console.log("Near blood splatter");
-    showHint("I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see.");
+    showHint(
+      "I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see."
+    );
     clueSound.play();
     solveClue();
   } else if (isNearClue(weapon)) {
     console.log("Near weapon");
-    showHint("I strike with might, unseen by the night. Solve me, and a shoe will point you right.");
+    showHint(
+      "I strike with might, unseen by the night. Solve me, and a shoe will point you right."
+    );
     clueSound.play();
     solveClue();
   } else if (isNearClue(shoe)) {
     console.log("Near shoe");
-    showHint("I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray.");
+    showHint(
+      "I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray."
+    );
     clueSound.play();
     solveClue();
   } else if (isNearClue(deadBody)) {
     console.log("Near dead body");
-    showHint("I once breathed air, now none to spare. Find me, and your search will end where I lay bare.");
+    showHint(
+      "I once breathed air, now none to spare. Find me, and your search will end where I lay bare."
+    );
     successSound.play();
     solveClue();
   }
 });
 
-
-
 function hideHintMessage() {
-  const hintMessageDiv = document.getElementById('hintMessage');
-  hintMessageDiv.style.display = 'none';  // Hide the message
+  const hintMessageDiv = document.getElementById("hintMessage");
+  hintMessageDiv.style.display = "none"; // Hide the message
 }
 
 function applyGlowEffect(object, threshold) {
@@ -337,7 +361,6 @@ function applyGlowEffect(object, threshold) {
     clueButton.classList.remove("glow"); // Remove glow effect
   }
 }
-
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -378,7 +401,8 @@ let gameEnded = false; // Track if the game has ended
 
 // Function to check if the player is near the dead body and end the game
 function checkIfNearDeadBody() {
-  if (isNearClue(deadBody)) { // Check if player is near the dead body
+  if (isNearClue(deadBody)) {
+    // Check if player is near the dead body
     console.log("Player found the dead body!");
     endGame(true); // End game with success when near the dead body
   }
@@ -555,21 +579,19 @@ window.addEventListener("keyup", (event) => {
   console.log("Key Up:", event.key.toLowerCase()); // Log released key
 });
 
-document.getElementById('failRestartButton').addEventListener('click', () => {
+document.getElementById("failRestartButton").addEventListener("click", () => {
   location.reload(); // Reload the game (or handle the restart logic as needed)
 });
 
-
-
-document.getElementById('nextLevelButton').addEventListener('click', () => {
-  window.location.href = '_intro.html'; // Reload the game (or handle the restart logic as needed)
+document.getElementById("nextLevelButton").addEventListener("click", () => {
+  window.location.href = "_intro.html"; // Reload the game (or handle the restart logic as needed)
 });
 
-
-document.getElementById('successRestartButton').addEventListener('click', () => {
-  location.reload(); // Reload the game (or handle the restart logic as needed)
-});
-
+document
+  .getElementById("successRestartButton")
+  .addEventListener("click", () => {
+    location.reload(); // Reload the game (or handle the restart logic as needed)
+  });
 
 // Initialize the game
 // Start the application
