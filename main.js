@@ -35,7 +35,226 @@ let cluesSolved = 0;
 let weaponClueEnabled = false;
 let shoeClueEnabled = false;
 
-let characterLight; // Declare a variable for the character's light
+let flashlightModel, flashlightLight, flashlightTarget;
+let isFlashlightOn = false;
+let isFlashlightPickedUp = false;
+let canPickUpFlashlight = false;
+
+// Function to create and load the flashlight model
+function createFlashlight() {
+  // Create a simple flashlight geometry
+  const bodyGeometry = new THREE.CylinderGeometry(0.01, 0.015, 0.4, 5);
+  const headGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.1, 5);
+  const lensGeometry = new THREE.CircleGeometry(0.02, 5);
+
+  // Create materials
+  const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 }); // Dark grey
+  const headMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 }); // Light grey
+  const lensMaterial = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    emissive: 0xffffff,
+    emissiveIntensity: 0,
+  });
+
+  // Create mesh parts
+  const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+  const head = new THREE.Mesh(headGeometry, headMaterial);
+  const lens = new THREE.Mesh(lensGeometry, lensMaterial);
+
+  // Position the parts
+  head.position.y = 0.25;
+  lens.position.y = 0.3;
+  lens.rotation.x = -Math.PI / 2;
+
+  // Create a group for the flashlight
+  flashlightModel = new THREE.Group();
+  flashlightModel.add(body);
+  flashlightModel.add(head);
+  flashlightModel.add(lens);
+
+  // Create the spotlight for the flashlight
+  flashlightLight = new THREE.SpotLight(0xffcc00, 1, 10, Math.PI / 4, 0.1);
+  flashlightLight.position.set(0, 0.3, 0); 
+  flashlightLight.angle = Math.PI / 6;
+  flashlightLight.penumbra = 0.2; 
+  flashlightLight.decay = 2; 
+  flashlightLight.castShadow = true;
+
+  // Create and add the target for the spotlight
+  flashlightTarget = new THREE.Object3D();
+  flashlightTarget.position.set(0, 0, -1); 
+  flashlightModel.add(flashlightTarget);
+  flashlightLight.target = flashlightTarget;
+
+  // Add the light to the flashlight model
+  flashlightModel.add(flashlightLight);
+
+  // Position flashlight on the floor
+  flashlightModel.position.set(5, houseGroundLevel + 4.5, 6);
+  flashlightModel.rotation.z = -Math.PI / 2;
+
+  // Initially hide the light (can be made visible when picked up)
+  flashlightLight.visible = false;
+
+  // Add the flashlight to the scene
+  scene.add(flashlightModel);
+
+  // Add glow effect to make it more noticeable
+  addFlashlightGlow();
+}
+
+// Add a subtle glow effect to make the flashlight noticeable
+function addFlashlightGlow() {
+  const glowSize = 0.01;
+  const glowGeometry = new THREE.SphereGeometry(glowSize, 16, 16);
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffcc00,
+    transparent: true,
+    opacity: 0.5, 
+  });
+
+  const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+  glow.position.set(0, 0.3, 0); // Position it near the head
+
+  flashlightModel.add(glow);
+
+  // Animate the glow
+  const glowAnimation = () => {
+    if (!isFlashlightPickedUp) {
+      glow.material.opacity = 0.3 + Math.sin(Date.now() * 0.003) * 0.1; // Pulsating effect
+    }
+    requestAnimationFrame(glowAnimation);
+  };
+  glowAnimation();
+}
+
+// Function to check if player is near flashlight
+function checkFlashlightProximity() {
+  if (!character || !flashlightModel || isFlashlightPickedUp) return;
+
+  const distance = character.position.distanceTo(flashlightModel.position);
+  const proximityThreshold = 0.5;
+
+  if (distance < proximityThreshold) {
+    if (!canPickUpFlashlight) {
+      canPickUpFlashlight = true;
+      showPickupPrompt();
+    }
+  } else {
+    if (canPickUpFlashlight) {
+      canPickUpFlashlight = false;
+      hidePickupPrompt();
+    }
+  }
+}
+
+// Function to show pickup prompt
+function showPickupPrompt() {
+  const prompt =
+    document.getElementById("pickupPrompt") || createPickupPrompt();
+  prompt.style.display = "block";
+}
+
+// Function to hide pickup prompt
+function hidePickupPrompt() {
+  const prompt = document.getElementById("pickupPrompt");
+  if (prompt) {
+    prompt.style.display = "none";
+  }
+}
+
+// Create pickup prompt element
+function createPickupPrompt() {
+  const prompt = document.createElement("div");
+  prompt.id = "pickupPrompt";
+  prompt.innerHTML = "Press E to pick up flashlight";
+  prompt.style.position = "fixed";
+  prompt.style.top = "50%";
+  prompt.style.left = "50%";
+  prompt.style.transform = "translate(-50%, -50%)";
+  prompt.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+  prompt.style.color = "white";
+  prompt.style.padding = "10px";
+  prompt.style.borderRadius = "5px";
+  prompt.style.display = "none";
+  document.body.appendChild(prompt);
+  return prompt;
+}
+
+// Function to pick up flashlight
+function pickupFlashlight() {
+  if (!canPickUpFlashlight || isFlashlightPickedUp) return;
+
+  isFlashlightPickedUp = true;
+  hidePickupPrompt();
+
+  // Play pickup animation if available
+  if (pickUpAction) {
+    pickUpAction.reset().fadeIn(0.2).play();
+    setTimeout(() => {
+      pickUpAction.fadeOut(0.2);
+      idleAction.fadeIn(0.2);
+    }, 1000);
+  }
+}
+
+// Function to update flashlight position when picked up
+function updateFlashlight() {
+  if (!character || !flashlightModel) return;
+
+  if (isFlashlightPickedUp) {
+    // Get character's world position and direction
+    const characterPosition = new THREE.Vector3();
+    character.getWorldPosition(characterPosition);
+    const characterDirection = new THREE.Vector3();
+    character.getWorldDirection(characterDirection);
+
+    // Position the flashlight relative to the character (as if being held)
+    const offsetRight = new THREE.Vector3(-0.12, 0, 0);
+    const offsetUp = new THREE.Vector3(0, 0.4, 0);
+    const offsetForward = new THREE.Vector3(0, 0, 0);
+
+    // Apply character's rotation to the offset
+    offsetRight.applyQuaternion(character.quaternion);
+    offsetForward.applyQuaternion(character.quaternion);
+
+    // Calculate final flashlight position
+    const flashlightPosition = characterPosition
+      .clone()
+      .add(offsetRight)
+      .add(offsetUp)
+      .add(offsetForward);
+
+    // Update flashlight position and rotation
+    flashlightModel.position.copy(flashlightPosition);
+    flashlightModel.rotation.copy(character.rotation);
+    flashlightModel.rotateX(Math.PI/2 ); // Angle the flashlight slightly upward
+
+    // Update the light target position
+    const targetDistance = 5;
+    const targetPosition = flashlightPosition
+      .clone()
+      .add(characterDirection.multiplyScalar(targetDistance));
+    flashlightTarget.position.copy(targetPosition);
+  }
+}
+
+// Function to toggle flashlight
+function toggleFlashlight() {
+  if (!isFlashlightPickedUp) return;
+
+  isFlashlightOn = !isFlashlightOn;
+
+  // Toggle the spotlight
+  flashlightLight.visible = isFlashlightOn;
+
+  // Update lens material emission
+  const lensMaterial = flashlightModel.children[2].material;
+  lensMaterial.emissiveIntensity = isFlashlightOn ? 0.5 : 0;
+
+  // Adjust fog density
+ scene.fog.density = isFlashlightOn ? 0.2 : 0.4;
+}
 
 // Initialize the scene
 function init() {
@@ -45,6 +264,7 @@ function init() {
   // Add fog to the scene
   fog = new THREE.FogExp2(0x001829, 0.4);
   scene.fog = fog;
+  createFlashlight();
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -62,34 +282,12 @@ function init() {
   );
 
   // Add basic lighting
-  const ambientLight = new THREE.AmbientLight(0x152238, 0.2);
-  scene.add(ambientLight);
+ 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 10, 7.5);
   scene.add(directionalLight);
 
-  // Add multiple point lights for dramatic lighting
-  const pointLight1 = new THREE.PointLight(0xff6b6b, 1, 10);
-  pointLight1.position.set(4, houseGroundLevel + 6, 0);
-  pointLight1.castShadow = true;
-  scene.add(pointLight1);
-
-  // Add flickering light near the blood splatter
-  const flickeringLight = new THREE.PointLight(0xff0000, 1, 8);
-  flickeringLight.position.set(4, houseGroundLevel + 5, 0);
-  scene.add(flickeringLight);
-
-  // Add moonlight effect
-  const moonLight = new THREE.DirectionalLight(0x4d5c82, 0.3);
-  moonLight.position.set(-5, 10, -7.5);
-  moonLight.castShadow = true;
-  scene.add(moonLight);
-
-  // Configure shadow properties
-  moonLight.shadow.mapSize.width = 1024;
-  moonLight.shadow.mapSize.height = 1024;
-  moonLight.shadow.camera.near = 0.5;
-  moonLight.shadow.camera.far = 50;
+  
 
   // Load the house model
   const loader = new GLTFLoader();
@@ -149,6 +347,9 @@ function init() {
       activeAction = idleAction;
       idleAction.play();
 
+      // Create the flashlight next to the character after loading
+      createFlashlight(character.position);
+
       // Start animation loop
       animate();
     });
@@ -203,34 +404,44 @@ function init() {
 const HINT_SETS = [
   // Set 1
   {
-      bloodSplatter: "I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see.",
-      weapon: "I strike with might, unseen by the night. Solve me, and a shoe will point you right.",
-      shoe: "I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray."
+    bloodSplatter:
+      "I appear red, not from a brush, but from a moment of rush. Find me, and a weapon you'll soon see.",
+    weapon:
+      "I strike with might, unseen by the night. Solve me, and a shoe will point you right.",
+    shoe: "I walk and run, but now I lay, pointing the way. Find me, and the body will no longer be astray.",
   },
   // Set 2
   {
-      bloodSplatter: "Crimson traces tell a tale, of violence that did not fail. Follow my trail, and find what caused my stain.",
-      weapon: "Steel and shadows intertwine, I was the tool of dark design. Near me lies a lost sole's sign.",
-      shoe: "A lonely wanderer's last stride, in dusty corners I reside. Follow where I point, and death's secret you'll find."
+    bloodSplatter:
+      "Crimson traces tell a tale, of violence that did not fail. Follow my trail, and find what caused my stain.",
+    weapon:
+      "Steel and shadows intertwine, I was the tool of dark design. Near me lies a lost sole's sign.",
+    shoe: "A lonely wanderer's last stride, in dusty corners I reside. Follow where I point, and death's secret you'll find.",
   },
   // Set 3
   {
-      bloodSplatter: "Where life force meets floor, stories of gore. Seek me to unlock death's door.",
-      weapon: "Instrument of final sleep, in darkness I now keep. Find me where shadows creep.",
-      shoe: "Silent steps now cease their sound, upon this haunted ground. Where I rest, truth is found."
+    bloodSplatter:
+      "Where life force meets floor, stories of gore. Seek me to unlock death's door.",
+    weapon:
+      "Instrument of final sleep, in darkness I now keep. Find me where shadows creep.",
+    shoe: "Silent steps now cease their sound, upon this haunted ground. Where I rest, truth is found.",
   },
   // Set 4
   {
-      bloodSplatter: "Paint of life spilled in haste, upon these floors now placed. Follow my scarlet guide with taste.",
-      weapon: "Death's companion cold and stern, waiting for your eyes to learn. Find me where shadows turn.",
-      shoe: "Journey's end marked by leather, clues all come together. Where I point, gather."
+    bloodSplatter:
+      "Paint of life spilled in haste, upon these floors now placed. Follow my scarlet guide with taste.",
+    weapon:
+      "Death's companion cold and stern, waiting for your eyes to learn. Find me where shadows turn.",
+    shoe: "Journey's end marked by leather, clues all come together. Where I point, gather.",
   },
   // Set 5
   {
-      bloodSplatter: "Ruby drops mark the scene, of what has been unseen. Follow me to what violence means.",
-      weapon: "I dealt the final blow, now in shadow low. Find me where dark winds blow.",
-      shoe: "Last steps taken in fear, tell you death is near. Follow where I disappear."
-  }
+    bloodSplatter:
+      "Ruby drops mark the scene, of what has been unseen. Follow me to what violence means.",
+    weapon:
+      "I dealt the final blow, now in shadow low. Find me where dark winds blow.",
+    shoe: "Last steps taken in fear, tell you death is near. Follow where I disappear.",
+  },
 ];
 
 let currentHintSetIndex = 0;
@@ -240,9 +451,9 @@ function initializeNewHintSet() {
   // Get a random hint set index different from the current one
   let newIndex;
   do {
-      newIndex = Math.floor(Math.random() * HINT_SETS.length);
+    newIndex = Math.floor(Math.random() * HINT_SETS.length);
   } while (newIndex === currentHintSetIndex && HINT_SETS.length > 1);
-  
+
   currentHintSetIndex = newIndex;
   return HINT_SETS[currentHintSetIndex];
 }
@@ -258,24 +469,24 @@ function restartGame() {
   // Reset game state
   cluesSolved = 0;
   timeLeft = 60; // Reset timer
-  
+
   // Reset visibility of objects
   weapon.visible = false;
   shoe.visible = false;
   deadBody.visible = false;
-  
+
   // Initialize new set of hints
   initializeNewHintSet();
-  
+
   // Reset other necessary game elements
   resetHint(); // Clear any displayed hints
-  
+
   document.getElementById("gameOverPopupSuccess").style.display = "none"; // Hide success/failure pop-ups
   document.getElementById("gameOverPopupFail").style.display = "none";
 
   character.position.set(5, houseGroundLevel + 4.7, 6); // Reset character position
   character.rotation.y = Math.PI;
-  
+
   // Start the timer again
   clearInterval(timerId);
   startTimer();
@@ -577,6 +788,9 @@ function animate() {
   // Update hint position to always face the camera
   updateHintPosition(currentCamera);
 
+  checkFlashlightProximity();
+  updateFlashlight();
+
   renderer.render(scene, currentCamera); // Render the scene from the active camera
 }
 function gameOver() {
@@ -596,6 +810,13 @@ function showFailPopup() {
 function handleKeyDown(event) {
   const key = event.key.toLowerCase();
 
+  if (key === "e" && canPickUpFlashlight) {
+    pickupFlashlight();
+  }
+
+  if (key === "f" && isFlashlightPickedUp) {
+    toggleFlashlight();
+  }
   if (key === "v") {
     isFirstPerson = !isFirstPerson; // Toggle between first-person and third-person
     currentCamera = isFirstPerson ? firstPersonCamera : thirdPersonCamera; // Switch the camera
@@ -605,7 +826,6 @@ function handleKeyDown(event) {
   }
 
   keys[key] = true; // Set the key as pressed
-  console.log("Key Down:", key); // Log pressed key
 }
 
 // Handle key up event
