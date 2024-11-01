@@ -1,13 +1,32 @@
 import * as THREE from 'three';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { createCharacter, moveCharacter } from "./character.js";
 
+let character;
+let mixer;
+let walkAction;
+let idleAction;
+let pickUpAction;
+let activeAction;
+
+const HOUSE_GROUND_LEVEL = 0;
+const HOUSE_UPPER_FLOOR_LEVEL = 10; // Adjust based on your house dimensions
+let isFirstPerson = false; // Toggle for first/third person view
+const clock = new THREE.Clock();
+const keys = {
+    'w': false,
+    'a': false,
+    's': false,
+    'd': false,
+    //'shift': false
+}
 // Scene, Camera, Renderer Setup
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue background
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 5, 20);
+const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(8, 20, 5);
 camera.lookAt(0, 5, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -26,13 +45,13 @@ controls.minDistance = 5;
 controls.maxDistance = 50;
 controls.maxPolarAngle = Math.PI / 2;
 controls.minPolarAngle = 0.1;
-
+const characterSpeedMain2 = 0.1;  // Different speed for character in main2.js
 // Enhanced Materials
 const textures = {
     walls: {
-        color: textureLoader.load('wall_rough.jpg'),
-        normal: textureLoader.load('wall_rough.jpg'),
-        roughness: textureLoader.load('wall_rough.jpg')
+        color: textureLoader.load('w2.webp'),
+        normal: textureLoader.load('w2.webp'),
+        roughness: textureLoader.load('w2.webp')
     },
     wood: {
         color: textureLoader.load('wood_color.jpg'),
@@ -298,31 +317,114 @@ function createHouse() {
 
     // Add carpets
     const carpets = [
-            { pos: [-15, 0.01, -15], radius: 6, color: '#8b2d2d' }, // Dark red
-                { pos: [15, 0.01, -15], radius: 8, color: '#4b3621' }    // Dark brown
-            ];
-            
-        
-         carpets.forEach(carpet => {
-               const material = new THREE.MeshStandardMaterial({
-                    color: carpet.color,
-                    roughness: 0.8
-                });
-            
-                const mesh = new THREE.Mesh(
-                    new THREE.CircleGeometry(carpet.radius, 32),
-                     material
-                 );
-                mesh.rotation.x = -Math.PI / 2;
-                 mesh.position.set(...carpet.pos);
-                 mesh.receiveShadow = true;
-               house.add(mesh);
-             });
-            
+        { pos: [-15, 0.01, -15], radius: 6 },
+        { pos: [15, 0.01, -15], radius: 8 }
+    ];
+
+    carpets.forEach(carpet => {
+        const mesh = new THREE.Mesh(
+            new THREE.CircleGeometry(carpet.radius, 32),
+            materials.carpet
+        );
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.set(...carpet.pos);
+        mesh.receiveShadow = true;
+        house.add(mesh);
+    });
+
     return house;
 }
 
 const loader = new GLTFLoader();
+// Load the character model
+loader.load(
+    "./assets/models/iwi_male_character_02/scene.gltf", 
+    (gltf) => {
+        try {
+            character = gltf.scene;
+            
+            // Set initial position and rotation
+            character.position.set(0, HOUSE_GROUND_LEVEL, 3);
+            character.rotation.y = Math.PI;
+            character.scale.set(5, 5, 5); // Adjust scale as needed
+            
+            scene.add(character);
+            
+            // Set up animation mixer
+            mixer = new THREE.AnimationMixer(character);
+            
+            // Find and set up animations
+            const animations = gltf.animations;
+            console.log('Available animations:', animations.map(a => a.name));
+            
+            // Set up animations (adjust animation names based on your model)
+            walkAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "walk") ||
+                THREE.AnimationClip.findByName(animations, "Rig|walk")
+            );
+            
+            idleAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "idle") ||
+                THREE.AnimationClip.findByName(animations, "Rig|idle")
+            );
+            
+            // Start with idle animation
+            if (idleAction) {
+                activeAction = idleAction;
+                idleAction.play();
+            }
+            
+            // Add debug helper to visualize character position
+            const helper = new THREE.BoxHelper(character, 0xff0000);
+            //scene.add(helper);
+            
+        } catch (error) {
+            console.error('Error setting up character:', error);
+        }
+    },
+    (xhr) => {
+        console.log(`Character loading: ${(xhr.loaded / xhr.total * 100)}% loaded`);
+    },
+    (error) => {
+        console.error('Error loading character:', error);
+    }
+);
+
+// Add keyboard event listeners
+document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+        keys[key] = true;
+    }
+    // Add perspective toggle
+    if (key === 'v') {
+        isFirstPerson = !isFirstPerson;
+        updateCameraMode();
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+        keys[key] = false;
+    }
+});
+
+// Function to update camera based on perspective mode
+function updateCameraMode() {
+    if (isFirstPerson && character) {
+        // Adjust this headOffset to position the camera at the character's head level
+        const headOffset = 60; // Example offset; adjust based on character height
+        camera.position.copy(character.position);
+        camera.position.y += headOffset; // Moves the camera up to head level
+        console.log("Camera Position:", camera.position);
+        camera.rotation.copy(character.rotation);
+    } else {
+        // Reset to third-person view
+        camera.position.set(12, 14, 18);
+        camera.lookAt(5, 5, 5);
+    }
+}
 
 // load dossier
 loader.load("./assets/models/file/scene.gltf", (gltf) => {
@@ -380,6 +482,35 @@ loader.load("./assets/models/revolver/scene.gltf", (gltf) => {
     scene.add(revolver);
 });
 
+// Update animation states based on movement
+function updateCharacterAnimation() {
+    if (!mixer || !character) return;
+    
+    // Check if character is moving
+    const isMoving = keys['w'] || keys['s'];
+    
+    // Switch between walk and idle animations
+    if (isMoving && walkAction && activeAction !== walkAction) {
+        // Transition to walk animation
+        walkAction.reset().fadeIn(0.2);
+        if (activeAction) {
+            activeAction.fadeOut(0.2);
+        }
+        activeAction = walkAction;
+        walkAction.play();
+    } else if (!isMoving && idleAction && activeAction !== idleAction) {
+        // Transition to idle animation
+        idleAction.reset().fadeIn(0.2);
+        if (activeAction) {
+            activeAction.fadeOut(0.2);
+        }
+        activeAction = idleAction;
+        idleAction.play();
+    }
+}
+
+
+
 // Raycaster setup
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -407,8 +538,8 @@ window.addEventListener('resize', () => {
 });
 
 // Movement controls
-const keys = { w: false, a: false, s: false, d: false };
-const moveSpeed = 0.2;
+//const keys = { w: false, a: false, s: false, d: false };
+const moveSpeed = 0.8;
 
 document.addEventListener('keydown', (event) => {
     switch (event.key.toLowerCase()) {
@@ -471,39 +602,43 @@ createLightingSystem();
 const house = createHouse();
 scene.add(house);
 
-
-
-// Timer Setup
-let startTime = Date.now();
-const timerElement = document.getElementById('timer');
-
-function updateTimer() {
-    const elapsedTime = Date.now() - startTime;
-    const minutes = Math.floor(elapsedTime / 60000).toString().padStart(2, '0');
-    const seconds = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
-    timerElement.textContent = `Time: ${minutes}:${seconds}`;
-}
-
-// Update the timer every second
-setInterval(updateTimer, 1000);
-
-// On-screen Controls
-document.getElementById('up').addEventListener('mousedown', () => keys.w = true);
-document.getElementById('left').addEventListener('mousedown', () => keys.a = true);
-document.getElementById('down').addEventListener('mousedown', () => keys.s = true);
-document.getElementById('right').addEventListener('mousedown', () => keys.d = true);
-
-document.getElementById('up').addEventListener('mouseup', () => keys.w = false);
-document.getElementById('left').addEventListener('mouseup', () => keys.a = false);
-document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
-document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
-
-
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
-    updateCameraPosition();
-    setCameraConstraints(-20, 20, -20, 20, 0); // Ensure camera stays within bounds
+    
+    const delta = clock.getDelta();
+    
+    if (character && camera) {
+        // Move character using the imported moveCharacter function
+        moveCharacter(
+            camera,
+            keys,
+            character,
+            isFirstPerson,
+            HOUSE_GROUND_LEVEL,
+            HOUSE_UPPER_FLOOR_LEVEL,
+            characterSpeedMain2
+        );
+        
+        // Update character animations
+        updateCharacterAnimation();
+        
+        // Update camera position in third-person mode
+        if (!isFirstPerson) {
+            // Adjust these values to bring the camera closer to the player
+            const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
+            const targetPosition = character.position.clone().add(cameraOffset);
+            camera.position.lerp(targetPosition, 0.1);
+            camera.lookAt(character.position);
+        }
+        
+    }
+    
+    // Update animation mixer
+    if (mixer) {
+        mixer.update(delta);
+    }
+    
     controls.update();
     renderer.render(scene, camera);
 }

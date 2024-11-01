@@ -3,104 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js House with Two Rooms</title>
+    <title>3D House Investigation</title>
+    <link rel="stylesheet" href="main2style.css">
 </head>
 <body>
     <div id="overlay">
-        <div id="timer">00:00</div> <!-- Timer separated from controls -->
+        <div id="timer">02:00</div>
+    </div>
+
+    <div class="witness-container">
+        <button class="ask-button" id="ask-button">Ask Witness</button>
+        <div id="warning-message" class="warning hidden">You can only ask one question per witness!</div>
+    </div>
+
+    <div id="controls-container">
         <div class="circular-controls">
-            <button id="up">▲</button>
-            <button id="down">▼</button>
-            <button id="left">◀</button>
-            <button id="right">▶</button>
+            <button id="up">W</button>
+            <button id="down">S</button>
+            <button id="left">A</button>
+            <button id="right">D</button>
         </div>
     </div>
-     
-    <style>
-       /* Base overlay styles */
-/* Base overlay styles */
-/* Base overlay styles for timer at the top center */
-#overlay {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px; /* Space between timer and controls */
-    z-index: 1;
-}
-
-/* Timer styling */
-#timer {
-    font-size: 20px;
-    font-weight: bold;
-    color: #ff6347; /* Blood-like red color */
-    font-family: 'Courier New', Courier, monospace;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 10px;
-    border: 2px solid #b22222;
-    border-radius: 50%;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); /* Red glow for mystery */
-    text-align: center;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Circular controls styling for bottom-left corner */
-#controls-container {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 1;
-}
-
-.circular-controls {
-    position: relative;
-    width: 120px; /* Slightly larger for better alignment */
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 50%;
-    border: 2px solid #b22222;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-}
-
-/* Button styles */
-.circular-controls button {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 16px;
-    background-color: rgba(30, 30, 30, 0.8);
-    color: #b22222;
-    border: 1px solid #ff6347;
-    cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
-}
-
-/* Control positions */
-.circular-controls #up { top: 10px; left: 50%; transform: translateX(-50%); }
-.circular-controls #down { bottom: 10px; left: 50%; transform: translateX(-50%); }
-.circular-controls #left { left: 10px; top: 50%; transform: translateY(-50%); }
-.circular-controls #right { right: 10px; top: 50%; transform: translateY(-50%); }
-
-/* Hover effects */
-.circular-controls button:hover {
-    background-color: rgba(139, 0, 0, 0.8);
-    box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
-}
-
-    </style>
     
-   <script type="module" src="main2.js"></script>
+
+    
+</div>
+    <div class="witness-container">
+        <div id="stressIndicator" class="witness-stress"></div>
+    
+        <div class="body-language">
+            <div id="bodyLanguage" class="body-language"></div>
+        </div>
+    </div>
+    
+    <div class="suspects-container" style="display: none;">
+        <button class="suspect-btn" data-suspect="suspect1">Suspect 1</button>
+        <button class="suspect-btn" data-suspect="suspect2">Suspect 2</button>
+        <button class="suspect-btn" data-suspect="suspect3">Suspect 3</button>
+    </div>
+
+    <div id="questioning-modal">
+        <button id="close-modal">×</button>
+        <div id="suspect-buttons">
+            <button class="suspect-btn" data-suspect="suspect1">Suspect 1</button>
+            <button class="suspect-btn" data-suspect="suspect2">Suspect 2</button>
+            <button class="suspect-btn" data-suspect="suspect3">Suspect 3</button>
+        </div>
+        <div id="questionSection"></div>
+        <div id="response-container">
+            <img id="witnessImage" src="/api/placeholder/120/120" alt="Witness">
+            <p id="responseText"></p>
+        </div>
+    </div>
+
+    <script type="module" src="main2.js"></script>
 </body>
 </html>
