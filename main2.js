@@ -1022,12 +1022,43 @@ document.getElementById('right').addEventListener('mouseup', () => keys.d = fals
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
-    updateCameraPosition();
-    setCameraConstraints(-20, 20, -20, 20, 0); // Ensure camera stays within bounds
+    
+    const delta = clock.getDelta();
+    
+    if (character && camera) {
+        // Move character using the imported moveCharacter function
+        moveCharacter(
+            camera,
+            keys,
+            character,
+            isFirstPerson,
+            HOUSE_GROUND_LEVEL,
+            HOUSE_UPPER_FLOOR_LEVEL,
+            characterSpeedMain2
+        );
+        
+        // Update character animations
+        updateCharacterAnimation();
+        
+        // Update camera position in third-person mode
+        if (!isFirstPerson) {
+            // Adjust these values to bring the camera closer to the player
+            const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
+            const targetPosition = character.position.clone().add(cameraOffset);
+            camera.position.lerp(targetPosition, 0.1);
+            camera.lookAt(character.position);
+        }
+        
+    }
+    
+    // Update animation mixer
+    if (mixer) {
+        mixer.update(delta);
+    }
+    
     controls.update();
     renderer.render(scene, camera);
 }
-
 // Restart the game when the failRestartButton is clicked
 function showFailPopup() {
     document.getElementById("gameOverPopupFail").style.display = "flex"; // Show the fail popup
