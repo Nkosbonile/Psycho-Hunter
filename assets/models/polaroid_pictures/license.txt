@@ -1,0 +1,11 @@
+Model Information:
+* title:	Polaroid pictures
+* source:	https://sketchfab.com/3d-models/polaroid-pictures-c94b9b50c5ac4e2a96ac44a5fc3618eb
+* author:	maria.jardan (https://sketchfab.com/maria.jardan)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Polaroid pictures" (https://sketchfab.com/3d-models/polaroid-pictures-c94b9b50c5ac4e2a96ac44a5fc3618eb) by maria.jardan (https://sketchfab.com/maria.jardan) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
