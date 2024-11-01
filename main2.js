@@ -1,5 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { createCharacter, moveCharacter } from "./character.js";
+
+let character;
+let mixer;
+let walkAction;
+let idleAction;
+let pickUpAction;
+let activeAction;
 
 // Scene, Camera, Renderer Setup
 const scene = new THREE.Scene();
@@ -315,6 +324,73 @@ function createHouse() {
     return house;
 }
 
+const loader = new GLTFLoader();
+// Load the character model
+loader.load(
+    "./assets/models/iwi_male_character_02/scene.gltf", 
+    // Success callback
+    (gltf) => {
+        console.log('Model loaded:', gltf);
+    //console.log('Available animations:', gltf.animations.map(a => a.name));
+        try {
+            character = createCharacter(gltf);
+            if (!character) {
+                console.error('Character creation failed');
+                return;
+            }
+
+            scene.add(character);
+            character.scale.set(10, 10, 10);
+            character.position.set(5, 0, 6);
+            character.rotation.y = Math.PI;
+
+            // Set up animations
+            mixer = new THREE.AnimationMixer(character);
+            const animations = gltf.animations;
+
+            if (animations.length === 0) {
+                console.error('No animations found in the model');
+                return;
+            }
+
+            // Set up individual animations
+            walkAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "Rig|walk")
+            );
+            idleAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "Rig|idle")
+            );
+            pickUpAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "Rig|pickUp")
+            );
+
+            if (!walkAction || !idleAction || !pickUpAction) {
+                console.error('One or more animations not found');
+                return;
+            }
+
+            // Set idle as the default active action
+            activeAction = idleAction;
+            idleAction.play();
+
+            // Create the flashlight next to the character after loading
+            createFlashlight(character.position);
+
+            console.log('Character loaded successfully');
+        } catch (error) {
+            console.error('Error setting up character:', error);
+        }
+    },
+    // Progress callback
+    (xhr) => {
+        console.log(`Character loading: ${(xhr.loaded / xhr.total * 100)}% loaded`);
+    },
+    // Error callback
+    (error) => {
+        console.error('Error loading character:', error);
+    }
+);
+
 // Raycaster setup
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -409,6 +485,10 @@ scene.add(house);
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
+
+    if (mixer) {
+        mixer.update(0.016); // Update animations (assuming 60fps)
+    }
     updateCameraPosition();
     setCameraConstraints(-20, 20, -20, 20, 0); // Ensure camera stays within bounds
     controls.update();
