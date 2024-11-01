@@ -80,9 +80,9 @@ export function moveCharacter(camera, keys, character, isFirstPerson, houseGroun
   if (moveDirection.length() > 0) {
     moveDirection.normalize();
     const displacement = moveDirection.multiplyScalar(speed);
-
-    // Add boundary constraints
     const newPosition = character.position.clone().add(displacement);
+
+    // Define the bounds of the house
     const HOUSE_BOUNDS = {
       minX: -24,
       maxX: 24,
@@ -90,12 +90,31 @@ export function moveCharacter(camera, keys, character, isFirstPerson, houseGroun
       maxZ: 24
     };
 
-    // Only apply movement if within bounds
-    if (newPosition.x >= HOUSE_BOUNDS.minX && 
-        newPosition.x <= HOUSE_BOUNDS.maxX && 
-        newPosition.z >= HOUSE_BOUNDS.minZ && 
-        newPosition.z <= HOUSE_BOUNDS.maxZ) {
-      character.position.copy(newPosition);
+    // Create a bounding box for the character
+    const characterBox = new THREE.Box3().setFromCenterAndSize(
+      character.position.clone(), 
+      new THREE.Vector3(1, 2, 1) // Assuming character size is 1x2x1
+    );
+
+    // Create a bounding box for the interior wall
+    const wallHeight = 10; // Set your wall height
+    const wallThickness = 1; // Set your wall thickness
+    const interiorWallBox = new THREE.Box3().setFromCenterAndSize(
+      new THREE.Vector3(0, wallHeight / 2, 0), // Position of the wall
+      new THREE.Vector3(30, wallHeight, wallThickness) // Size of the wall
+    );
+
+    // Check for collision with the interior wall
+    const newCharacterBox = characterBox.clone().translate(displacement);
+    
+    if (!newCharacterBox.intersectsBox(interiorWallBox)) {
+      // Only apply movement if within house bounds and no collision
+      if (newPosition.x >= HOUSE_BOUNDS.minX && 
+          newPosition.x <= HOUSE_BOUNDS.maxX && 
+          newPosition.z >= HOUSE_BOUNDS.minZ && 
+          newPosition.z <= HOUSE_BOUNDS.maxZ) {
+        character.position.copy(newPosition);
+      }
     }
   }
 
