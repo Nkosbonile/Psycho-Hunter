@@ -416,18 +416,405 @@ scene.add(house);
 
 
 // Timer Setup
+let countdownTime = 120000; // 2 minutes in milliseconds
 let startTime = Date.now();
-const timerElement = document.getElementById('timer');
+let timerInterval;
 
 function updateTimer() {
     const elapsedTime = Date.now() - startTime;
-    const minutes = Math.floor(elapsedTime / 60000).toString().padStart(2, '0');
-    const seconds = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
-    timerElement.textContent = `Time: ${minutes}:${seconds}`;
+    const remainingTime = countdownTime - elapsedTime;
+    
+    if (remainingTime > 0) {
+        const minutes = Math.floor(remainingTime / 60000).toString().padStart(2, '0');
+        const seconds = Math.floor((remainingTime % 60000) / 1000).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
+    } else {
+        document.getElementById('timer').textContent = "Time: 00:00";
+        clearInterval(timerInterval);
+    }
 }
 
-// Update the timer every second
-setInterval(updateTimer, 1000);
+const witnesses = {
+    witness1: [
+        { 
+            question: "Where was suspect1 last night?", 
+            response: "I saw them near the park.", 
+            image: "witness1.jpg",
+            reliability: 0.8,
+            timeDelay: 2000,
+            contradicts: null,
+            stressLevel: 0.3
+        },
+        { 
+            question: "Did suspect1 seem suspicious?", 
+            response: "Yes, they were acting strangely.", 
+            image: "witness1.jpg",
+            reliability: 0.6,
+            timeDelay: 3000,
+            contradicts: "witness2.1",
+            stressLevel: 0.5
+        },
+        { 
+            question: "What was suspect1 wearing?", 
+            response: "They had a dark jacket on.", 
+            image: "witness1.jpg",
+            reliability: 0.9,
+            timeDelay: 1500,
+            contradicts: null,
+            stressLevel: 0.2
+        }
+    ],
+    witness2: [
+        { 
+            question: "What was suspect2 doing?", 
+            response: "They were having a heated argument.", 
+            image: "witness2.jpg",
+            reliability: 0.7,
+            timeDelay: 2500,
+            contradicts: null,
+            stressLevel: 0.6
+        },
+        { 
+            question: "Did you notice anyone with suspect2?", 
+            response: "Yes, they were with a group.", 
+            image: "witness2.jpg",
+            reliability: 0.5,
+            timeDelay: 4000,
+            contradicts: "witness1.2",
+            stressLevel: 0.8
+        },
+        { 
+            question: "Where did suspect2 go afterward?", 
+            response: "They left quickly after the argument.", 
+            image: "witness2.jpg",
+            reliability: 0.4,
+            timeDelay: 3500,
+            contradicts: "witness3.1",
+            stressLevel: 0.7
+        }
+    ],
+    witness3: [
+        { 
+            question: "Did you see suspect3 near the scene?", 
+            response: "Yes, but they left in a hurry.", 
+            image: "witness3.jpg",
+            reliability: 0.6,
+            timeDelay: 2800,
+            contradicts: "witness2.3",
+            stressLevel: 0.4
+        },
+        { 
+            question: "Did suspect3 look nervous?", 
+            response: "Definitely, they looked anxious.", 
+            image: "witness3.jpg",
+            reliability: 0.3,
+            timeDelay: 3200,
+            contradicts: null,
+            stressLevel: 0.9
+        },
+        { 
+            question: "Did you speak to suspect3?", 
+            response: "No, but they avoided contact.", 
+            image: "witness3.jpg",
+            reliability: 0.8,
+            timeDelay: 1800,
+            contradicts: null,
+            stressLevel: 0.5
+        }
+    ]
+};
+
+function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    // Modal control
+    const askButton = document.getElementById('ask-button');
+    const modal = document.getElementById('questioning-modal');
+    const closeModal = document.getElementById('close-modal');
+
+    askButton.addEventListener('click',  () => {
+        showWarning(); 
+        modal.style.display = 'block';
+    });
+
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+        document.getElementById('response-container').style.display = 'none';
+    });
+
+    // Suspect button handling
+    const suspectButtons = document.querySelectorAll('.suspect-btn');
+    suspectButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            suspectButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            someFunctionThatLoadsQuestions(button.dataset.suspect);
+            document.getElementById('response-container').style.display = 'none';
+        });
+    });
+
+    // Start the timer when the page loads
+    startTimer();
+});
+
+// Function to load questions based on the selected suspect
+function someFunctionThatLoadsQuestions(suspect) {
+    switch(suspect) {
+        case 'suspect1':
+            loadQuestions('witness1');
+            break;
+        case 'suspect2':
+            loadQuestions('witness2');
+            break;
+        case 'suspect3':
+            loadQuestions('witness3');
+            break;
+        default:
+            console.error('Invalid suspect');
+            const questionSection = document.getElementById('questionSection');
+            questionSection.innerHTML = '<p>No valid suspect selected.</p>';
+            break;
+    }
+}
+
+const stressIndicators = [
+    "appears calm and collected",
+    "shows slight nervousness",
+    "fidgets occasionally",
+    "appears visibly stressed",
+    "shows signs of extreme anxiety"
+];
+
+const bodyLanguageDescriptions = [
+    "maintains steady eye contact",
+    "avoids direct eye contact",
+    "crosses arms defensively",
+    "speaks with a trembling voice",
+    "frequently touches face while speaking"
+];
+
+function animateResponse(witnessKey, questionIndex) {
+    const response = witnesses[witnessKey][questionIndex];
+    const responseContainer = document.getElementById('response-container');
+    const witnessImage = document.getElementById('witnessImage');
+    const responseText = document.getElementById('responseText');
+    const stressIndicator = document.getElementById('stressIndicator');
+    const bodyLanguage = document.getElementById('bodyLanguage');
+
+    responseContainer.style.opacity = '0';
+    responseContainer.style.display = 'block';
+
+    setTimeout(() => {
+        responseContainer.style.transition = 'opacity 0.5s ease-in-out';
+        responseContainer.style.opacity = '1';
+    }, 100);
+
+    const stressLevel = Math.floor(response.stressLevel * (stressIndicators.length - 1));
+    const bodyLanguageIndex = Math.floor(Math.random() * bodyLanguageDescriptions.length);
+
+    setTimeout(() => {
+        witnessImage.src = response.image;
+    }, 500);
+
+    let index = 0;
+    responseText.textContent = '';
+    
+    function typeWriter() {
+        if (index < response.response.length) {
+            responseText.textContent += response.response.charAt(index);
+            index++;
+            setTimeout(typeWriter, 50);
+        }
+    }
+
+    setTimeout(typeWriter, 1000);
+
+    setTimeout(() => {
+        stressIndicator.textContent = `Witness ${stressIndicators[stressLevel]}`;
+        bodyLanguage.textContent = `Witness ${bodyLanguageDescriptions[bodyLanguageIndex]}`;
+        stressIndicator.classList.add('visible');
+        bodyLanguage.classList.add('visible');
+    }, 2000);
+
+    const timePenalty = Math.floor((1 - response.reliability) * 30000);
+    countdownTime -= timePenalty;
+
+    if (response.contradicts) {
+        markContradiction(response.contradicts);
+    }
+}
+
+function markContradiction(contradictionRef) {
+    const logEntry = document.createElement('div');
+    logEntry.className = 'contradiction-log';
+    logEntry.textContent = `⚠️ Possible contradiction detected in testimony`;
+    document.getElementById('investigation-log').appendChild(logEntry);
+}
+
+const questionedSuspects = new Set();
+const questionsRemaining = {
+    suspect1: true,
+    suspect2: true,
+    suspect3: true
+};
+
+function showWarning() {
+    const warningMessage = document.getElementById('warning-message');
+    warningMessage.classList.remove('hidden'); // Show the warning
+
+    // Optionally hide the warning after a few seconds
+    setTimeout(() => {
+        warningMessage.classList.add('hidden'); // Hide the warning
+    }, 3000); // Adjust time as needed (3000 ms = 3 seconds)
+}
+
+function initializeSuspectButtons() {
+    const suspectButtonsContainer = document.getElementById('suspect-buttons');
+    suspectButtonsContainer.innerHTML = '';
+
+    const suspectButtons = document.querySelectorAll('.suspect-btn');
+    
+    suspectButtons.forEach(button => {
+        const buttonClone = button.cloneNode(true);
+        
+        buttonClone.addEventListener('click', () => {
+            const suspectId = buttonClone.dataset.suspect;
+            
+            if (questionsRemaining[suspectId]) {
+                suspectButtons.forEach(btn => btn.classList.remove('active'));
+                buttonClone.classList.add('active');
+                loadQuestions(getSuspectWitness(suspectId));
+                document.getElementById('response-container').style.display = 'none';
+                document.querySelector('.question-limit-warning').style.display = 'none';
+            } else {
+                buttonClone.classList.add('shake');
+                setTimeout(() => buttonClone.classList.remove('shake'), 500);
+                
+                const warning = document.querySelector('.question-limit-warning');
+                warning.style.display = 'block';
+                warning.textContent = 'You have already questioned this suspect!';
+            }
+        });
+
+        suspectButtonsContainer.appendChild(buttonClone);
+    });
+}
+
+function loadQuestions(witnessKey) {
+    const questionSection = document.getElementById('questionSection');
+    questionSection.innerHTML = '';
+
+    const suspectId = witnessKey.replace('witness', 'suspect');
+    
+    if (!questionsRemaining[suspectId]) {
+        questionSection.innerHTML = '<p>You have already questioned this suspect.</p>';
+        return;
+    }
+
+    if (witnesses[witnessKey] && Array.isArray(witnesses[witnessKey])) {
+        const container = document.createElement('div');
+        container.className = 'questions-container';
+        
+        const warning = document.createElement('div');
+        warning.className = 'question-limit-warning';
+        container.appendChild(warning);
+
+        witnesses[witnessKey].forEach((q, index) => {
+            const button = document.createElement('button');
+            button.className = 'question-btn';
+            button.textContent = q.question;
+
+            button.onclick = () => {
+                if (!questionedSuspects.has(suspectId)) {
+                    questionedSuspects.add(suspectId);
+                    questionsRemaining[suspectId] = false;
+                    
+                    const suspectButton = document.querySelector(`[data-suspect="${suspectId}"]`);
+                    suspectButton.classList.add('questioned');
+                    
+                    document.querySelectorAll('.question-btn').forEach(btn => {
+                        btn.disabled = true;
+                    });
+
+                    showTimedResponse(witnessKey, index);
+                    updateInvestigationProgress();
+                }
+            };
+
+            container.appendChild(button);
+        });
+
+        questionSection.appendChild(container);
+    }
+}
+
+function showTimedResponse(witnessKey, questionIndex) {
+    const timeLimit = 10000;
+    const response = witnesses[witnessKey][questionIndex];
+    
+    animateResponse(witnessKey, questionIndex);
+    
+    const timerBar = document.createElement('div');
+    timerBar.className = 'question-timer';
+    document.querySelector('.questions-container').appendChild(timerBar);
+    
+    let timeLeft = timeLimit;
+    const timerInterval = setInterval(() => {
+        timeLeft -= 100;
+        const percentage = (timeLeft / timeLimit) * 100;
+        timerBar.style.width = `${percentage}%`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('response-container').style.display = 'none';
+            timerBar.remove();
+        }
+    }, 100);
+}
+
+function updateInvestigationProgress() {
+    const totalSuspects = Object.keys(questionsRemaining).length;
+    const questionedCount = questionedSuspects.size;
+    
+    const progressDisplay = document.getElementById('investigation-progress') || createProgressDisplay();
+    progressDisplay.textContent = `Suspects Questioned: ${questionedCount}/${totalSuspects}`;
+    
+    if (questionedCount === totalSuspects) {
+        showInvestigationSummary();
+    }
+}
+
+function createProgressDisplay() {
+    const progressDisplay = document.createElement('div');
+    progressDisplay.id = 'investigation-progress';
+    document.body.appendChild(progressDisplay);
+    return progressDisplay;
+}
+
+function showInvestigationSummary() {
+    const modal = document.createElement('div');
+    modal.className = 'investigation-summary';
+    modal.innerHTML = `
+        <div class="summary-content">
+            <h2>Investigation Complete!</h2>
+            <p>You have questioned all available suspects.</p>
+            <p>Time Remaining: ${document.getElementById('timer').textContent}</p>
+            <button onclick="this.parentElement.parentElement.remove()">Close Summary</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function getSuspectWitness(suspectId) {
+    return `witness${suspectId.replace('suspect', '')}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSuspectButtons();
+    createProgressDisplay();
+});
 
 // On-screen Controls
 document.getElementById('up').addEventListener('mousedown', () => keys.w = true);
