@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bloody Cabinet
+* source:	https://sketchfab.com/3d-models/bloody-cabinet-93f9048ced8d4c46ae5f26c9edec0e48
+* author:	Connor Wassall (https://sketchfab.com/connorwassall)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bloody Cabinet" (https://sketchfab.com/3d-models/bloody-cabinet-93f9048ced8d4c46ae5f26c9edec0e48) by Connor Wassall (https://sketchfab.com/connorwassall) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

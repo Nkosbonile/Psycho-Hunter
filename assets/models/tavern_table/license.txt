@@ -1,0 +1,11 @@
+Model Information:
+* title:	Tavern Table
+* source:	https://sketchfab.com/3d-models/tavern-table-098e7a2e20044e298e0789da9477779b
+* author:	sotirissmix (https://sketchfab.com/sotirissmix)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Tavern Table" (https://sketchfab.com/3d-models/tavern-table-098e7a2e20044e298e0789da9477779b) by sotirissmix (https://sketchfab.com/sotirissmix) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
