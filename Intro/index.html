@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Murder Mystery Game Intro</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #introText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Arial', sans-serif;
+            font-size: 28px;
+            color: white;
+            text-align: center;
+            max-width: 80%;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+        #startButton {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Arial', sans-serif;
+            font-size: 20px;
+            padding: 10px 20px;
+            color: white;
+            background-color: #444;
+            border: none;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+        }
+        #startButton:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="introText">Welcome to the Murder Mystery Game,<br>Your mission: Uncover the truth behind the murder!</div>
+    <button id="startButton" onclick="startGame()">Begin Investigation</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+    <script>
+        let scene, camera, renderer;
+        let introText = document.getElementById('introText');
+        let startButton = document.getElementById('startButton');
+
+        function init() {
+            // Create the scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000); // Dark background
+
+            // Create a camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 15;
+
+            // Create the renderer
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Set the background with a murder scene image
+            const backgroundTexture = new THREE.TextureLoader().load('https://via.placeholder.com/800x600/000000/FFFFFF?text=Murder+Scene+Background'); // Placeholder for background image
+            const backgroundGeometry = new THREE.PlaneGeometry(100, 75);
+            const backgroundMaterial = new THREE.MeshBasicMaterial({ map: backgroundTexture });
+            const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+            background.position.set(0, 0, -10);
+            scene.add(background);
+
+            // Add animated evidence elements
+            addAnimatedEvidence();
+
+            // Add a spotlight for effect
+            let spotlight = new THREE.SpotLight(0xffffff, 1.5);
+            spotlight.position.set(0, 5, 10);
+            spotlight.angle = Math.PI / 4;
+            spotlight.castShadow = true;
+            scene.add(spotlight);
+
+            // Add ambient light
+            let ambientLight = new THREE.AmbientLight(0x404040); // Soft light
+            scene.add(ambientLight);
+
+            // Start intro animation
+            introAnimation();
+
+            // Resize listener
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // Add animated evidence elements
+        function addAnimatedEvidence() {
+            const loader = new THREE.TextureLoader();
+
+            // Create a rotating magnifying glass
+            const glassGeometry = new THREE.CircleGeometry(1, 32);
+            const glassMaterial = new THREE.MeshBasicMaterial({ 
+                map: loader.load('https://via.placeholder.com/100/FFFFFF/000000?text=Magnifying+Glass') // Placeholder for magnifying glass
+            });
+            const magnifyingGlass = new THREE.Mesh(glassGeometry, glassMaterial);
+            magnifyingGlass.position.set(-3, 1, 0);
+            magnifyingGlass.rotation.x = Math.PI / 2; // Rotate to lay flat
+            scene.add(magnifyingGlass);
+
+            // Animate the magnifying glass
+            function animateGlass() {
+                requestAnimationFrame(animateGlass);
+                magnifyingGlass.rotation.z += 0.01; // Rotate continuously
+            }
+            animateGlass();
+
+            // Create rotating question mark
+            const questionGeometry = new THREE.CircleGeometry(0.5, 32);
+            const questionMaterial = new THREE.MeshBasicMaterial({ 
+                map: loader.load('https://via.placeholder.com/100/FFFFFF/000000?text=?') // Placeholder for question mark
+            });
+            const questionMark = new THREE.Mesh(questionGeometry, questionMaterial);
+            questionMark.position.set(2, 1, 0);
+            scene.add(questionMark);
+
+            // Animate the question mark
+            function animateQuestionMark() {
+                requestAnimationFrame(animateQuestionMark);
+                questionMark.rotation.z += 0.02; // Rotate continuously
+            }
+            animateQuestionMark();
+        }
+
+        // Resize window function
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Animate camera intro
+        function introAnimation() {
+            let cameraMove = { z: 30 }; // Starting camera position far away
+
+            // Use tween.js for smooth camera movement
+            new TWEEN.Tween(cameraMove)
+                .to({ z: 15 }, 5000) // Move camera closer over 5 seconds
+                .easing(TWEEN.Easing.Cubic.Out)
+                .onUpdate(() => {
+                    camera.position.z = cameraMove.z;
+                })
+                .onComplete(() => {
+                    showIntroText();
+                })
+                .start();
+
+            animate();
+        }
+
+        // Show intro text with fade-in effect
+        function showIntroText() {
+            introText.style.opacity = 1;
+
+            // Show the start button after 3 seconds
+            setTimeout(() => {
+                startButton.style.display = 'block';
+            }, 3000);
+        }
+
+        // Start game (button click handler)
+        function startGame() {
+            introText.style.opacity = 0;
+            startButton.style.display = 'none';
+            // Here you can initialize the actual game
+            alert("The game is starting now!");
+        }
+
+        // Animate function (calls repeatedly to update Three.js)
+        function animate() {
+            requestAnimationFrame(animate);
+            // Update tweens
+            TWEEN.update();
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // Initialize the scene
+        init();
+    </script>
+</body>
+</html>
