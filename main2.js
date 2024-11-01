@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { createCharacter, moveCharacter } from "./character.js";
+import { ThirdPersonCamera } from './thirdPersonCamera.js';
+import { clues, showEvidenceModal } from './clues.js';
+
 
 let character;
 let mixer;
@@ -607,22 +610,33 @@ scene.add(house);
 
 
 // Timer Setup
-let countdownTime = 120000; // 2 minutes in milliseconds
-let startTime = Date.now();
+let countdownTime = 120000;  // 2 minutes in milliseconds
 let timerInterval;
 
 function updateTimer() {
-    const elapsedTime = Date.now() - startTime;
-    const remainingTime = countdownTime - elapsedTime;
+    const remainingTime = countdownTime; // Use the countdownTime directly
     
     if (remainingTime > 0) {
         const minutes = Math.floor(remainingTime / 60000).toString().padStart(2, '0');
         const seconds = Math.floor((remainingTime % 60000) / 1000).toString().padStart(2, '0');
         document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
-    } else {
+    } else if (remainingTime === 0)  {
         document.getElementById('timer').textContent = "Time: 00:00";
         clearInterval(timerInterval);
+    
     }
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        if (countdownTime > 0) {
+            countdownTime -= 1000; // Reduce by 1 second (1000 ms)
+            updateTimer(); // Update the timer display
+        } else {
+            clearInterval(timerInterval); // Stop the timer when it reaches zero
+            updateTimer(); // Ensure the display shows 00:00
+        }
+    }, 1000); // Run every 1 second
 }
 
 const witnesses = {
@@ -715,10 +729,18 @@ const witnesses = {
     ]
 };
 
-function startTimer() {
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 1000);
-}
+// function startTimer() {
+//     timerInterval = setInterval(() => {
+//         if (countdownTime > 0) {
+//             countdownTime -= 1000; // Reduce by 1 second (1000 ms)
+//            updateTimer();
+//         } else {
+//             clearInterval(timerInterval); // Stop the timer when it reaches zero
+//             alert("Time's up!"); // Optional: Handle time-out scenario
+//         }
+//     }, 1000); // Run every 1 second
+// }
+
 document.addEventListener('DOMContentLoaded', () => {
     // Modal control
     const askButton = document.getElementById('ask-button');
@@ -1018,47 +1040,126 @@ document.getElementById('left').addEventListener('mouseup', () => keys.a = false
 document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
 document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
 
+// Disable "Ask Witness" Button by Default
+document.addEventListener('DOMContentLoaded', () => {
+    const askButton = document.getElementById('ask-button');
+    if (askButton) {
+        askButton.disabled = true;
+        askButton.style.opacity = '0.5';
+        askButton.style.cursor = 'not-allowed';
+    }
+});
 
+// Enable "Ask Witness" Button
+
+
+
+const hintButton = document.getElementById('hint-button');
+
+
+// Check Clue Proximity and Display Hint Button
+let currentClueIndex = 0; // Index to track correct order of clues
+
+function handleHintClick(clue) {
+    console.log(`Player clicked on: ${clue.model}`);
+    
+    // Check if the clicked clue matches the correct sequence object
+    if (clue.model === clues[currentClueIndex].model) {
+        console.log(`Correct object found: ${clue.model}`);
+        
+        // Show hint for the next object in the sequence
+        showEvidenceModal(clue);
+        
+        // Move to the next clue in sequence
+        currentClueIndex++;
+
+        // If the dossier (last object) is found, enable the "Ask Witness" button
+        if (currentClueIndex === clues.length) {
+            enableAskButton();
+        }
+    } else {
+        // Wrong object, apply penalty
+        console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
+        countdownTime -= clue.timePenalty;
+        
+        // Update timer immediately to reflect penalty
+       updateTimer();
+    }
+}
+
+// Function to check the player's proximity to clues
+// Corrected checkClueProximity function
+function checkClueProximity() {
+    if (!character) return;
+
+    let nearestClue = null;
+    let minDistance = Infinity;
+
+    // Loop through each clue to check distance
+    clues.forEach((clue, index) => {
+        const distance = character.position.distanceTo(clue.position);
+        console.log(`Distance to ${clue.model}: ${distance} (radius: ${clue.radius})`);
+
+        // Check if within radius and it's the next clue in the sequence
+        if (distance <= clue.radius && distance < minDistance) {
+            minDistance = distance;
+            nearestClue = clue;
+        }
+    });
+
+    if (nearestClue && nearestClue.model === clues[currentClueIndex].model) {
+        hintButton.style.display = 'block';
+        hintButton.onclick = () => handleHintClick(nearestClue);
+        console.log(`Hint displayed for: ${nearestClue.model}`);
+    } else if (nearestClue) {
+        // Apply penalty if near a clue out of sequence
+        console.log(`Incorrect clue proximity detected. Applying penalty of ${nearestClue.timePenalty / 1000} seconds.`);
+        countdownTime -= nearestClue.timePenalty;
+       updateTimer(); // Immediately update timer display
+    } else {
+        hintButton.style.display = 'none';
+        hintButton.onclick = null;
+        console.log('No clues nearby or out of sequence.');
+    }
+}
+
+
+// Enable the "Ask Witness" button after finding all clues
+function enableAskButton() {
+    const askButton = document.getElementById('ask-button');
+    if (askButton) {
+        askButton.disabled = false;
+        askButton.style.opacity = '1';
+        askButton.style.cursor = 'pointer';
+        console.log('Ask Witness button enabled.');
+    }
+}
+const cameraController = new ThirdPersonCamera(camera, character);
+// Timer Update Function
+cameraController.setOffset(0, 2, 4); // Adjust x,y,z to change camera position
+cameraController.setLookAtOffset(0, 1, 0); // Adjust where camera looks
+cameraController.setSmoothness(0.3); // Higher = smoother but more lag
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
-    
     const delta = clock.getDelta();
-    
+
     if (character && camera) {
-        // Move character using the imported moveCharacter function
-        moveCharacter(
-            camera,
-            keys,
-            character,
-            isFirstPerson,
-            HOUSE_GROUND_LEVEL,
-            HOUSE_UPPER_FLOOR_LEVEL,
-            characterSpeedMain2
-        );
-        
-        // Update character animations
-        updateCharacterAnimation();
-        
-        // Update camera position in third-person mode
+        moveCharacter(camera, keys, character, isFirstPerson, HOUSE_GROUND_LEVEL, HOUSE_UPPER_FLOOR_LEVEL, characterSpeedMain2);
+        checkClueProximity();  // Ensure this function is called here
         if (!isFirstPerson) {
-            // Adjust these values to bring the camera closer to the player
-            const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
-            const targetPosition = character.position.clone().add(cameraOffset);
-            camera.position.lerp(targetPosition, 0.1);
-            camera.lookAt(character.position);
+            cameraController.update(delta);
         }
-        
     }
-    
-    // Update animation mixer
-    if (mixer) {
-        mixer.update(delta);
-    }
-    
+
+    if (mixer) mixer.update(delta);
     controls.update();
     renderer.render(scene, camera);
 }
+
+
+
+let  gameOver = true;
 // Restart the game when the failRestartButton is clicked
 function showFailPopup() {
     document.getElementById("gameOverPopupFail").style.display = "flex"; // Show the fail popup
@@ -1070,26 +1171,22 @@ function restartGame() {
     timeLeft = initialTime; // Reset time left
     gameOver = false; // Reset game over flag
     clearInterval(timer); // Clear the existing timer
-    startTimer(); // Restart the timer
     resetGameUI(); // Reset the game UI
+    startTimer(); // Restart the timer
+    
 }
 
 // Reset UI function
 function resetGameUI() {
     document.getElementById("gameOverPopupFail").style.display = "none"; // Hide the fail popup
-    updateTimerDisplay(); // Update the timer display to show the initial time
+   updateTimer(); // Update the timer display to show the initial time
 }
 
-// Function to update the timer display
-function updateTimerDisplay() {
-    // Calculate minutes and seconds
-    const minutes = Math.floor(timeLeft / 60); // Get the whole minutes
-    const seconds = timeLeft % 60; // Get the remaining seconds
-
-    // Format the timer display
-    document.getElementById('timer').innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; // Update the timer display
-}
-
+// function updateTimerDisplay() {
+//     const minutes = Math.floor(countdownTime / 60000).toString().padStart(2, '0');
+//     const seconds = Math.floor((countdownTime % 60000) / 1000).toString().padStart(2, '0');
+//     document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
+// }
 // Ensure the DOM is fully loaded before adding event listeners
 document.addEventListener('DOMContentLoaded', () => {
     const failRestartButton = document.getElementById("failRestartButton");
@@ -1108,5 +1205,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 animate();
-
+updateTimer();
     

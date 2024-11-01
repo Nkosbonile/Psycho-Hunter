@@ -389,3 +389,24 @@ canvas { display: block; }
 #nextLevelButton:active {
     background-color: #1e7e34;
 }
+
+#hint-button {
+    position: fixed; /* Fixes the button's position */
+    top: 20px; /* Distance from the top */
+    left: 20px; /* Distance from the left */
+    padding: 12px 24px; /* Padding for button size */
+    font-size: 16px; /* Font size */
+    background-color: #4caf50; /* Green background color */
+    color: white; /* Text color */
+    border: none; /* No border */
+    border-radius: 8px; /* Rounded corners */
+    cursor: pointer; /* Pointer on hover */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    z-index: 100; /* Ensure it's on top of other elements */
+}
+
+#hint-button:hover {
+    background-color: #388e3c; /* Darker green on hover */
+    transform: translateY(-2px); /* Lift effect on hover */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2); /* Shadow effect on hover */
+}
