@@ -383,7 +383,7 @@ loader.load(
             
             // Add debug helper to visualize character position
             const helper = new THREE.BoxHelper(character, 0xff0000);
-            scene.add(helper);
+            //scene.add(helper);
             
         } catch (error) {
             console.error('Error setting up character:', error);
