@@ -3,12 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js House with Two Rooms</title>
+    <title>3D House Investigation</title>
+    <link rel="stylesheet" href="main2style.css">
 </head>
 <body>
-    <!-- Include Three.js Library from CDN -->
+    <div id="overlay">
+        <div id="timer">02:00</div>
+    </div>
+
+    <div class="witness-container">
+        <button class="ask-button" id="ask-button">Ask Witness</button>
+        <div id="warning-message" class="warning hidden">You can only ask one question per witness!</div>
+    </div>
+
+    <div id="controls-container">
+        <div class="circular-controls">
+            <button id="up">W</button>
+            <button id="down">S</button>
+            <button id="left">A</button>
+            <button id="right">D</button>
+        </div>
+    </div>
     
-    <!-- Link to your JavaScript file -->
-   <script type="module" src="main2.js"></script>
+
+    
+</div>
+    <div class="witness-container">
+        <div id="stressIndicator" class="witness-stress"></div>
+    
+        <div class="body-language">
+            <div id="bodyLanguage" class="body-language"></div>
+        </div>
+    </div>
+    
+    <div class="suspects-container">
+        <button class="suspect-btn" data-suspect="suspect1">Suspect 1</button>
+        <button class="suspect-btn" data-suspect="suspect2">Suspect 2</button>
+        <button class="suspect-btn" data-suspect="suspect3">Suspect 3</button>
+    </div>
+
+    <div id="questioning-modal">
+        <button id="close-modal">×</button>
+        <div id="suspect-buttons">
+            <button class="suspect-btn" data-suspect="suspect1">Suspect 1</button>
+            <button class="suspect-btn" data-suspect="suspect2">Suspect 2</button>
+            <button class="suspect-btn" data-suspect="suspect3">Suspect 3</button>
+        </div>
+        <div id="questionSection"></div>
+        <div id="response-container">
+            <img id="witnessImage" src="/api/placeholder/120/120" alt="Witness">
+            <p id="responseText"></p>
+        </div>
+    </div>
+
+    <script type="module" src="main2.js"></script>
 </body>
 </html>
