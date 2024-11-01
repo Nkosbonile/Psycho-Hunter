@@ -10,6 +10,17 @@ let idleAction;
 let pickUpAction;
 let activeAction;
 
+const HOUSE_GROUND_LEVEL = 0;
+const HOUSE_UPPER_FLOOR_LEVEL = 10; // Adjust based on your house dimensions
+let isFirstPerson = false; // Toggle for first/third person view
+const clock = new THREE.Clock();
+const keys = {
+    'w': false,
+    'a': false,
+    's': false,
+    'd': false,
+    //'shift': false
+}
 // Scene, Camera, Renderer Setup
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue background
@@ -328,68 +339,119 @@ const loader = new GLTFLoader();
 // Load the character model
 loader.load(
     "./assets/models/iwi_male_character_02/scene.gltf", 
-    // Success callback
     (gltf) => {
-        console.log('Model loaded:', gltf);
-    //console.log('Available animations:', gltf.animations.map(a => a.name));
         try {
-            character = createCharacter(gltf);
-            if (!character) {
-                console.error('Character creation failed');
-                return;
-            }
-
-            scene.add(character);
-            character.scale.set(10, 10, 10);
-            character.position.set(5, 0, 6);
+            character = gltf.scene;
+            
+            // Set initial position and rotation
+            character.position.set(0, HOUSE_GROUND_LEVEL, 3);
             character.rotation.y = Math.PI;
-
-            // Set up animations
+            character.scale.set(5, 5, 5); // Adjust scale as needed
+            
+            scene.add(character);
+            
+            // Set up animation mixer
             mixer = new THREE.AnimationMixer(character);
+            
+            // Find and set up animations
             const animations = gltf.animations;
-
-            if (animations.length === 0) {
-                console.error('No animations found in the model');
-                return;
-            }
-
-            // Set up individual animations
+            console.log('Available animations:', animations.map(a => a.name));
+            
+            // Set up animations (adjust animation names based on your model)
             walkAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "walk") ||
                 THREE.AnimationClip.findByName(animations, "Rig|walk")
             );
+            
             idleAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "idle") ||
                 THREE.AnimationClip.findByName(animations, "Rig|idle")
             );
-            pickUpAction = mixer.clipAction(
-                THREE.AnimationClip.findByName(animations, "Rig|pickUp")
-            );
-
-            if (!walkAction || !idleAction || !pickUpAction) {
-                console.error('One or more animations not found');
-                return;
+            
+            // Start with idle animation
+            if (idleAction) {
+                activeAction = idleAction;
+                idleAction.play();
             }
-
-            // Set idle as the default active action
-            activeAction = idleAction;
-            idleAction.play();
-
-            // Create the flashlight next to the character after loading
-            createFlashlight(character.position);
-
-            console.log('Character loaded successfully');
+            
+            // Add debug helper to visualize character position
+            const helper = new THREE.BoxHelper(character, 0xff0000);
+            scene.add(helper);
+            
         } catch (error) {
             console.error('Error setting up character:', error);
         }
     },
-    // Progress callback
     (xhr) => {
         console.log(`Character loading: ${(xhr.loaded / xhr.total * 100)}% loaded`);
     },
-    // Error callback
     (error) => {
         console.error('Error loading character:', error);
     }
 );
+
+// Add keyboard event listeners
+document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+        keys[key] = true;
+    }
+    // Add perspective toggle
+    if (key === 'v') {
+        isFirstPerson = !isFirstPerson;
+        updateCameraMode();
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+        keys[key] = false;
+    }
+});
+
+// Function to update camera based on perspective mode
+function updateCameraMode() {
+    if (isFirstPerson && character) {
+        // Position camera at character's head level
+        const headOffset = 1.6; // Adjust based on character model
+        camera.position.copy(character.position);
+        camera.position.y += headOffset;
+        camera.rotation.copy(character.rotation);
+    } else {
+        // Reset to third-person view
+        camera.position.set(0, 5, 20);
+        camera.lookAt(0, 5, 0);
+    }
+}
+
+// Update animation states based on movement
+function updateCharacterAnimation() {
+    if (!mixer || !character) return;
+    
+    // Check if character is moving
+    const isMoving = keys['w'] || keys['s'];
+    
+    // Switch between walk and idle animations
+    if (isMoving && walkAction && activeAction !== walkAction) {
+        // Transition to walk animation
+        walkAction.reset().fadeIn(0.2);
+        if (activeAction) {
+            activeAction.fadeOut(0.2);
+        }
+        activeAction = walkAction;
+        walkAction.play();
+    } else if (!isMoving && idleAction && activeAction !== idleAction) {
+        // Transition to idle animation
+        idleAction.reset().fadeIn(0.2);
+        if (activeAction) {
+            activeAction.fadeOut(0.2);
+        }
+        activeAction = idleAction;
+        idleAction.play();
+    }
+}
+
 
 // Raycaster setup
 const raycaster = new THREE.Raycaster();
@@ -418,8 +480,8 @@ window.addEventListener('resize', () => {
 });
 
 // Movement controls
-const keys = { w: false, a: false, s: false, d: false };
-const moveSpeed = 0.2;
+//const keys = { w: false, a: false, s: false, d: false };
+const moveSpeed = 0.8;
 
 document.addEventListener('keydown', (event) => {
     switch (event.key.toLowerCase()) {
@@ -485,12 +547,37 @@ scene.add(house);
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
-
-    if (mixer) {
-        mixer.update(0.016); // Update animations (assuming 60fps)
+    
+    const delta = clock.getDelta();
+    
+    if (character && camera) {
+        // Move character using the imported moveCharacter function
+        moveCharacter(
+            camera,
+            keys,
+            character,
+            isFirstPerson,
+            HOUSE_GROUND_LEVEL,
+            HOUSE_UPPER_FLOOR_LEVEL
+        );
+        
+        // Update character animations
+        updateCharacterAnimation();
+        
+        // Update camera position in third-person mode
+        if (!isFirstPerson) {
+            const cameraOffset = new THREE.Vector3(0, 3, 8);
+            const targetPosition = character.position.clone().add(cameraOffset);
+            camera.position.lerp(targetPosition, 0.1);
+            camera.lookAt(character.position);
+        }
     }
-    updateCameraPosition();
-    setCameraConstraints(-20, 20, -20, 20, 0); // Ensure camera stays within bounds
+    
+    // Update animation mixer
+    if (mixer) {
+        mixer.update(delta);
+    }
+    
     controls.update();
     renderer.render(scene, camera);
 }
