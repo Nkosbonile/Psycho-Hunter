@@ -25,9 +25,9 @@ const keys = {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue background
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 5, 20);
-camera.lookAt(0, 5, 0);
+const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 20, 20);
+camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -45,7 +45,7 @@ controls.minDistance = 5;
 controls.maxDistance = 50;
 controls.maxPolarAngle = Math.PI / 2;
 controls.minPolarAngle = 0.1;
-
+const characterSpeedMain2 = 0.1;  // Different speed for character in main2.js
 // Enhanced Materials
 const textures = {
     walls: {
@@ -413,10 +413,11 @@ document.addEventListener('keyup', (event) => {
 // Function to update camera based on perspective mode
 function updateCameraMode() {
     if (isFirstPerson && character) {
-        // Position camera at character's head level
-        const headOffset = 1.6; // Adjust based on character model
+        // Adjust this headOffset to position the camera at the character's head level
+        const headOffset = 60; // Example offset; adjust based on character height
         camera.position.copy(character.position);
-        camera.position.y += headOffset;
+        camera.position.y += headOffset; // Moves the camera up to head level
+        console.log("Camera Position:", camera.position);
         camera.rotation.copy(character.rotation);
     } else {
         // Reset to third-person view
@@ -558,7 +559,8 @@ function animate() {
             character,
             isFirstPerson,
             HOUSE_GROUND_LEVEL,
-            HOUSE_UPPER_FLOOR_LEVEL
+            HOUSE_UPPER_FLOOR_LEVEL,
+            characterSpeedMain2
         );
         
         // Update character animations

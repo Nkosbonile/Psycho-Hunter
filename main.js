@@ -23,6 +23,7 @@ let isFirstPerson = false;
 let houseGroundLevel = 0; // Ground level of the house
 const walls = [];
 let houseUpperFloorLevel = 0;
+const characterSpeedMain = 0.02;  // Speed for character in main.js
 
 let currentClueIndex = 0;
 let timeLeft = 160;
@@ -762,7 +763,8 @@ function animate() {
     character,
     isFirstPerson,
     houseGroundLevel,
-    houseUpperFloorLevel
+    houseUpperFloorLevel,
+    characterSpeedMain
   );
 
   // Update the camera based on the mode

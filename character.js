@@ -45,10 +45,9 @@ export function createCharacter(gltf) {
   return character;
 }
 
-export function moveCharacter(camera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel) {
+export function moveCharacter(camera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel, speed = 0.01) {
   if (!character || !camera) return;
 
-  const speed = 0.01;  // Movement speed
   const rotationSpeed = 0.05;  // Rotation speed
   const moveDirection = new THREE.Vector3();  // Direction for movement
 
@@ -81,7 +80,7 @@ export function moveCharacter(camera, keys, character, isFirstPerson, houseGroun
   if (moveDirection.length() > 0) {
     moveDirection.normalize();
     const displacement = moveDirection.multiplyScalar(speed);
-    
+
     // Add boundary constraints
     const newPosition = character.position.clone().add(displacement);
     const HOUSE_BOUNDS = {
@@ -112,5 +111,6 @@ export function moveCharacter(camera, keys, character, isFirstPerson, houseGroun
     camera.rotation.y = character.rotation.y;
   }
 }
+
 
 export { Character };
