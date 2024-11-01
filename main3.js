@@ -50,6 +50,7 @@ class TextureGenerator {
                 let amplitude = 1;
                 let frequency = 1;
                 
+                // Generate multiple octaves of noise
                 for (let i = 0; i < octaves; i++) {
                     noise += (Math.random() - 0.5) * amplitude;
                     amplitude *= 0.5;
@@ -71,15 +72,19 @@ class TextureGenerator {
         const canvas = this.createCanvas();
         const ctx = canvas.getContext('2d');
         
+        // Base dark color
         ctx.fillStyle = '#2c2c2c';
         ctx.fillRect(0, 0, this.width, this.height);
 
-        for (let i = 0; i < 25; i++) {
+        // Generate cracks
+        for (let i = 0; i < 20; i++) {
             const startX = Math.random() * this.width;
             const startY = Math.random() * this.height;
             ctx.beginPath();
             ctx.moveTo(startX, startY);
-            this.generateCrackPath(ctx, startX, startY, 0, 4);
+            
+            // Create branching cracks
+            this.generateCrackPath(ctx, startX, startY, 0, 3);
             
             ctx.strokeStyle = '#1a1a1a';
             ctx.lineWidth = 1 + Math.random() * 2;
@@ -102,6 +107,7 @@ class TextureGenerator {
         
         ctx.lineTo(endX, endY);
         
+        // Branch the crack
         if (Math.random() < 0.7) {
             this.generateCrackPath(ctx, endX, endY, depth + 1, maxDepth);
         }
@@ -111,13 +117,16 @@ class TextureGenerator {
         const canvas = this.createCanvas();
         const ctx = canvas.getContext('2d');
         
+        // Base wood color
         ctx.fillStyle = '#4a3728';
         ctx.fillRect(0, 0, this.width, this.height);
 
+        // Add wood grain
         for (let i = 0; i < this.height; i += 4) {
             ctx.beginPath();
             ctx.moveTo(0, i);
             
+            // Wavy line for wood grain
             for (let x = 0; x < this.width; x += 10) {
                 const y = i + Math.sin(x * 0.03) * 2;
                 ctx.lineTo(x, y);
@@ -128,41 +137,15 @@ class TextureGenerator {
             ctx.stroke();
         }
 
-        for (let i = 0; i < 40; i++) {
+        // Add rot spots
+        for (let i = 0; i < 30; i++) {
             const x = Math.random() * this.width;
             const y = Math.random() * this.height;
-            const radius = 5 + Math.random() * 25;
+            const radius = 5 + Math.random() * 20;
             
             const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(30, 20, 10, 0.8)');
-            gradient.addColorStop(1, 'rgba(30, 20, 10, 0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateMossTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#3e5c3e';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        for (let i = 0; i < 50; i++) {
-            const x = Math.random() * this.width;
-            const y = Math.random() * this.height;
-            const radius = 8 + Math.random() * 15;
-            
-            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(55, 80, 50, 0.8)');
-            gradient.addColorStop(1, 'rgba(55, 80, 50, 0)');
+            gradient.addColorStop(0, 'rgba(40, 30, 20, 0.8)');
+            gradient.addColorStop(1, 'rgba(40, 30, 20, 0)');
             
             ctx.fillStyle = gradient;
             ctx.beginPath();
@@ -176,31 +159,32 @@ class TextureGenerator {
     }
 }
 
-// Usage example
+// Usage example:
 const textureGen = new TextureGenerator(512, 512);
 
 const textures = {
     walls: {
         color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(15, 5),
-        roughness: textureGen.generateNoiseTexture(8, 6),
-        moss: textureGen.generateMossTexture(),
+        normal: textureGen.generateNoiseTexture(20, 3),
+        roughness: textureGen.generateNoiseTexture(10, 4),
     },
     wood: {
         color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(12, 4),
-        roughness: textureGen.generateNoiseTexture(10, 4),
+        normal: textureGen.generateNoiseTexture(15, 3),
+        roughness: textureGen.generateNoiseTexture(8, 4),
     },
     floor: {
         color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(20, 5),
-        roughness: textureGen.generateNoiseTexture(12, 4),
-        moss: textureGen.generateMossTexture(),
+        normal: textureGen.generateNoiseTexture(25, 4),
+        roughness: textureGen.generateNoiseTexture(12, 3),
     },
     roof: {
         color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(25, 4),
-        moss: textureGen.generateMossTexture(),
+        normal: textureGen.generateNoiseTexture(30, 4),
+    },
+    grass: {
+        color: textureGen.generateNoiseTexture(40, 3),
+        normal: textureGen.generateNoiseTexture(35, 3),
     }
 };
 
@@ -306,6 +290,7 @@ function createLightingSystem() {
     });
 }
 
+
 function createHouse() {
     const house = new THREE.Group();
 
@@ -369,25 +354,25 @@ function createHouse() {
 
         return wallGroup;
     }
-   
+
+    // Exterior Walls
     // Front wall with door and windows
     const frontWall = createWallWithWindows(50, wallHeight, wallThickness, [
         { width: 4, height: 6, x: -15, y: 5 },
         { width: 4, height: 6, x: 15, y: 5 }
     ]);
     frontWall.position.set(0, wallHeight / 2, 25);
-    
-    // Add door
-    const door = new THREE.Mesh(
+    house.add(frontWall);
+
+    // Main entrance door
+    const mainDoor = new THREE.Mesh(
         new THREE.BoxGeometry(4, 8, wallThickness + 0.1),
         materials.door
     );
-    door.position.set(0, 4, 25);
-    house.add(door);
-    
-    house.add(frontWall);
+    mainDoor.position.set(0, 4, 25);
+    house.add(mainDoor);
 
-    // Back wall with windows
+    // Back wall
     const backWall = createWallWithWindows(50, wallHeight, wallThickness, [
         { width: 4, height: 6, x: -15, y: 5 },
         { width: 4, height: 6, x: 15, y: 5 }
@@ -410,6 +395,23 @@ function createHouse() {
     rightWall.position.set(25, wallHeight / 2, 0);
     house.add(rightWall);
 
+    // Interior Walls
+    // Horizontal wall dividing the house
+    const horizontalWall = new THREE.Mesh(
+        new THREE.BoxGeometry(50, wallHeight, wallThickness),
+        materials.walls
+    );
+    horizontalWall.position.set(0, wallHeight / 2, 0);
+    house.add(horizontalWall);
+
+    // Vertical wall dividing the front section
+    const verticalWall = new THREE.Mesh(
+        new THREE.BoxGeometry(wallThickness, wallHeight, 25),
+        materials.walls
+    );
+    verticalWall.position.set(0, wallHeight / 2, 12.5);
+    house.add(verticalWall);
+
     // Roof
     const roofHeight = 8;
     const roofGeometry = new THREE.ConeGeometry(35, roofHeight, 4);
@@ -419,25 +421,23 @@ function createHouse() {
     roof.castShadow = true;
     house.add(roof);
 
-    // Interior Walls
-    const interiorWall = new THREE.Mesh(
-        new THREE.BoxGeometry(30, wallHeight, wallThickness),
-        materials.walls
-    );
-    interiorWall.position.set(0, wallHeight / 2, 0);
-    house.add(interiorWall);
-
-    // Enhanced Furniture
+    // Furniture
     const furniture = [
-        // Living Room
-        { type: 'sofa', pos: [15, 1.5, -15], size: [8, 3, 4], rot: 0 },
-        { type: 'coffeeTable', pos: [15, 1, -10], size: [4, 1.5, 3], rot: 0 },
-        { type: 'tvStand', pos: [15, 2, -5], size: [8, 3, 1], rot: 0 },
+        // Living Room (Front Right)
+        { type: 'sofa', pos: [15, 1.5, 15], size: [8, 3, 4], rot: Math.PI },
+        { type: 'coffeeTable', pos: [15, 1, 10], size: [4, 1.5, 3], rot: 0 },
+        { type: 'tvStand', pos: [22, 2, 15], size: [1, 3, 8], rot: 0 },
         
-        // Study Room
-        { type: 'desk', pos: [-15, 2, -15], size: [7, 2.5, 3], rot: 0 },
+        // Bedroom (Front Left)
+        { type: 'bed', pos: [-15, 1.5, 15], size: [8, 2, 6], rot: Math.PI / 2 },
+        { type: 'dresser', pos: [-22, 2, 15], size: [1, 4, 6], rot: 0 },
+        { type: 'nightstand', pos: [-19, 1, 18], size: [2, 2, 2], rot: 0 },
+        
+        // Study Room (Back)
+        { type: 'desk', pos: [0, 2, -15], size: [7, 2.5, 3], rot: 0 },
         { type: 'bookshelf', pos: [-22, 5, -15], size: [1, 10, 8], rot: 0 },
-        { type: 'chair', pos: [-15, 2, -12], size: [2, 3, 2], rot: 0 }
+        { type: 'chair', pos: [0, 2, -12], size: [2, 3, 2], rot: 0 },
+        { type: 'bookshelf', pos: [22, 5, -15], size: [1, 10, 8], rot: 0 }
     ];
 
     furniture.forEach(item => {
@@ -452,48 +452,41 @@ function createHouse() {
         house.add(mesh);
     });
 
-    // Add carpets
+    // Carpets
     const carpets = [
-        { pos: [-15, 0.01, -15], radius: 6, color: '#8b2d2d' }, // Dark red
-        { pos: [15, 0.01, -15], radius: 8, color: '#4b3621' }    // Dark brown
+        { pos: [-15, 0.01, 15], radius: 6 }, // Bedroom
+        { pos: [15, 0.01, 15], radius: 6 },  // Living Room
+        { pos: [0, 0.01, -15], radius: 8 }   // Study Room
     ];
-    
 
     carpets.forEach(carpet => {
-        const material = new THREE.MeshStandardMaterial({
-            color: carpet.color,
-            roughness: 0.8
-        });
-    
         const mesh = new THREE.Mesh(
             new THREE.CircleGeometry(carpet.radius, 32),
-            material
+            materials.carpet
         );
         mesh.rotation.x = -Math.PI / 2;
         mesh.position.set(...carpet.pos);
         mesh.receiveShadow = true;
         house.add(mesh);
     });
-    
-     bloodPrintTexture = textureLoader.load('blood.jpg');
 
-    // Create the blood print mesh
-    const bloodPrint = new THREE.Mesh(
-        new THREE.PlaneGeometry(5, 5),
-        new THREE.MeshStandardMaterial({
-            map: bloodPrintTexture,
-            transparent: true, // Ensures any transparency in the image is respected
-            roughness: 0.9,
-            metalness: 0
-        })
-    );
-    
-    // Position the blood print on the wall
-    bloodPrint.position.set(-25, wallHeight / 2, 0.1); // Adjust z for slight offset to avoid z-fighting
-    bloodPrint.rotation.y = Math.PI / 2; // Rotate to align with the wall
-    
-    // Add to the house
-    house.add(bloodPrint);
+    // Interior Doors
+    const interiorDoors = [
+        { pos: [0, 4, 5], rot: 0 },           // Door to study room
+        { pos: [-8, 4, 12.5], rot: Math.PI/2 }, // Door to bedroom
+        { pos: [8, 4, 12.5], rot: Math.PI/2 }   // Door to living room
+    ];
+
+    interiorDoors.forEach(doorInfo => {
+        const interiorDoor = new THREE.Mesh(
+            new THREE.BoxGeometry(4, 8, wallThickness),
+            materials.door
+        );
+        interiorDoor.position.set(...doorInfo.pos);
+        interiorDoor.rotation.y = doorInfo.rot;
+        house.add(interiorDoor);
+    });
+
     return house;
 }
 
