@@ -30,9 +30,9 @@ controls.minPolarAngle = 0.1;
 // Enhanced Materials
 const textures = {
     walls: {
-        color: textureLoader.load('wall_rough.jpg'),
-        normal: textureLoader.load('wall_rough.jpg'),
-        roughness: textureLoader.load('wall_rough.jpg')
+        color: textureLoader.load('wall.jpg'),
+        normal: textureLoader.load('wall.jpg'),
+        roughness: textureLoader.load('wall.jpg')
     },
     wood: {
         color: textureLoader.load('wood_color.jpg'),
@@ -40,13 +40,13 @@ const textures = {
         roughness: textureLoader.load('wood_roughness.jpg')
     },
     roof: {
-        color: textureLoader.load('roof.jpg'),
-        normal: textureLoader.load('roof.jpg')
+        color: textureLoader.load('r2.jpg'),
+        normal: textureLoader.load('r2.jpg')
     },
     floor: {
-        color: textureLoader.load('tile.jpeg'),
-        normal: textureLoader.load('tile.jpeg'),
-        roughness: textureLoader.load('floor.jpg')
+        color: textureLoader.load('tile2.jpg'),
+        normal: textureLoader.load('tile2.jpg'),
+        roughness: textureLoader.load('tile2.jpg')
     },
     grass: {
         color: textureLoader.load('grass2.jpg'),
@@ -116,39 +116,41 @@ const materials = {
 };
 // Enhanced Lighting System
 function createLightingSystem() {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // Create a brighter ambient light for general illumination
+    const ambientLight = new THREE.AmbientLight(0x777777, 1.2); // Slightly brighter soft ambient light
     scene.add(ambientLight);
 
-    // Sunlight
-    const sunLight = new THREE.DirectionalLight(0xffffeb, 1.0);
+    // Main directional light for focused lighting and shadows
+    const sunLight = new THREE.DirectionalLight(0xfffacd, 0.8); // Warmer light with a higher base intensity
     sunLight.position.set(50, 50, 50);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 500;
-    sunLight.shadow.camera.left = -50;
-    sunLight.shadow.camera.right = 50;
-    sunLight.shadow.camera.top = 50;
-    sunLight.shadow.camera.bottom = -50;
     scene.add(sunLight);
 
-    // Interior lights
-    const rooms = [
-        { x: -15, z: 0 },
-        { x: 15, z: 0 }
-    ];
+    // Flicker effect for both ambient and directional lights
+    function flickerRoomLight() {
+        // Increase baseline intensity with slight flicker range for both lights
+        ambientLight.intensity = 1.0 + Math.random() * 0.3; // Between 1.0 and 1.3
+        sunLight.intensity = 0.7 + Math.random() * 0.3; // Between 0.7 and 1.0
 
-    rooms.forEach(pos => {
-        const light = new THREE.PointLight(0xfff2e6, 0.8, 30);
-        light.position.set(pos.x, 10, pos.z);
-        light.castShadow = true;
-        light.shadow.mapSize.width = 512;
-        light.shadow.mapSize.height = 512;
-        scene.add(light);
-    });
+        // Set a short random interval to keep the flickering organic and unsettling
+        setTimeout(flickerRoomLight, Math.random() * 200 + 300); // Random interval for natural effect
+    }
+    flickerRoomLight(); // Initiate flickering effect
+
+    // Spotlight for highlighting key areas with warm tone
+    const spotlight = new THREE.SpotLight(0xff4500, 1.2); // Higher intensity spotlight
+    spotlight.position.set(0, 20, 0);
+    spotlight.angle = Math.PI / 6;
+    spotlight.penumbra = 0.3;
+    spotlight.castShadow = true;
+    spotlight.target.position.set(0, 0, 0);
+    spotlight.target.updateMatrixWorld();
+    scene.add(spotlight);
 }
+
+
 
 function createHouse() {
     const house = new THREE.Group();
@@ -416,23 +418,29 @@ scene.add(house);
 
 
 // Timer Setup
-let countdownTime = 120000; // 2 minutes in milliseconds
-let startTime = Date.now();
-let timerInterval;
+let timer; // Global timer variable
+let timeLeft = 60; // Example time limit in seconds
+const initialTime = 60; // Initial time value for reset
+let gameOver = false;
 
-function updateTimer() {
-    const elapsedTime = Date.now() - startTime;
-    const remainingTime = countdownTime - elapsedTime;
-    
-    if (remainingTime > 0) {
-        const minutes = Math.floor(remainingTime / 60000).toString().padStart(2, '0');
-        const seconds = Math.floor((remainingTime % 60000) / 1000).toString().padStart(2, '0');
-        document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
-    } else {
-        document.getElementById('timer').textContent = "Time: 00:00";
-        clearInterval(timerInterval);
-    }
+function startTimer() {
+    // Start the timer interval
+    timer = setInterval(() => {
+        // Decrement the time left
+        timeLeft--;
+
+        // Update the timer display
+        updateTimerDisplay(); 
+
+        // Check if time is up
+        if (timeLeft <= 0) {
+            clearInterval(timer); // Stop the timer
+            gameOver = true; // Set game over flag
+            showFailPopup(); // Show the fail popup when time is up
+        }
+    }, 1000);
 }
+
 
 const witnesses = {
     witness1: [
@@ -524,21 +532,17 @@ const witnesses = {
     ]
 };
 
-function startTimer() {
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 1000);
-}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Modal control
     const askButton = document.getElementById('ask-button');
     const modal = document.getElementById('questioning-modal');
     const closeModal = document.getElementById('close-modal');
 
-    askButton.addEventListener('click',  () => {
-        showWarning(); 
+    askButton.addEventListener('click', () => {
+        showWarning(); // Call the function with parentheses to execute it
         modal.style.display = 'block';
     });
-
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
         document.getElementById('response-container').style.display = 'none';
@@ -766,7 +770,7 @@ function showTimedResponse(witnessKey, questionIndex) {
         const percentage = (timeLeft / timeLimit) * 100;
         timerBar.style.width = `${percentage}%`;
         
-        if (timeLeft <= 0) {
+        if (timeLeft == 0) {
             clearInterval(timerInterval);
             document.getElementById('response-container').style.display = 'none';
             timerBar.remove();
@@ -837,4 +841,54 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+// Restart the game when the failRestartButton is clicked
+function showFailPopup() {
+    document.getElementById("gameOverPopupFail").style.display = "flex"; // Show the fail popup
+}
+
+// Reset game function
+function restartGame() {
+    // Reset game state
+    timeLeft = initialTime; // Reset time left
+    gameOver = false; // Reset game over flag
+    clearInterval(timer); // Clear the existing timer
+    startTimer(); // Restart the timer
+    resetGameUI(); // Reset the game UI
+}
+
+// Reset UI function
+function resetGameUI() {
+    document.getElementById("gameOverPopupFail").style.display = "none"; // Hide the fail popup
+    updateTimerDisplay(); // Update the timer display to show the initial time
+}
+
+// Function to update the timer display
+function updateTimerDisplay() {
+    // Calculate minutes and seconds
+    const minutes = Math.floor(timeLeft / 60); // Get the whole minutes
+    const seconds = timeLeft % 60; // Get the remaining seconds
+
+    // Format the timer display
+    document.getElementById('timer').innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; // Update the timer display
+}
+
+// Ensure the DOM is fully loaded before adding event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const failRestartButton = document.getElementById("failRestartButton");
+    if (failRestartButton) {
+        failRestartButton.addEventListener("click", () => {
+            restartGame(); // Restart the game when button is clicked
+        });
+    } else {
+        console.error("Element with ID 'failRestartButton' not found.");
+    }
+
+    // Start the timer when the DOM is loaded only if not game over
+    if (!gameOver) {
+        startTimer();
+    }
+});
+
 animate();
+
+    

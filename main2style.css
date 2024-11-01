@@ -21,10 +21,10 @@ canvas { display: block; }
     padding: 10px;
     margin-top: 40px;
     border: 2px solid #b22222;
-    border-radius: 50%;
+
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
     text-align: center;
-    width: 60px;
+    width: 100px;
     height: 60px;
     display: flex;
     align-items: center;
@@ -227,6 +227,21 @@ canvas { display: block; }
 }
 
 /* Witness Information */
+@keyframes pop-up {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    80% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .witness-stress,
 .body-language {
     background: rgba(0, 0, 0, 0.9);
@@ -236,49 +251,141 @@ canvas { display: block; }
     z-index: 100;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     transition: transform 0.3s ease;
-}
-
-/* Stress indicator specific styles */
-.witness-stress {
-    border: 2px solid #ff6347; /* Stress indicator color */
-}
-
-/* Body language specific styles */
-.body-language {
-    border: 2px solid #4caf50; /* Body language color */
-}
-
-/* Hover effect for better interaction */
-.witness-stress:hover,
-.body-language:hover {
-    transform: translateY(-5px);
-}
-
-/* Additional styling for text within these elements */
-.witness-stress h3,
-.body-language h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-.witness-stress p,
-.body-language p {
-    font-size: 14px;
-    line-height: 1.5;
-}
-.warning {
-    position: fixed;
-    top: 20px; /* Position from the top */
-    left: 20px; /* Position from the left */
-    background: rgba(255, 69, 58, 0.9); /* Red background for warning */
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    z-index: 100;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease;
+    animation: pop-up 0.5s ease; /* Apply pop-up animation */
 }
 
 .hidden {
     display: none;
+}
+
+/* Add border colors */
+.witness-stress {
+    border: 2px solid #ff6347;
+}
+
+.body-language {
+    border: 2px solid #4caf50;
+}
+
+.warning {
+    position: fixed; /* Fix it to the viewport */
+    top: 20px;       /* Distance from the top of the screen */
+    left: 20px;      /* Distance from the left of the screen */
+    color: #ff0000; /* Dark, intense red */
+    font-weight: bold;
+    font-size: 1.4em;
+    text-shadow: 2px 2px 6px #000, 0 0 12px #ff0000;
+    animation: pulse 1.5s infinite, flicker 2s infinite;
+    letter-spacing: 0.05em; /* Slightly spread out for emphasis */
+    background: rgba(0, 0, 0, 0.8); /* Background to make it readable */
+    padding: 10px;     /* Padding for visual spacing */
+    border-radius: 8px; /* Rounded corners for a polished look */
+    z-index: 1000;      /* Ensures it appears on top of other elements */
+}
+
+.hidden {
+    display: none;
+}
+
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+    80% { opacity: 0.6; }
+}
+/* Popup for when the player fails (time runs out) */
+#gameOverPopupFail {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9); /* Semi-transparent black background */
+    color: white;
+    text-align: center;
+    padding: 20px;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Popup for when the player finds the body (success) */
+#gameOverPopupSuccess {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Styling for both titles */
+#gameOverFailTitle, #gameOverSuccessTitle {
+    font-size: 3em;
+    margin-bottom: 10px;
+    color: #ff3d3d;
+}
+
+#gameOverPopupFail, #gameOverPopupSuccess {
+    display: none; /* Initially hide the popups */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 100; /* Ensure it's on top of everything */
+  }
+  
+
+/* Buttons for both popups */
+#failRestartButton, #successRestartButton, #nextLevelButton {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#failRestartButton:hover, #successRestartButton:hover, #nextLevelButton:hover {
+    background-color: #e60000; /* Darken the button on hover */
+}
+
+#failRestartButton:active, #successRestartButton:active, #nextLevelButton:active {
+    background-color: #b30000; /* Even darker when clicked */
+}
+
+/* Next Level button with distinct color for success popup */
+#nextLevelButton {
+    background-color: #28a745; /* Green color for the next level button */
+}
+
+#nextLevelButton:hover {
+    background-color: #218838;
+}
+
+#nextLevelButton:active {
+    background-color: #1e7e34;
 }
