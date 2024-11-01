@@ -15,8 +15,8 @@ Welcome to the **Murder Mystery Game**, a 3D investigative adventure built with 
 - **Objective**: Find the dead body outside the house.
 - **Riddles**: Simple puzzles featuring visual clues, such as blood trails and broken items. The aim is to familiarize players with the game mechanics.
 
-### Level 2: Murder Weapon
-- **Objective**: Search for the murder weapon across two rooms.
+### Level 2: Evidence Gathering
+- **Objective**: Find clues that reveal personal details of the potential suspects or clues about their whereabouts
 - **Riddles**: More complex puzzles that require players to interact with objects, open drawers, and discover hidden compartments. Players will solve multi-part puzzles to gather information.
 
 ### Level 3: Final Stage (Suspect Identification)
