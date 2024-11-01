@@ -1,0 +1,11 @@
+Model Information:
+* title:	3D PBR Bloody Cleaver
+* source:	https://sketchfab.com/3d-models/3d-pbr-bloody-cleaver-324e3febdbc74b29a506760d6edb85dd
+* author:	Mustafa Özgen (https://sketchfab.com/mustafaozgen)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "3D PBR Bloody Cleaver" (https://sketchfab.com/3d-models/3d-pbr-bloody-cleaver-324e3febdbc74b29a506760d6edb85dd) by Mustafa Özgen (https://sketchfab.com/mustafaozgen) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

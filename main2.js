@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { createCharacter, moveCharacter } from "./character.js";
 
 let character;
@@ -426,6 +426,62 @@ function updateCameraMode() {
     }
 }
 
+// load dossier
+loader.load("./assets/models/file/scene.gltf", (gltf) => {
+    const file = gltf.scene;
+    file.scale.set(5, 5, 5);
+    file.position.set(23, 0.0625, 23);
+    scene.add(file);
+});
+
+// load bloody cabinet
+loader.load("./assets/models/bloody_cabinet/scene.gltf", (gltf) => {
+    const cabinet = gltf.scene;
+    cabinet.scale.set(0.20, 0.20, 0.20);
+    cabinet.position.set(-22.5, 0, 18.5);
+    scene.add(cabinet);
+});
+
+// load pictures
+loader.load("./assets/models/polaroid_pictures/scene.gltf", (gltf) => {
+    const polaroid = gltf.scene;
+    polaroid.scale.set(1, 1, 1);
+    polaroid.position.set(0, 0, 0.09375);
+    scene.add(polaroid);
+});
+
+// load broken glass
+loader.load("./assets/models/broken_glass_pieces/scene.gltf", (gltf) => {
+    const brokenGlass = gltf.scene;
+    brokenGlass.scale.set(1, 1, 1);
+    brokenGlass.position.set(0, 0.20, 10);
+    scene.add(brokenGlass);
+});
+
+// load handcuff
+loader.load("./assets/models/simple_handcuffs/scene.gltf", (gltf) => {
+    const handcuff = gltf.scene;
+    handcuff.scale.set(0.5, 0.5, 0.5);
+    handcuff.position.set(-10, 0, -10);
+    scene.add(handcuff);
+});
+
+// load cleaver
+loader.load("./assets/models/3d_pbr_bloody_cleaver/scene.gltf", (gltf) => {
+    const cleaver = gltf.scene;
+    cleaver.scale.set(0.015625, 0.015625, 0.015625);
+    cleaver.position.set(-24, 0, 8);
+    scene.add(cleaver);
+});
+
+// load revolver
+loader.load("./assets/models/revolver/scene.gltf", (gltf) => {
+    const revolver = gltf.scene;
+    revolver.scale.set(3.5, 3.5, 3.5);
+    revolver.position.set(22, 1, -24);
+    scene.add(revolver);
+});
+
 // Update animation states based on movement
 function updateCharacterAnimation() {
     if (!mixer || !character) return;
@@ -452,6 +508,7 @@ function updateCharacterAnimation() {
         idleAction.play();
     }
 }
+
 
 
 // Raycaster setup

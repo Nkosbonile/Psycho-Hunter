@@ -1,0 +1,11 @@
+Model Information:
+* title:	Revolver
+* source:	https://sketchfab.com/3d-models/revolver-6e62a5c020024d47aac3782910e40d13
+* author:	Mik Santos (https://sketchfab.com/mikelkel2)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Revolver" (https://sketchfab.com/3d-models/revolver-6e62a5c020024d47aac3782910e40d13) by Mik Santos (https://sketchfab.com/mikelkel2) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
