@@ -41,9 +41,6 @@ class Character {
     }
   }
 }
-//let character; // Store the character model
-let velocity = new THREE.Vector3(); // To handle movement direction and speed
-const speed = 0.001; // Speed of the character
 
 // Function to create and return the character model
 export function createCharacter(gltf) {
@@ -54,43 +51,65 @@ export function createCharacter(gltf) {
 }
 
 export function moveCharacter(camera, keys, character, isFirstPerson, houseGroundLevel, houseUpperFloorLevel) {
-  const speed = 0.01;  // Movement speed
-  const rotationSpeed = 0.05;  // Rotation speed
-  const moveDirection = new THREE.Vector3();  // Direction for movement
+  const speed = 0.01;
+  const moveDirection = new THREE.Vector3();
 
-  // Forward and right directions based on character's current rotation
-  let forward = new THREE.Vector3(0, 0, 1).applyQuaternion(character.quaternion).normalize();
-  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(character.quaternion).normalize();
-
-  // If in first-person mode, invert forward and backward logic
+  // Get camera's forward and right directions for first-person movement
+  const cameraDirection = new THREE.Vector3();
   if (isFirstPerson) {
-      forward.negate();  // Invert the forward direction
+      camera.getWorldDirection(cameraDirection);
+      cameraDirection.y = 0; // Keep movement horizontal
+      cameraDirection.normalize();
   }
 
-  // Update movement direction based on key inputs
   if (keys['w']) {
-      moveDirection.add(forward);  // Move forward
+      if (isFirstPerson) {
+          moveDirection.add(cameraDirection);
+      } else {
+          moveDirection.z = 1;
+      }
   }
   if (keys['s']) {
-      moveDirection.sub(forward);  // Move backward
+      if (isFirstPerson) {
+          moveDirection.sub(cameraDirection);
+      } else {
+          moveDirection.z = -1;
+      }
   }
   if (keys['a']) {
-      // Rotate the character to the left
-      character.rotation.y += rotationSpeed;
+      if (isFirstPerson) {
+          moveDirection.add(cameraDirection.cross(new THREE.Vector3(0, 1, 0)));
+      } else {
+          character.rotation.y += 0.05;
+      }
   }
   if (keys['d']) {
-      // Rotate the character to the right
-      character.rotation.y -= rotationSpeed;
+      if (isFirstPerson) {
+          moveDirection.sub(cameraDirection.cross(new THREE.Vector3(0, 1, 0)));
+      } else {
+          character.rotation.y -= 0.05;
+      }
   }
 
-  // Apply movement to character's position
+  // Apply movement
   if (moveDirection.length() > 0) {
       moveDirection.normalize();
-      character.position.add(moveDirection.multiplyScalar(speed));
+      const movement = moveDirection.multiplyScalar(speed);
+      
+      if (isFirstPerson) {
+          // In first person, move relative to camera direction
+          character.position.add(movement);
+      } else {
+          // In third person, move relative to character's rotation
+          movement.applyQuaternion(character.quaternion);
+          character.position.add(movement);
+      }
   }
 
-  // Keep character on the ground
+  // Ground collision
   if (character.position.y < houseGroundLevel) {
       character.position.y = houseGroundLevel;
   }
 }
+
+export default Character;
