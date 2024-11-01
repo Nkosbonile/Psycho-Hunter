@@ -6,9 +6,101 @@
     <title>Three.js House with Two Rooms</title>
 </head>
 <body>
-    <!-- Include Three.js Library from CDN -->
+    <div id="overlay">
+        <div id="timer">00:00</div> <!-- Timer separated from controls -->
+        <div class="circular-controls">
+            <button id="up">▲</button>
+            <button id="down">▼</button>
+            <button id="left">◀</button>
+            <button id="right">▶</button>
+        </div>
+    </div>
+     
+    <style>
+       /* Base overlay styles */
+/* Base overlay styles */
+/* Base overlay styles for timer at the top center */
+#overlay {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Space between timer and controls */
+    z-index: 1;
+}
+
+/* Timer styling */
+#timer {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6347; /* Blood-like red color */
+    font-family: 'Courier New', Courier, monospace;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px;
+    border: 2px solid #b22222;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); /* Red glow for mystery */
+    text-align: center;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Circular controls styling for bottom-left corner */
+#controls-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1;
+}
+
+.circular-controls {
+    position: relative;
+    width: 120px; /* Slightly larger for better alignment */
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    border: 2px solid #b22222;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/* Button styles */
+.circular-controls button {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 16px;
+    background-color: rgba(30, 30, 30, 0.8);
+    color: #b22222;
+    border: 1px solid #ff6347;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+}
+
+/* Control positions */
+.circular-controls #up { top: 10px; left: 50%; transform: translateX(-50%); }
+.circular-controls #down { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.circular-controls #left { left: 10px; top: 50%; transform: translateY(-50%); }
+.circular-controls #right { right: 10px; top: 50%; transform: translateY(-50%); }
+
+/* Hover effects */
+.circular-controls button:hover {
+    background-color: rgba(139, 0, 0, 0.8);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}
+
+    </style>
     
-    <!-- Link to your JavaScript file -->
    <script type="module" src="main2.js"></script>
 </body>
 </html>

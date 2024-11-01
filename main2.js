@@ -1,3 +1,4 @@
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -25,182 +26,31 @@ controls.minDistance = 5;
 controls.maxDistance = 50;
 controls.maxPolarAngle = Math.PI / 2;
 controls.minPolarAngle = 0.1;
-let bloodPrintTexture;
+
 // Enhanced Materials
-class TextureGenerator {
-    constructor(width = 512, height = 512) {
-        this.width = width;
-        this.height = height;
-    }
-
-    createCanvas() {
-        const canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        return canvas;
-    }
-
-    generateNoiseTexture(scale = 30, octaves = 4) {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                let noise = 0;
-                let amplitude = 1;
-                let frequency = 1;
-                
-                for (let i = 0; i < octaves; i++) {
-                    noise += (Math.random() - 0.5) * amplitude;
-                    amplitude *= 0.5;
-                    frequency *= 2;
-                }
-                
-                const value = Math.floor((noise + 1) * 128);
-                ctx.fillStyle = `rgb(${value},${value},${value})`;
-                ctx.fillRect(x, y, 1, 1);
-            }
-        }
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateCrackedTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#2c2c2c';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        for (let i = 0; i < 25; i++) {
-            const startX = Math.random() * this.width;
-            const startY = Math.random() * this.height;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            this.generateCrackPath(ctx, startX, startY, 0, 4);
-            
-            ctx.strokeStyle = '#1a1a1a';
-            ctx.lineWidth = 1 + Math.random() * 2;
-            ctx.stroke();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateCrackPath(ctx, x, y, depth, maxDepth) {
-        if (depth >= maxDepth) return;
-
-        const length = 30 + Math.random() * 50;
-        const angle = Math.random() * Math.PI * 2;
-        
-        const endX = x + Math.cos(angle) * length;
-        const endY = y + Math.sin(angle) * length;
-        
-        ctx.lineTo(endX, endY);
-        
-        if (Math.random() < 0.7) {
-            this.generateCrackPath(ctx, endX, endY, depth + 1, maxDepth);
-        }
-    }
-
-    generateRottenWoodTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#4a3728';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        for (let i = 0; i < this.height; i += 4) {
-            ctx.beginPath();
-            ctx.moveTo(0, i);
-            
-            for (let x = 0; x < this.width; x += 10) {
-                const y = i + Math.sin(x * 0.03) * 2;
-                ctx.lineTo(x, y);
-            }
-            
-            ctx.strokeStyle = `rgba(30, 20, 10, ${Math.random() * 0.3})`;
-            ctx.lineWidth = 1 + Math.random() * 2;
-            ctx.stroke();
-        }
-
-        for (let i = 0; i < 40; i++) {
-            const x = Math.random() * this.width;
-            const y = Math.random() * this.height;
-            const radius = 5 + Math.random() * 25;
-            
-            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(30, 20, 10, 0.8)');
-            gradient.addColorStop(1, 'rgba(30, 20, 10, 0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateMossTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#3e5c3e';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        for (let i = 0; i < 50; i++) {
-            const x = Math.random() * this.width;
-            const y = Math.random() * this.height;
-            const radius = 8 + Math.random() * 15;
-            
-            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(55, 80, 50, 0.8)');
-            gradient.addColorStop(1, 'rgba(55, 80, 50, 0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-}
-
-// Usage example
-const textureGen = new TextureGenerator(512, 512);
-
 const textures = {
     walls: {
-        color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(15, 5),
-        roughness: textureGen.generateNoiseTexture(8, 6),
-        moss: textureGen.generateMossTexture(),
+        color: textureLoader.load('wall_rough.jpg'),
+        normal: textureLoader.load('wall_rough.jpg'),
+        roughness: textureLoader.load('wall_rough.jpg')
     },
     wood: {
-        color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(12, 4),
-        roughness: textureGen.generateNoiseTexture(10, 4),
-    },
-    floor: {
-        color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(20, 5),
-        roughness: textureGen.generateNoiseTexture(12, 4),
-        moss: textureGen.generateMossTexture(),
+        color: textureLoader.load('wood_color.jpg'),
+        normal: textureLoader.load('wood_color.jpg'),
+        roughness: textureLoader.load('wood_roughness.jpg')
     },
     roof: {
-        color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(25, 4),
-        moss: textureGen.generateMossTexture(),
+        color: textureLoader.load('roof.jpg'),
+        normal: textureLoader.load('roof.jpg')
+    },
+    floor: {
+        color: textureLoader.load('tile.jpeg'),
+        normal: textureLoader.load('tile.jpeg'),
+        roughness: textureLoader.load('floor.jpg')
+    },
+    grass: {
+        color: textureLoader.load('grass2.jpg'),
+        normal: textureLoader.load('grass2.jpg')
     }
 };
 
@@ -219,7 +69,7 @@ const materials = {
         normalMap: textures.walls.normal,
         roughnessMap: textures.walls.roughness,
         roughness: 0.9,
-        metalness: 0.0
+        metalness: 0.1
     }),
     
     floor: new THREE.MeshStandardMaterial({
@@ -264,18 +114,12 @@ const materials = {
         metalness: 0.1
     })
 };
-
-const wallMaterial = new THREE.MeshStandardMaterial({
-    map: bloodPrintTexture,
-    roughness: 0.9,   // Optional: increase roughness for a less shiny look
-    metalness: 0      // Optional: remove metallic effect
-  });
 // Enhanced Lighting System
 function createLightingSystem() {
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
- 
+
     // Sunlight
     const sunLight = new THREE.DirectionalLight(0xffffeb, 1.0);
     sunLight.position.set(50, 50, 50);
@@ -369,7 +213,7 @@ function createHouse() {
 
         return wallGroup;
     }
-   
+
     // Front wall with door and windows
     const frontWall = createWallWithWindows(50, wallHeight, wallThickness, [
         { width: 4, height: 6, x: -15, y: 5 },
@@ -454,46 +298,27 @@ function createHouse() {
 
     // Add carpets
     const carpets = [
-        { pos: [-15, 0.01, -15], radius: 6, color: '#8b2d2d' }, // Dark red
-        { pos: [15, 0.01, -15], radius: 8, color: '#4b3621' }    // Dark brown
-    ];
-    
-
-    carpets.forEach(carpet => {
-        const material = new THREE.MeshStandardMaterial({
-            color: carpet.color,
-            roughness: 0.8
-        });
-    
-        const mesh = new THREE.Mesh(
-            new THREE.CircleGeometry(carpet.radius, 32),
-            material
-        );
-        mesh.rotation.x = -Math.PI / 2;
-        mesh.position.set(...carpet.pos);
-        mesh.receiveShadow = true;
-        house.add(mesh);
-    });
-    
-     bloodPrintTexture = textureLoader.load('blood.jpg');
-
-    // Create the blood print mesh
-    const bloodPrint = new THREE.Mesh(
-        new THREE.PlaneGeometry(5, 5),
-        new THREE.MeshStandardMaterial({
-            map: bloodPrintTexture,
-            transparent: true, // Ensures any transparency in the image is respected
-            roughness: 0.9,
-            metalness: 0
-        })
-    );
-    
-    // Position the blood print on the wall
-    bloodPrint.position.set(-25, wallHeight / 2, 0.1); // Adjust z for slight offset to avoid z-fighting
-    bloodPrint.rotation.y = Math.PI / 2; // Rotate to align with the wall
-    
-    // Add to the house
-    house.add(bloodPrint);
+            { pos: [-15, 0.01, -15], radius: 6, color: '#8b2d2d' }, // Dark red
+                { pos: [15, 0.01, -15], radius: 8, color: '#4b3621' }    // Dark brown
+            ];
+            
+        
+         carpets.forEach(carpet => {
+               const material = new THREE.MeshStandardMaterial({
+                    color: carpet.color,
+                    roughness: 0.8
+                });
+            
+                const mesh = new THREE.Mesh(
+                    new THREE.CircleGeometry(carpet.radius, 32),
+                     material
+                 );
+                mesh.rotation.x = -Math.PI / 2;
+                 mesh.position.set(...carpet.pos);
+                 mesh.receiveShadow = true;
+               house.add(mesh);
+             });
+            
     return house;
 }
 
@@ -556,20 +381,25 @@ function updateCameraPosition() {
 
     if (keys.w) camera.position.addScaledVector(direction, moveSpeed);
     if (keys.s) camera.position.addScaledVector(direction, -moveSpeed);
+    if (keys.a) {
+        const left = new THREE.Vector3().crossVectors(camera.up, direction).normalize();
+        camera.position.addScaledVector(left, moveSpeed);
+    }
+    if (keys.d) {
+        const right = new THREE.Vector3().crossVectors(direction, camera.up).normalize();
+        camera.position.addScaledVector(right, moveSpeed);
+    }
 
-    const right = new THREE.Vector3();
-    camera.getWorldDirection(right);
-    right.crossVectors(camera.up, direction).normalize();
+    // Constrain camera position
+    camera.position.y = Math.max(camera.position.y, groundLevel); // Prevent camera from going below ground level
 
-    if (keys.a) camera.position.addScaledVector(right, -moveSpeed);
-    if (keys.d) camera.position.addScaledVector(right, moveSpeed);
-
-    // Boundaries for house dimensions
-    const halfWidth = houseWidth / 2;
-    const halfDepth = houseDepth / 2;
-    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -halfWidth, halfWidth);
-    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfDepth, halfDepth);
-    camera.position.y = Math.max(camera.position.y, groundLevel); // Prevent sinking below the floor
+    // Set camera constraints within the house boundaries
+    setCameraConstraints(
+        -houseWidth / 2, // Left boundary
+        houseWidth / 2,  // Right boundary
+        -houseDepth / 2, // Back boundary
+        houseDepth / 2   // Front boundary
+    );
 }
 
 // Update setCameraConstraints function if necessary
@@ -582,6 +412,34 @@ function setCameraConstraints(xMin, xMax, zMin, zMax) {
 createLightingSystem();
 const house = createHouse();
 scene.add(house);
+
+
+
+// Timer Setup
+let startTime = Date.now();
+const timerElement = document.getElementById('timer');
+
+function updateTimer() {
+    const elapsedTime = Date.now() - startTime;
+    const minutes = Math.floor(elapsedTime / 60000).toString().padStart(2, '0');
+    const seconds = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
+    timerElement.textContent = `Time: ${minutes}:${seconds}`;
+}
+
+// Update the timer every second
+setInterval(updateTimer, 1000);
+
+// On-screen Controls
+document.getElementById('up').addEventListener('mousedown', () => keys.w = true);
+document.getElementById('left').addEventListener('mousedown', () => keys.a = true);
+document.getElementById('down').addEventListener('mousedown', () => keys.s = true);
+document.getElementById('right').addEventListener('mousedown', () => keys.d = true);
+
+document.getElementById('up').addEventListener('mouseup', () => keys.w = false);
+document.getElementById('left').addEventListener('mouseup', () => keys.a = false);
+document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
+document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
+
 
 // Animation Loop
 function animate() {
