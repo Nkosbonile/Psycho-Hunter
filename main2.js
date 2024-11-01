@@ -10,6 +10,11 @@ let idleAction;
 let pickUpAction;
 let activeAction;
 
+// Add these camera configuration constants at the top with other constants
+const THIRD_PERSON_OFFSET = new THREE.Vector3(0, 5, -14); // Camera position relative to character
+const FIRST_PERSON_OFFSET = new THREE.Vector3(0, 10, 0.1); // Roughly eye level
+const CAMERA_LERP_FACTOR = 0.1; // How smoothly the camera follows (0-1)
+
 const HOUSE_GROUND_LEVEL = 0;
 const HOUSE_UPPER_FLOOR_LEVEL = 10; // Adjust based on your house dimensions
 let isFirstPerson = false; // Toggle for first/third person view
@@ -25,7 +30,7 @@ const keys = {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue background
 
-const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(8, 20, 5);
 camera.lookAt(0, 5, 0);
 
@@ -412,19 +417,67 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
+// Add this new function to handle camera positioning
+function updateCamera() {
+    if (!character) return;
+
+    if (isFirstPerson) {
+        // First-person view: position camera at character's head
+        const characterWorldPos = new THREE.Vector3();
+        character.getWorldPosition(characterWorldPos);
+        
+        // Add first-person offset to character position
+        camera.position.copy(characterWorldPos.add(FIRST_PERSON_OFFSET));
+        
+        // Align camera rotation with character
+        // camera.rotation.y = character.rotation.y;
+        // camera.rotation.x = 0; // Keep vertical angle level
+
+
+        // Copy the character's full rotation quaternion
+        camera.quaternion.copy(character.quaternion);
+        camera.rotateY(Math.PI); // Rotate 180 degrees to face forward
+        
+        // Disable orbit controls in first person
+        controls.enabled = false;
+    } else {
+        // Third-person view
+        const characterWorldPos = new THREE.Vector3();
+        character.getWorldPosition(characterWorldPos);
+        
+        // Calculate desired camera position behind character
+        const idealOffset = THIRD_PERSON_OFFSET.clone();
+        idealOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), character.rotation.y);
+        const idealPosition = characterWorldPos.clone().add(idealOffset);
+        
+        // Smoothly move camera to ideal position
+        camera.position.lerp(idealPosition, CAMERA_LERP_FACTOR);
+        
+        // Make camera look at character
+        camera.lookAt(characterWorldPos);
+        
+        // Enable orbit controls in third person but limit their effect
+        controls.enabled = true;
+        controls.target.copy(characterWorldPos);
+        controls.minDistance = 5;
+        controls.maxDistance = 10;
+        controls.maxPolarAngle = Math.PI / 2; // Prevent camera from going below ground
+    }
+}
+
 // Function to update camera based on perspective mode
 function updateCameraMode() {
-    if (isFirstPerson && character) {
-        // Adjust this headOffset to position the camera at the character's head level
-        const headOffset = 60; // Example offset; adjust based on character height
-        camera.position.copy(character.position);
-        camera.position.y += headOffset; // Moves the camera up to head level
-        console.log("Camera Position:", camera.position);
-        camera.rotation.copy(character.rotation);
-    } else {
-        // Reset to third-person view
-        camera.position.set(12, 14, 18);
-        camera.lookAt(5, 5, 5);
+    if (character) {
+        if (isFirstPerson) {
+            controls.enabled = false;
+        } else {
+            controls.enabled = true;
+            // Reset to default third-person view
+            const characterWorldPos = new THREE.Vector3();
+            character.getWorldPosition(characterWorldPos);
+            camera.position.copy(characterWorldPos).add(THIRD_PERSON_OFFSET);
+            camera.lookAt(characterWorldPos);
+        }
     }
 }
 
@@ -545,18 +598,44 @@ const moveSpeed = 0.8;
 
 document.addEventListener('keydown', (event) => {
     switch (event.key.toLowerCase()) {
-        case 'w': keys.w = true; break;
+        case 'w': 
+            keys.w = true; 
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.s = true;
+                keys.w = false;
+            }
+            break;
+        case 's': 
+            keys.s = true;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.w = true;
+                keys.s = false;
+            }
+            break;
         case 'a': keys.a = true; break;
-        case 's': keys.s = true; break;
         case 'd': keys.d = true; break;
     }
 });
 
 document.addEventListener('keyup', (event) => {
     switch (event.key.toLowerCase()) {
-        case 'w': keys.w = false; break;
+        case 'w': 
+            keys.w = false;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.s = false;
+            }
+            break;
+        case 's': 
+            keys.s = false;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.w = false;
+            }
+            break;
         case 'a': keys.a = false; break;
-        case 's': keys.s = false; break;
         case 'd': keys.d = false; break;
     }
 });
@@ -1025,7 +1104,7 @@ function animate() {
     
     const delta = clock.getDelta();
     
-    if (character && camera) {
+    if (character) {
         // Move character using the imported moveCharacter function
         moveCharacter(
             camera,
@@ -1039,15 +1118,15 @@ function animate() {
         
         // Update character animations
         updateCharacterAnimation();
-        
+        updateCamera();
         // Update camera position in third-person mode
-        if (!isFirstPerson) {
-            // Adjust these values to bring the camera closer to the player
-            const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
-            const targetPosition = character.position.clone().add(cameraOffset);
-            camera.position.lerp(targetPosition, 0.1);
-            camera.lookAt(character.position);
-        }
+        // if (!isFirstPerson) {
+        //     // Adjust these values to bring the camera closer to the player
+        //     const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
+        //     const targetPosition = character.position.clone().add(cameraOffset);
+        //     camera.position.lerp(targetPosition, 0.1);
+        //     camera.lookAt(character.position);
+        // }
         
     }
     
@@ -1055,8 +1134,11 @@ function animate() {
     if (mixer) {
         mixer.update(delta);
     }
+
+    if (!isFirstPerson) {
+        controls.update();
+    }
     
-    controls.update();
     renderer.render(scene, camera);
 }
 // Restart the game when the failRestartButton is clicked

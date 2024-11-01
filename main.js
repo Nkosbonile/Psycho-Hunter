@@ -23,7 +23,7 @@ let isFirstPerson = false;
 let houseGroundLevel = 0; // Ground level of the house
 const walls = [];
 let houseUpperFloorLevel = 0;
-const characterSpeedMain = 0.02; // Speed for character in main.js
+const characterSpeedMain = 0.02;  // Speed for character in main.js
 
 let currentClueIndex = 0;
 let timeLeft = 160;
@@ -75,15 +75,15 @@ function createFlashlight() {
 
   // Create the spotlight for the flashlight
   flashlightLight = new THREE.SpotLight(0xffcc00, 1, 10, Math.PI / 4, 0.1);
-  flashlightLight.position.set(0, 0.3, 0);
+  flashlightLight.position.set(0, 0.3, 0); 
   flashlightLight.angle = Math.PI / 6;
-  flashlightLight.penumbra = 0.2;
-  flashlightLight.decay = 2;
+  flashlightLight.penumbra = 0.2; 
+  flashlightLight.decay = 2; 
   flashlightLight.castShadow = true;
 
   // Create and add the target for the spotlight
   flashlightTarget = new THREE.Object3D();
-  flashlightTarget.position.set(0, 0, -1);
+  flashlightTarget.position.set(0, 0, -1); 
   flashlightModel.add(flashlightTarget);
   flashlightLight.target = flashlightTarget;
 
@@ -111,7 +111,7 @@ function addFlashlightGlow() {
   const glowMaterial = new THREE.MeshBasicMaterial({
     color: 0xffcc00,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.5, 
   });
 
   const glow = new THREE.Mesh(glowGeometry, glowMaterial);
@@ -229,7 +229,7 @@ function updateFlashlight() {
     // Update flashlight position and rotation
     flashlightModel.position.copy(flashlightPosition);
     flashlightModel.rotation.copy(character.rotation);
-    flashlightModel.rotateX(Math.PI / 2); // Angle the flashlight slightly upward
+    flashlightModel.rotateX(Math.PI/2 ); // Angle the flashlight slightly upward
 
     // Update the light target position
     const targetDistance = 5;
@@ -254,7 +254,7 @@ function toggleFlashlight() {
   lensMaterial.emissiveIntensity = isFlashlightOn ? 0.5 : 0;
 
   // Adjust fog density
-  scene.fog.density = isFlashlightOn ? 0.2 : 0.4;
+ scene.fog.density = isFlashlightOn ? 0.2 : 0.4;
 }
 
 // Initialize the scene
@@ -283,10 +283,12 @@ function init() {
   );
 
   // Add basic lighting
-
+ 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 10, 7.5);
   scene.add(directionalLight);
+
+  
 
   // Load the house model
   const loader = new GLTFLoader();
@@ -326,7 +328,7 @@ function init() {
       scene.add(character);
       character.scale.set(0.5, 0.5, 0.5);
 
-      character.position.set(5, houseGroundLevel + 4.5, 6);
+      character.position.set(5, houseGroundLevel + 4.7, 6);
       character.rotation.y = Math.PI;
 
       // Set up animations
@@ -469,7 +471,7 @@ function restartGame() {
   cluesSolved = 0;
 
   timeLeft = 150; // Reset timer
-
+  
   // Reset visibility of objects
   weapon.visible = false;
   shoe.visible = false;
@@ -569,11 +571,11 @@ function createButton(label, id) {
   button.style.cursor = "pointer";
 
   button.addEventListener("mouseover", () => {
-    button.style.backgroundColor = "#971f1f;";
+    button.style.backgroundColor = "#971f1f;"; // Darker green on hover
   });
 
   button.addEventListener("mouseout", () => {
-    button.style.backgroundColor = "#621a1a";
+    button.style.backgroundColor = "#621a1a"; // Reset to original color
   });
 
   return button;
@@ -581,7 +583,8 @@ function createButton(label, id) {
 
 function loadDeadBody() {
   if (deadBody) {
-    //deadBody.visible = true;
+    deadBody.visible = true; // Make the dead body visible when all clues are solved
+    console.log("Dead body revealed.");
     showHint(
       "I once breathed air, now none to spare. Find me, and your search will end where I lay bare."
     ); // Optional: show a hint when the dead body is revealed
@@ -605,7 +608,6 @@ function solveClue() {
   } else if (cluesSolved === 3) {
     // Show the dead body after solving all clues
     loadDeadBody();
-    deadBody.visible = true;
   }
 }
 
@@ -632,7 +634,7 @@ document.getElementById("clueButton").addEventListener("click", () => {
     playPickUpAnimation();
     clueSound.play();
     solveClue();
-  } else if (isNearClue(deadBody) && cluesSolved == 3) {
+  } else if (isNearClue(deadBody)) {
     console.log("Near dead body");
     showHint(
       "I once breathed air, now none to spare. Find me, and your search will end where I lay bare."
@@ -644,7 +646,8 @@ document.getElementById("clueButton").addEventListener("click", () => {
 
 function playPickUpAnimation() {
   if (pickUpAction && activeAction !== pickUpAction) {
-    activeAction.fadeOut(0.2);
+    // Fade out the current action and fade in the pick-up animation
+    activeAction.fadeOut(0.2); // Smooth transition
     pickUpAction.reset().fadeIn(0.2).play();
     activeAction = pickUpAction;
 
@@ -657,27 +660,27 @@ function playPickUpAnimation() {
 }
 function hideHintMessage() {
   const hintMessageDiv = document.getElementById("hintMessage");
-  hintMessageDiv.style.display = "none";
+  hintMessageDiv.style.display = "none"; // Hide the message
 }
 
 function applyGlowEffect(object, threshold) {
   const distance = object.position.distanceTo(character.position);
-  console.log("Distance to object:", distance);
+  console.log("Distance to object:", distance); // Log distance for debugging
 
   if (distance < threshold) {
     console.log("Player is near object. Showing hint button.");
 
     // Show the button
     const clueButton = document.getElementById("clueButton");
-    clueButton.style.display = "block";
-    clueButton.classList.add("glow");
+    clueButton.style.display = "block"; // Make the button visible
+    clueButton.classList.add("glow"); // Apply glow effect
   } else {
     console.log("Player is far from object. Hiding hint button.");
 
     // Hide the button
     const clueButton = document.getElementById("clueButton");
-    clueButton.style.display = "none";
-    clueButton.classList.remove("glow");
+    clueButton.style.display = "none"; // Hide the button
+    clueButton.classList.remove("glow"); // Remove glow effect
   }
 }
 
@@ -720,7 +723,7 @@ let gameEnded = false; // Track if the game has ended
 
 // Function to check if the player is near the dead body and end the game
 function checkIfNearDeadBody() {
-  if (isNearClue(deadBody) && cluesSolved == 3) {
+  if (isNearClue(deadBody)) {
     // Check if player is near the dead body
     console.log("Player found the dead body!");
     endGame(true); // End game with success when near the dead body
@@ -771,12 +774,14 @@ function animate() {
     updateThirdPersonCamera(thirdPersonCamera, character); // Update third-person camera
   }
 
-  if (mixer) mixer.update(0.016);
+  if (mixer) mixer.update(0.016); // Update animations
 
   // Check if the player is near active clues and apply glow effects
   if (cluesSolved === 0 && bloodSplatter) {
+    // Apply glow effect to the blood splatter
     applyGlowEffect(bloodSplatter, glowThreshold);
   } else if (cluesSolved === 1 && weapon) {
+    // Apply glow effect to the weapon
     applyGlowEffect(weapon, glowThreshold);
   } else if (cluesSolved === 2 && shoe) {
     // Apply glow effect to the shoe
@@ -865,7 +870,7 @@ function startTimer() {
     const formattedTime = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     timerDisplay.innerText = `Time Left: ${formattedTime}`;
 
-    // Decrement the time left
+    // Decrement the tim left
     timeLeft--;
 
     // Check if time has run out
@@ -881,17 +886,17 @@ function startTimer() {
 }
 // Switch between animations
 function switchAnimation(newAction) {
-  activeAction.fadeOut(0.5);
-  newAction.reset().fadeIn(0.5).play();
-  activeAction = newAction;
+  activeAction.fadeOut(0.5); // Smooth transition
+  newAction.reset().fadeIn(0.5).play(); // Fade into the new action
+  activeAction = newAction; // Update the current action
 }
 
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
 
   if (key === "v") {
-    isFirstPerson = !isFirstPerson;
-    currentCamera = isFirstPerson ? firstPersonCamera : thirdPersonCamera;
+    isFirstPerson = !isFirstPerson; // Toggle between first-person and third-person
+    currentCamera = isFirstPerson ? firstPersonCamera : thirdPersonCamera; // Switch the camera
     console.log(
       `Switched to ${isFirstPerson ? "First-Person" : "Third-Person"} Camera`
     );
@@ -903,6 +908,7 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("keyup", (event) => {
   keys[event.key.toLowerCase()] = false; // Set the key as released
+  console.log("Key Up:", event.key.toLowerCase()); // Log released key
 });
 
 document.getElementById("failRestartButton").addEventListener("click", () => {
