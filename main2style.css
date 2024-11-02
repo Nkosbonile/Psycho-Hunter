@@ -410,3 +410,26 @@ canvas { display: block; }
     transform: translateY(-2px); /* Lift effect on hover */
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2); /* Shadow effect on hover */
 }
+.suspect-list-button {
+    padding: 12px 24px;  /* Makes button larger */
+    font-size: 16px;  /* Font size */
+    background-color: #4a4a4a;  /* Dark grey background */
+    color: white;  /* White text color */
+    border: 2px solid #b22222;  /* Border color matches the theme */
+    border-radius: 8px;  /* Rounded corners */
+    cursor: pointer;  /* Pointer cursor on hover */
+    transition: all 0.3s ease;  /* Smooth transition for hover effects */
+    z-index: 100;  /* Layering to appear above other elements */
+    text-align: center;  /* Center text */
+    width: 100%;  /* Full width of its container */
+}
+
+.suspect-list-button:hover {
+    background-color: #b22222;  /* Change to theme color on hover */
+    color: white;  /* Keep text white on hover */
+    box-shadow: 0 4px 8px rgba(255, 0, 0, 0.4);  /* Adds shadow effect */
+}
+
+.suspect-list-button:active {
+    background-color: #8b0000;  /* Slightly darker on click */
+}

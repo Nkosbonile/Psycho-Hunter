@@ -1,0 +1,73 @@
+/* Basic styles for modal pop-up */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 80%;
+    position: relative;
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.suspects-grid {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.suspect-card {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    width: 150px;
+    transition: 0.3s ease;
+}
+
+.suspect-card .suspect-image {
+    width: 100%;
+    border-radius: 5px;
+}
+
+.choose-button {
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.choose-button:hover {
+    background-color: #555;
+}
+
+.highlight {
+    border: 2px solid green;
+}
+
+.hidden {
+    display: none;
+}

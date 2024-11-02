@@ -431,15 +431,87 @@ function updateCameraMode() {
     }
 }
 
-// load dossier
+// // load dossier
+// loader.load("./assets/models/file/scene.gltf", (gltf) => {
+//     const file = gltf.scene;
+//     file.scale.set(5, 5, 5);
+//     file.position.set(23, 0.0625, 23);
+//     scene.add(file);
+// });
+
+// // load bloody cabinet
+// loader.load("./assets/models/bloody_cabinet/scene.gltf", (gltf) => {
+//     const cabinet = gltf.scene;
+//     cabinet.scale.set(0.20, 0.20, 0.20);
+//     cabinet.position.set(-22.5, 0, 18.5);
+//     scene.add(cabinet);
+// });
+
+// // load pictures
+// loader.load("./assets/models/polaroid_pictures/scene.gltf", (gltf) => {
+//     const polaroid = gltf.scene;
+//     polaroid.scale.set(1, 1, 1);
+//     polaroid.position.set(0, 0, 0.09375);
+//     scene.add(polaroid);
+// });
+
+// // load broken glass
+// loader.load("./assets/models/broken_glass_pieces/scene.gltf", (gltf) => {
+//     const brokenGlass = gltf.scene;
+//     brokenGlass.scale.set(1, 1, 1);
+//     brokenGlass.position.set(0, 0.20, 10);
+//     scene.add(brokenGlass);
+// });
+
+// // load handcuff
+// loader.load("./assets/models/simple_handcuffs/scene.gltf", (gltf) => {
+//     const handcuff = gltf.scene;
+//     handcuff.scale.set(0.5, 0.5, 0.5);
+//     handcuff.position.set(-10, 0, -10);
+//     scene.add(handcuff);
+// });
+
+// // load cleaver
+// loader.load("./assets/models/3d_pbr_bloody_cleaver/scene.gltf", (gltf) => {
+//     const cleaver = gltf.scene;
+//     cleaver.scale.set(0.015625, 0.015625, 0.015625);
+//     cleaver.position.set(-24, 0, 8);
+//     scene.add(cleaver);
+// });
+
+// // load revolver
+// loader.load("./assets/models/revolver/scene.gltf", (gltf) => {
+//     const revolver = gltf.scene;
+//     revolver.scale.set(3.5, 3.5, 3.5);
+//     revolver.position.set(22, 1, -24);
+//     scene.add(revolver);
+// });
+
+
+// Helper function for flickering effect
+function addFlickeringLight(target, color = 0xff0000, intensity = 2, range = 10) {
+    const light = new THREE.PointLight(color, intensity, range);
+    target.add(light);
+
+    // Flickering effect
+    function flicker() {
+        // Randomize the light intensity within a range
+        light.intensity = intensity * (0.5 + Math.random() * 0.5); // Flicker between 50% and 100%
+        setTimeout(flicker, Math.random() * 200); // Change every 0 to 200ms
+    }
+    flicker();
+}
+
+// load dossier with flickering light
 loader.load("./assets/models/file/scene.gltf", (gltf) => {
     const file = gltf.scene;
     file.scale.set(5, 5, 5);
     file.position.set(23, 0.0625, 23);
     scene.add(file);
+    addFlickeringLight(file); // Add flickering light
 });
 
-// load bloody cabinet
+// load bloody cabinet (no light needed here)
 loader.load("./assets/models/bloody_cabinet/scene.gltf", (gltf) => {
     const cabinet = gltf.scene;
     cabinet.scale.set(0.20, 0.20, 0.20);
@@ -447,7 +519,7 @@ loader.load("./assets/models/bloody_cabinet/scene.gltf", (gltf) => {
     scene.add(cabinet);
 });
 
-// load pictures
+// load polaroid pictures (no light needed here)
 loader.load("./assets/models/polaroid_pictures/scene.gltf", (gltf) => {
     const polaroid = gltf.scene;
     polaroid.scale.set(1, 1, 1);
@@ -455,7 +527,7 @@ loader.load("./assets/models/polaroid_pictures/scene.gltf", (gltf) => {
     scene.add(polaroid);
 });
 
-// load broken glass
+// load broken glass (no light needed here)
 loader.load("./assets/models/broken_glass_pieces/scene.gltf", (gltf) => {
     const brokenGlass = gltf.scene;
     brokenGlass.scale.set(1, 1, 1);
@@ -463,28 +535,31 @@ loader.load("./assets/models/broken_glass_pieces/scene.gltf", (gltf) => {
     scene.add(brokenGlass);
 });
 
-// load handcuff
+// load handcuff with flickering light
 loader.load("./assets/models/simple_handcuffs/scene.gltf", (gltf) => {
     const handcuff = gltf.scene;
     handcuff.scale.set(0.5, 0.5, 0.5);
     handcuff.position.set(-10, 0, -10);
     scene.add(handcuff);
+    addFlickeringLight(handcuff); // Add flickering light
 });
 
-// load cleaver
+// load cleaver with flickering light
 loader.load("./assets/models/3d_pbr_bloody_cleaver/scene.gltf", (gltf) => {
     const cleaver = gltf.scene;
     cleaver.scale.set(0.015625, 0.015625, 0.015625);
     cleaver.position.set(-24, 0, 8);
     scene.add(cleaver);
+    addFlickeringLight(cleaver); // Add flickering light
 });
 
-// load revolver
+// load revolver with flickering light
 loader.load("./assets/models/revolver/scene.gltf", (gltf) => {
     const revolver = gltf.scene;
     revolver.scale.set(3.5, 3.5, 3.5);
     revolver.position.set(22, 1, -24);
     scene.add(revolver);
+    addFlickeringLight(revolver); // Add flickering light
 });
 
 // Update animation states based on movement
@@ -1111,29 +1186,45 @@ function checkClueProximity() {
         hintButton.style.display = 'block';
         hintButton.onclick = () => handleHintClick(nearestClue);
         console.log(`Hint displayed for: ${nearestClue.model}`);
+
+        // If all clues are found, enable the suspect list button as well
+        if (currentClueIndex === clues.length - 1) {
+            enableAskButton(); // Enables both Ask Witness and Suspect List buttons
+        }
     } else if (nearestClue) {
         // Apply penalty if near a clue out of sequence
         console.log(`Incorrect clue proximity detected. Applying penalty of ${nearestClue.timePenalty / 1000} seconds.`);
         countdownTime -= nearestClue.timePenalty;
-       updateTimer(); // Immediately update timer display
+        updateTimer(); // Immediately update timer display
     } else {
         hintButton.style.display = 'none';
         hintButton.onclick = null;
         console.log('No clues nearby or out of sequence.');
     }
 }
-
-
-// Enable the "Ask Witness" button after finding all clues
 function enableAskButton() {
     const askButton = document.getElementById('ask-button');
+    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
+
+    // Enable Ask Witness button
     if (askButton) {
         askButton.disabled = false;
         askButton.style.opacity = '1';
         askButton.style.cursor = 'pointer';
         console.log('Ask Witness button enabled.');
     }
+
+    // Enable View Suspect List button
+    if (viewSuspectListButton) {
+        viewSuspectListButton.disabled = false;
+        viewSuspectListButton.style.opacity = '1';
+        viewSuspectListButton.style.cursor = 'pointer';
+        viewSuspectListButton.style.display = 'block';  // Ensure it's visible
+        console.log('View Suspect List button enabled.');
+    }
 }
+
+
 const cameraController = new ThirdPersonCamera(camera, character);
 // Timer Update Function
 cameraController.setOffset(0, 2, 4); // Adjust x,y,z to change camera position

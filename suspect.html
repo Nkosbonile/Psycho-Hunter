@@ -1,32 +1,37 @@
-<!-- suspect.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="suspect.css">
     <title>Suspect Details</title>
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-brand">Serial Killer Case</div>
         <ul class="navbar-menu">
-            <li><a href="index.html">Back to Game</a></li>
+            <li><a href="main2.html">Back to Game</a></li>
         </ul>
     </nav>
 
-    <div class="container">
-        <h1 class="title">Suspect List</h1>
-        <div id="suspects-section">
-            <h2>Eliminate a Suspect</h2>
+    <!-- Suspect List Modal -->
+    <div id="suspectModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <h1 class="title">Suspect List</h1>
+            <h2>Choose a Prime Suspect</h2>
             <div class="suspects-grid">
                 <div class="suspect-card" data-suspect="1">
                     <img src="suspect1.webp" alt="Suspect 1" class="suspect-image">
                     <div class="card-content">
                         <h2>Suspect 1</h2>
                         <p><strong>Age:</strong> 34</p>
+                        <p><strong>Occupation:</strong> Business Executive</p>
                         <p><strong>Motive:</strong> Jealousy</p>
-                        <button class="eliminate-button">Eliminate</button>
+                        <p><strong>Alibi:</strong> Claims to have been at a conference during the crime.</p>
+                        <p><strong>Last Seen Location:</strong> Near the victim’s workplace.</p>
+                        <p><strong>Potential Weapon:</strong> Blunt object</p>
+                        <button class="choose-button">Choose Prime Suspect</button>
                     </div>
                 </div>
                 <div class="suspect-card" data-suspect="2">
@@ -34,8 +39,12 @@
                     <div class="card-content">
                         <h2>Suspect 2</h2>
                         <p><strong>Age:</strong> 27</p>
+                        <p><strong>Occupation:</strong> Personal Trainer</p>
                         <p><strong>Motive:</strong> Revenge</p>
-                        <button class="eliminate-button">Eliminate</button>
+                        <p><strong>Alibi:</strong> Claims to have been working with a client.</p>
+                        <p><strong>Last Seen Location:</strong> Gym near the crime scene.</p>
+                        <p><strong>Potential Weapon:</strong> Knife</p>
+                        <button class="choose-button">Choose Prime Suspect</button>
                     </div>
                 </div>
                 <div class="suspect-card" data-suspect="3">
@@ -43,15 +52,17 @@
                     <div class="card-content">
                         <h2>Suspect 3</h2>
                         <p><strong>Age:</strong> 45</p>
+                        <p><strong>Occupation:</strong> Accountant</p>
                         <p><strong>Motive:</strong> Greed</p>
-                        <button class="eliminate-button">Eliminate</button>
+                        <p><strong>Alibi:</strong> Claims to have been working late at the office.</p>
+                        <p><strong>Last Seen Location:</strong> Office building close to the crime location.</p>
+                        <p><strong>Potential Weapon:</strong> Poison</p>
+                        <button class="choose-button">Choose Prime Suspect</button>
                     </div>
                 </div>
             </div>
+            <div id="result"></div>
         </div>
-
-        <div id="result"></div>
-        <button id="reveal-suspect">Reveal Actual Suspect</button>
     </div>
 
     <script src="suspect.js"></script>

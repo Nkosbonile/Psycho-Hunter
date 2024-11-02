@@ -13,17 +13,20 @@
 
     <div class="witness-container">
         <button class="ask-button" id="ask-button">Ask Witness</button>
+        <button class="view-suspect-list-button" id="view-suspect-list-button">View Suspect List</button> <!-- Added button -->
         <div id="warning-message" class="warning hidden">
             ⚠️ One question. Choose wisely... or risk everything.
         </div>
        
         <button id="hint-button" style="display: none;">Hint</button>
     </div>
+    
     <div id="gameOverPopupFail">
         <h1 id="gameOverFailTitle">Game Over</h1>
         <p id="gameOverFailMessage">Your time is up!</p>
         <button id="failRestartButton">Restart Game</button>
     </div>
+    
     <div id="controls-container">
         <div class="circular-controls">
             <button id="up">W</button>
@@ -35,13 +38,11 @@
     
     <div id="gameOverPopupSuccess">
         <h1 id="gameOverSuccessTitle">The Innocent is Cleared... for Now</h1>
-        <p id="gameOverSuccessMessage">You’ve cast aside the innocent suspect, but the shadows remain thick with deceit. The real killer still lurks in the darkness, waiting for their next move. What will you do next in this deadly game of cat and mouse?</p>
+        <p id="gameOverSuccessMessage">You’ve cast aside the innocent suspects, but the shadows remain thick with deceit. The real killer still lurks in the darkness, waiting for their next move. What will you do next in this deadly game of cat and mouse?</p>
         <button id="nextLevelButton">Delve Deeper into Darkness</button>
         <button id="successRestartButton">Rewind Time</button>
     </div>
     
-    
-</div>
     <div class="witness-container">
         <div id="stressIndicator" class="witness-stress"></div>
     
