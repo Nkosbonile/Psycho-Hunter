@@ -26,167 +26,135 @@ controls.maxDistance = 50;
 controls.maxPolarAngle = Math.PI / 2;
 controls.minPolarAngle = 0.1;
 let bloodPrintTexture;
-// Enhanced Materials
-class TextureGenerator {
-    constructor(width = 512, height = 512) {
-        this.width = width;
-        this.height = height;
-    }
+// Enhanced Material
+// Modified texture loading
 
-    createCanvas() {
-        const canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        return canvas;
-    }
-
-    generateNoiseTexture(scale = 30, octaves = 4) {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                let noise = 0;
-                let amplitude = 1;
-                let frequency = 1;
-                
-                // Generate multiple octaves of noise
-                for (let i = 0; i < octaves; i++) {
-                    noise += (Math.random() - 0.5) * amplitude;
-                    amplitude *= 0.5;
-                    frequency *= 2;
-                }
-                
-                const value = Math.floor((noise + 1) * 128);
-                ctx.fillStyle = `rgb(${value},${value},${value})`;
-                ctx.fillRect(x, y, 1, 1);
-            }
-        }
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateCrackedTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        // Base dark color
-        ctx.fillStyle = '#2c2c2c';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // Generate cracks
-        for (let i = 0; i < 20; i++) {
-            const startX = Math.random() * this.width;
-            const startY = Math.random() * this.height;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            
-            // Create branching cracks
-            this.generateCrackPath(ctx, startX, startY, 0, 3);
-            
-            ctx.strokeStyle = '#1a1a1a';
-            ctx.lineWidth = 1 + Math.random() * 2;
-            ctx.stroke();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateCrackPath(ctx, x, y, depth, maxDepth) {
-        if (depth >= maxDepth) return;
-
-        const length = 30 + Math.random() * 50;
-        const angle = Math.random() * Math.PI * 2;
-        
-        const endX = x + Math.cos(angle) * length;
-        const endY = y + Math.sin(angle) * length;
-        
-        ctx.lineTo(endX, endY);
-        
-        // Branch the crack
-        if (Math.random() < 0.7) {
-            this.generateCrackPath(ctx, endX, endY, depth + 1, maxDepth);
-        }
-    }
-
-    generateRottenWoodTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        // Base wood color
-        ctx.fillStyle = '#4a3728';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // Add wood grain
-        for (let i = 0; i < this.height; i += 4) {
-            ctx.beginPath();
-            ctx.moveTo(0, i);
-            
-            // Wavy line for wood grain
-            for (let x = 0; x < this.width; x += 10) {
-                const y = i + Math.sin(x * 0.03) * 2;
-                ctx.lineTo(x, y);
-            }
-            
-            ctx.strokeStyle = `rgba(30, 20, 10, ${Math.random() * 0.3})`;
-            ctx.lineWidth = 1 + Math.random() * 2;
-            ctx.stroke();
-        }
-
-        // Add rot spots
-        for (let i = 0; i < 30; i++) {
-            const x = Math.random() * this.width;
-            const y = Math.random() * this.height;
-            const radius = 5 + Math.random() * 20;
-            
-            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(40, 30, 20, 0.8)');
-            gradient.addColorStop(1, 'rgba(40, 30, 20, 0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-}
-
-// Usage example:
-const textureGen = new TextureGenerator(512, 512);
 
 const textures = {
     walls: {
-        color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(20, 3),
-        roughness: textureGen.generateNoiseTexture(10, 4),
+        color: textureLoader.load('wall.jpg'),
+        normal: textureLoader.load('wall.jpg'),
+        roughness: textureLoader.load('wall.jpg')
     },
     wood: {
-        color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(15, 3),
-        roughness: textureGen.generateNoiseTexture(8, 4),
-    },
-    floor: {
-        color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(25, 4),
-        roughness: textureGen.generateNoiseTexture(12, 3),
+        color: textureLoader.load('wood_color.jpg'),
+        normal: textureLoader.load('wood_color.jpg'),
+        roughness: textureLoader.load('wood_roughness.jpg')
     },
     roof: {
-        color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(30, 4),
+        color: textureLoader.load('r2.jpg'),
+        normal: textureLoader.load('r2.jpg')
+    },
+    floor: {
+        color: textureLoader.load('tile2.jpg'),
+        normal: textureLoader.load('tile2.jpg'),
+        roughness: textureLoader.load('tile2.jpg')
     },
     grass: {
-        color: textureGen.generateNoiseTexture(40, 3),
-        normal: textureGen.generateNoiseTexture(35, 3),
+        color: textureLoader.load('grass2.jpg'),
+        normal: textureLoader.load('grass2.jpg')
     }
 };
+
+function createLightingSystem() {
+    // Increased ambient light with warmer tint
+    const ambientLight = new THREE.AmbientLight(0x996666, 0.6);
+    scene.add(ambientLight);
+
+    // Main directional light with softer red tint
+    const sunLight = new THREE.DirectionalLight(0xff6666, 0.8);
+    sunLight.position.set(50, 50, 50);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    scene.add(sunLight);
+
+    // Create all house lights with unified color scheme
+    const pointLights = [];
+    const pointLightPositions = [
+        // All lights now have similar base properties for unified flickering
+        { x: 0, y: 15, z: 0, color: 0xff6666, intensity: 1.8 },      // Center
+        { x: -15, y: 10, z: 15, color: 0xff6666, intensity: 1.8 },   // Left wing
+        { x: 15, y: 10, z: 15, color: 0xff6666, intensity: 1.8 },    // Right wing
+        { x: 0, y: 10, z: -15, color: 0xff6666, intensity: 1.8 },    // Back
+        { x: -25, y: 12, z: 0, color: 0xff6666, intensity: 1.8 },    // Far left
+        { x: 25, y: 12, z: 0, color: 0xff6666, intensity: 1.8 },     // Far right
+        { x: 0, y: 12, z: 25, color: 0xff6666, intensity: 1.8 },     // Far front
+        { x: 0, y: 12, z: -25, color: 0xff6666, intensity: 1.8 }     // Far back
+    ];
+
+    pointLightPositions.forEach((pos) => {
+        const light = new THREE.PointLight(pos.color, pos.intensity, 40);
+        light.position.set(pos.x, pos.y, pos.z);
+        light.castShadow = true;
+        light.shadow.mapSize.width = 512;
+        light.shadow.mapSize.height = 512;
+        scene.add(light);
+        pointLights.push(light);
+    });
+
+    // Unified spotlight that follows the house's flicker
+    const spotlight = new THREE.SpotLight(0xff4d4d, 1.7);
+    spotlight.position.set(0, 30, 0);
+    spotlight.angle = Math.PI / 3.5;
+    spotlight.penumbra = 0.2;
+    spotlight.decay = 1.3;
+    spotlight.distance = 60;
+    spotlight.castShadow = true;
+    scene.add(spotlight);
+
+    // Global flickering effect for all lights
+    function flickerHouseLights() {
+        // Generate global flicker values for this frame
+        const globalFlicker = Math.random();
+        const globalIntensityMod = 
+            globalFlicker < 0.1 ? 0.4 :  // Rare dramatic drops
+            globalFlicker < 0.2 ? 0.7 :  // Common minor drops
+            globalFlicker < 0.3 ? 1.3 :  // Occasional bright flashes
+            1.0;                         // Normal intensity
+
+        // Apply subtle random variation to each light
+        pointLights.forEach((light, index) => {
+            // Individual variation per light (±20% from global flicker)
+            const individualVar = 0.8 + Math.random() * 0.4;
+            const finalIntensity = pointLightPositions[index].intensity * globalIntensityMod * individualVar;
+            
+            // Ensure intensity stays within reasonable bounds
+            light.intensity = Math.max(0.2, Math.min(2.5, finalIntensity));
+
+            // Vary the color temperature slightly
+            const hue = 0.02 + Math.random() * 0.02;
+            const saturation = 0.7 + Math.random() * 0.2;
+            const lightness = 0.4 + Math.random() * 0.3;
+            light.color.setHSL(hue, saturation, lightness);
+        });
+
+        // Apply flicker to spotlight
+        spotlight.intensity = 1.7 * globalIntensityMod;
+
+        // Random timing between 50-200ms for natural feeling flicker
+        setTimeout(flickerHouseLights, Math.random() * 150 + 50);
+    }
+    flickerHouseLights();
+
+    // Warmer ground light that follows the main flicker pattern
+    const groundLight = new THREE.HemisphereLight(
+        0xff8080, // Sky color (warmer red)
+        0x664444, // Ground color (warmer dark red)
+        0.6
+    );
+    scene.add(groundLight);
+
+    // Unified pulse for ground light that adds to the flickering effect
+    function updateGroundLight() {
+        const basePulse = Math.sin(Date.now() * 0.001) * 0.15 + 0.45;
+        const flickerEffect = 0.8 + Math.random() * 0.4; // Random flicker component
+        groundLight.intensity = basePulse * flickerEffect;
+        requestAnimationFrame(updateGroundLight);
+    }
+    updateGroundLight();
+}
+
 
 // Add texture repeat settings
 Object.values(textures).forEach(textureSet => {
@@ -249,46 +217,36 @@ const materials = {
     })
 };
 
+function createDoor(width, height, thickness) {
+    const doorGroup = new THREE.Group();
+    
+    // Door frame
+    const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(width + 0.4, height + 0.4, thickness + 0.2),
+        materials.wood
+    );
+    doorGroup.add(frame);
+
+    // Door (slightly smaller than frame)
+    const door = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, thickness),
+        materials.door
+    );
+    
+    // Position door to swing from one edge
+    door.position.x = width / 2;
+    door.rotation.y = Math.PI / 4; // Open at 45 degrees
+    
+    doorGroup.add(door);
+    
+    return doorGroup;
+}
 const wallMaterial = new THREE.MeshStandardMaterial({
     map: bloodPrintTexture,
     roughness: 0.9,   // Optional: increase roughness for a less shiny look
     metalness: 0      // Optional: remove metallic effect
   });
-
-function createLightingSystem() {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambientLight);
- 
-    // Sunlight
-    const sunLight = new THREE.DirectionalLight(0xffffeb, 1.0);
-    sunLight.position.set(50, 50, 50);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 500;
-    sunLight.shadow.camera.left = -50;
-    sunLight.shadow.camera.right = 50;
-    sunLight.shadow.camera.top = 50;
-    sunLight.shadow.camera.bottom = -50;
-    scene.add(sunLight);
-
-    // Interior lights
-    const rooms = [
-        { x: -15, z: 0 },
-        { x: 15, z: 0 }
-    ];
-
-    rooms.forEach(pos => {
-        const light = new THREE.PointLight(0xfff2e6, 0.8, 30);
-        light.position.set(pos.x, 10, pos.z);
-        light.castShadow = true;
-        light.shadow.mapSize.width = 512;
-        light.shadow.mapSize.height = 512;
-        scene.add(light);
-    });
-}
+// Enhanced Lighting System
 
 
 function createHouse() {
@@ -319,12 +277,14 @@ function createHouse() {
 
     const wallHeight = 18;
     const wallThickness = 0.5;
+    const doorWidth = 4;
+    const doorHeight = 8;
 
-    // Create Wall With Windows Function
-    function createWallWithWindows(width, height, depth, windowConfig) {
+    // Modified Wall Creation Function - Now doesn't create door gaps in exterior walls
+    function createWallWithWindows(width, height, depth, windowConfig, isExterior = true) {
         const wallGroup = new THREE.Group();
 
-        // Main wall
+        // Create a solid wall regardless of door status for exterior walls
         const wall = new THREE.Mesh(
             new THREE.BoxGeometry(width, height, depth),
             materials.walls
@@ -355,8 +315,7 @@ function createHouse() {
         return wallGroup;
     }
 
-    // Exterior Walls
-    // Front wall with door and windows
+    // Exterior Walls - All solid now
     const frontWall = createWallWithWindows(50, wallHeight, wallThickness, [
         { width: 4, height: 6, x: -15, y: 5 },
         { width: 4, height: 6, x: 15, y: 5 }
@@ -364,15 +323,6 @@ function createHouse() {
     frontWall.position.set(0, wallHeight / 2, 25);
     house.add(frontWall);
 
-    // Main entrance door
-    const mainDoor = new THREE.Mesh(
-        new THREE.BoxGeometry(4, 8, wallThickness + 0.1),
-        materials.door
-    );
-    mainDoor.position.set(0, 4, 25);
-    house.add(mainDoor);
-
-    // Back wall
     const backWall = createWallWithWindows(50, wallHeight, wallThickness, [
         { width: 4, height: 6, x: -15, y: 5 },
         { width: 4, height: 6, x: 15, y: 5 }
@@ -380,7 +330,6 @@ function createHouse() {
     backWall.position.set(0, wallHeight / 2, -25);
     house.add(backWall);
 
-    // Side walls
     const leftWall = createWallWithWindows(50, wallHeight, wallThickness, [
         { width: 4, height: 6, x: 0, y: 5 }
     ]);
@@ -395,23 +344,108 @@ function createHouse() {
     rightWall.position.set(25, wallHeight / 2, 0);
     house.add(rightWall);
 
-    // Interior Walls
-    // Horizontal wall dividing the house
-    const horizontalWall = new THREE.Mesh(
-        new THREE.BoxGeometry(50, wallHeight, wallThickness),
+    // Interior Walls with Doorframes
+    function createDoorframe(width, height, depth) {
+        const frame = new THREE.Group();
+        
+        // Top of doorframe
+        const top = new THREE.Mesh(
+            new THREE.BoxGeometry(width, 0.5, depth),
+            materials.wood
+        );
+        top.position.y = height;
+        frame.add(top);
+        
+        // Left side of doorframe
+        const left = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, height, depth),
+            materials.wood
+        );
+        left.position.set(-width/2 + 0.25, height/2, 0);
+        frame.add(left);
+        
+        // Right side of doorframe
+        const right = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, height, depth),
+            materials.wood
+        );
+        right.position.set(width/2 - 0.25, height/2, 0);
+        frame.add(right);
+        
+        return frame;
+    }
+
+    // Interior Walls - Modified to ensure proper connections
+    const horizontalWallLength = 25;
+    
+    // Left section wall (extend to meet vertical wall)
+    const leftHorizontalWall = new THREE.Mesh(
+        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
         materials.walls
     );
-    horizontalWall.position.set(0, wallHeight / 2, 0);
-    house.add(horizontalWall);
-
-    // Vertical wall dividing the front section
-    const verticalWall = new THREE.Mesh(
-        new THREE.BoxGeometry(wallThickness, wallHeight, 25),
+    leftHorizontalWall.position.set(-horizontalWallLength/2 - doorWidth/4, wallHeight/2, 0);
+    house.add(leftHorizontalWall);
+    
+    // Right section of left wall
+    const leftHorizontalWall2 = new THREE.Mesh(
+        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
         materials.walls
     );
-    verticalWall.position.set(0, wallHeight / 2, 12.5);
-    house.add(verticalWall);
+    leftHorizontalWall2.position.set(-horizontalWallLength/4, wallHeight/2, 0);
+    house.add(leftHorizontalWall2);
+    
+    // Left doorframe
+    const leftDoorframe = createDoorframe(doorWidth, doorHeight, wallThickness);
+    leftDoorframe.position.set(-12.5, 0, 0);
+    house.add(leftDoorframe);
+    
+    // Right section wall (extend to meet vertical wall)
+    const rightHorizontalWall = new THREE.Mesh(
+        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
+        materials.walls
+    );
+    rightHorizontalWall.position.set(horizontalWallLength/2 + doorWidth/4, wallHeight/2, 0);
+    house.add(rightHorizontalWall);
+    
+    // Left section of right wall
+    const rightHorizontalWall2 = new THREE.Mesh(
+        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
+        materials.walls
+    );
+    rightHorizontalWall2.position.set(horizontalWallLength/4, wallHeight/2, 0);
+    house.add(rightHorizontalWall2);
+    
+    // Right doorframe
+    const rightDoorframe = createDoorframe(doorWidth, doorHeight, wallThickness);
+    rightDoorframe.position.set(12.5, 0, 0);
+    house.add(rightDoorframe);
 
+    // Vertical wall sections (extended to meet horizontal walls)
+    const verticalWallLength = 25;
+    
+    // Upper section
+    const upperVerticalWall = new THREE.Mesh(
+        new THREE.BoxGeometry(wallThickness, wallHeight, (verticalWallLength - doorWidth)/2),
+        materials.walls
+    );
+    upperVerticalWall.position.set(0, wallHeight/2, verticalWallLength/2 + doorWidth/4);
+    house.add(upperVerticalWall);
+    
+    // Lower section
+    const lowerVerticalWall = new THREE.Mesh(
+        new THREE.BoxGeometry(wallThickness, wallHeight, (verticalWallLength - doorWidth)/2),
+        materials.walls
+    );
+    lowerVerticalWall.position.set(0, wallHeight/2, -verticalWallLength/4);
+    house.add(lowerVerticalWall);
+    
+    // Vertical doorframe
+    const verticalDoorframe = createDoorframe(doorWidth, doorHeight, wallThickness);
+    verticalDoorframe.rotation.y = Math.PI/2;
+    verticalDoorframe.position.set(0, 0, 12.5);
+    house.add(verticalDoorframe);
+
+    // Rest of the house components remain the same
     // Roof
     const roofHeight = 8;
     const roofGeometry = new THREE.ConeGeometry(35, roofHeight, 4);
@@ -452,46 +486,45 @@ function createHouse() {
         house.add(mesh);
     });
 
-    // Carpets
+    // Carpets with different colors
     const carpets = [
-        { pos: [-15, 0.01, 15], radius: 6 }, // Bedroom
-        { pos: [15, 0.01, 15], radius: 6 },  // Living Room
-        { pos: [0, 0.01, -15], radius: 8 }   // Study Room
+        { pos: [-15, 0.01, 15], radius: 6, color: 0x8B4513 },  // Bedroom - Brown
+        { pos: [15, 0.01, 15], radius: 6, color: 0x4B0082 },   // Living Room - Indigo
+        { pos: [0, 0.01, -15], radius: 8, color: 0x006400 }    // Study Room - Dark Green
     ];
 
     carpets.forEach(carpet => {
         const mesh = new THREE.Mesh(
             new THREE.CircleGeometry(carpet.radius, 32),
-            materials.carpet
+            new THREE.MeshStandardMaterial({
+                color: carpet.color,
+                roughness: 0.8,
+                metalness: 0.1
+            })
         );
         mesh.rotation.x = -Math.PI / 2;
         mesh.position.set(...carpet.pos);
         mesh.receiveShadow = true;
         house.add(mesh);
     });
+ // Main entrance door (solid, attached to front wall)
+ const mainDoor = new THREE.Mesh(
+    new THREE.BoxGeometry(doorWidth, doorHeight, wallThickness/2),
+    materials.wood
+);
+mainDoor.position.set(0, doorHeight/2, 25 - wallThickness/4);
+house.add(mainDoor);
 
-    // Interior Doors
-    const interiorDoors = [
-        { pos: [0, 4, 5], rot: 0 },           // Door to study room
-        { pos: [-8, 4, 12.5], rot: Math.PI/2 }, // Door to bedroom
-        { pos: [8, 4, 12.5], rot: Math.PI/2 }   // Door to living room
-    ];
+// Main entrance doorframe
+const mainDoorframe = createDoorframe(doorWidth + 0.5, doorHeight + 0.25, wallThickness);
+mainDoorframe.position.set(0, 0, 25);
+house.add(mainDoorframe);
 
-    interiorDoors.forEach(doorInfo => {
-        const interiorDoor = new THREE.Mesh(
-            new THREE.BoxGeometry(4, 8, wallThickness),
-            materials.door
-        );
-        interiorDoor.position.set(...doorInfo.pos);
-        interiorDoor.rotation.y = doorInfo.rot;
-        house.add(interiorDoor);
-    });
-
-    return house;
+return house;
 }
 
 // Raycaster setup
-const raycaster = new THREE.Raycaster();
+const raycaster = new THREE.Raycaster();A
 const mouse = new THREE.Vector2();
 
 function onMouseClick(event) {
