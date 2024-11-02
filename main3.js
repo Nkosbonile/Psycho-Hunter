@@ -254,7 +254,7 @@ const wallMaterial = new THREE.MeshStandardMaterial({
     roughness: 0.9,   // Optional: increase roughness for a less shiny look
     metalness: 0      // Optional: remove metallic effect
   });
-// Enhanced Lighting System
+
 function createLightingSystem() {
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
