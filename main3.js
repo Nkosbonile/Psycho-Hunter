@@ -524,7 +524,7 @@ return house;
 }
 
 // Raycaster setup
-const raycaster = new THREE.Raycaster();A
+const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 function onMouseClick(event) {
