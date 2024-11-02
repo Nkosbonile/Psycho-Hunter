@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { createCharacter, moveCharacter } from "./character.js";
+import { clues, showEvidenceModal } from './clues.js';
 
 let character;
 let mixer;
@@ -685,22 +686,30 @@ scene.add(house);
 
 
 
-// Timer Setup
-let countdownTime = 120000; // 2 minutes in milliseconds
-let startTime = Date.now();
-let timerInterval;
+// // Timer Setup
+// let countdownTime = 120000; // 2 minutes in milliseconds
+// let startTime = Date.now();
+// let timerInterval;
 
-function updateTimer() {
-    const elapsedTime = Date.now() - startTime;
-    const remainingTime = countdownTime - elapsedTime;
-    
-    if (remainingTime > 0) {
-        const minutes = Math.floor(remainingTime / 60000).toString().padStart(2, '0');
-        const seconds = Math.floor((remainingTime % 60000) / 1000).toString().padStart(2, '0');
-        document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
-    } else {
-        document.getElementById('timer').textContent = "Time: 00:00";
-        clearInterval(timerInterval);
+// Timer state
+const GAME_TIME = 300; // 5 minutes in seconds
+let timeRemaining = GAME_TIME;
+let timerInterval = null;
+let isGameOver = false;
+
+// Initialize the timer display
+function initializeTimer() {
+    timeRemaining = GAME_TIME;
+    updateTimerDisplay();
+}
+
+// Update the timer display
+function updateTimerDisplay() {
+    const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+    const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+    const timerElement = document.getElementById('timer');
+    if (timerElement) {
+        timerElement.textContent = `Time: ${minutes}:${seconds}`;
     }
 }
 
@@ -794,10 +803,28 @@ const witnesses = {
     ]
 };
 
+// Start the timer
 function startTimer() {
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 1000);
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    
+    isGameOver = false;
+    timeRemaining = GAME_TIME;
+    updateTimerDisplay();
+    
+    timerInterval = setInterval(() => {
+        if (timeRemaining > 0 && !isGameOver) {
+            timeRemaining--;
+            updateTimerDisplay();
+            
+            if (timeRemaining === 0) {
+                handleGameOver();
+            }
+        }
+    }, 1000);
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     // Modal control
     const askButton = document.getElementById('ask-button');
@@ -1097,6 +1124,90 @@ document.getElementById('left').addEventListener('mouseup', () => keys.a = false
 document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
 document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
 
+// Disable "Ask Witness" Button by Default
+document.addEventListener('DOMContentLoaded', () => {
+    const askButton = document.getElementById('ask-button');
+    if (askButton) {
+        askButton.disabled = true;
+        askButton.style.opacity = '0.5';
+        askButton.style.cursor = 'not-allowed';
+    }
+});
+
+const hintButton = document.getElementById('hint-button');
+
+// Check Clue Proximity and Display Hint Button
+let currentClueIndex = 0; // Index to track correct order of clues
+
+function handleHintClick(clue) {
+    console.log(`Player clicked on: ${clue.model}`);
+    
+    // Check if the clicked clue matches the correct sequence object
+    if (clue.model === clues[currentClueIndex].model) {
+        console.log(`Correct object found: ${clue.model}`);
+        
+        // Show hint for the next object in the sequence
+        showEvidenceModal(clue);
+        
+        // Move to the next clue in sequence
+        currentClueIndex++;
+
+        // If the dossier (last object) is found, enable the "Ask Witness" button
+        if (currentClueIndex === clues.length) {
+            enableAskButton();
+        }
+    } else {
+        // Wrong object, apply penalty
+        console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
+        applyTimePenalty(clue.timePenalty);
+    }
+}
+// Function to check the player's proximity to clues
+// Corrected checkClueProximity function
+function checkClueProximity() {
+    if (!character) return;
+
+    let nearestClue = null;
+    let minDistance = Infinity;
+
+    // Loop through each clue to check distance
+    clues.forEach((clue, index) => {
+        const distance = character.position.distanceTo(clue.position);
+        console.log(`Distance to ${clue.model}: ${distance} (radius: ${clue.radius})`);
+
+        // Check if within radius and it's the next clue in the sequence
+        if (distance <= clue.radius && distance < minDistance) {
+            minDistance = distance;
+            nearestClue = clue;
+        }
+    });
+
+    if (nearestClue && nearestClue.model === clues[currentClueIndex].model) {
+        hintButton.style.display = 'block';
+        hintButton.onclick = () => handleHintClick(nearestClue);
+        console.log(`Hint displayed for: ${nearestClue.model}`);
+    } else if (nearestClue) {
+        // Apply penalty if near a clue out of sequence
+        console.log(`Incorrect clue proximity detected. Applying penalty of ${nearestClue.timePenalty / 1000} seconds.`);
+        countdownTime -= nearestClue.timePenalty;
+       updateTimerDisplay(); // Immediately update timer display
+    } else {
+        hintButton.style.display = 'none';
+        hintButton.onclick = null;
+        console.log('No clues nearby or out of sequence.');
+    }
+}
+// Enable the "Ask Witness" button after finding all clues
+function enableAskButton() {
+    const askButton = document.getElementById('ask-button');
+    if (askButton) {
+        askButton.disabled = false;
+        askButton.style.opacity = '1';
+        askButton.style.cursor = 'pointer';
+        console.log('Ask Witness button enabled.');
+    }
+}
+
 
 // Animation Loop
 function animate() {
@@ -1141,36 +1252,61 @@ function animate() {
     
     renderer.render(scene, camera);
 }
+
+// Handle game over state
+function handleGameOver() {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    
+    const gameOverPopup = document.getElementById("gameOverPopupFail");
+    if (gameOverPopup) {
+        gameOverPopup.style.display = "block";
+    }
+}
+// Apply time penalty
+function applyTimePenalty(penalty) {
+    if (!isGameOver) {
+        // Convert penalty from milliseconds to seconds
+        const penaltyInSeconds = Math.ceil(penalty / 1000);
+        timeRemaining = Math.max(0, timeRemaining - penaltyInSeconds);
+        updateTimerDisplay();
+        
+        if (timeRemaining === 0) {
+            handleGameOver();
+        }
+    }
+}
+
 // Restart the game when the failRestartButton is clicked
 function showFailPopup() {
     document.getElementById("gameOverPopupFail").style.display = "flex"; // Show the fail popup
 }
 
-// Reset game function
+// Restart game
 function restartGame() {
-    // Reset game state
-    timeLeft = initialTime; // Reset time left
-    gameOver = false; // Reset game over flag
-    clearInterval(timer); // Clear the existing timer
-    startTimer(); // Restart the timer
-    resetGameUI(); // Reset the game UI
+    isGameOver = false;
+    clearInterval(timerInterval);
+    startTimer();
+    resetGameUI();
 }
-
-// Reset UI function
+// Reset game UI
 function resetGameUI() {
-    document.getElementById("gameOverPopupFail").style.display = "none"; // Hide the fail popup
-    updateTimerDisplay(); // Update the timer display to show the initial time
+    const gameOverPopup = document.getElementById("gameOverPopupFail");
+    if (gameOverPopup) {
+        gameOverPopup.style.display = "none";
+    }
+    updateTimerDisplay();
 }
 
-// Function to update the timer display
-function updateTimerDisplay() {
-    // Calculate minutes and seconds
-    const minutes = Math.floor(timeLeft / 60); // Get the whole minutes
-    const seconds = timeLeft % 60; // Get the remaining seconds
+// // Function to update the timer display
+// function updateTimerDisplay() {
+//     // Calculate minutes and seconds
+//     const minutes = Math.floor(timeLeft / 60); // Get the whole minutes
+//     const seconds = timeLeft % 60; // Get the remaining seconds
 
-    // Format the timer display
-    document.getElementById('timer').innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; // Update the timer display
-}
+//     // Format the timer display
+//     document.getElementById('timer').innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; // Update the timer display
+// }
 
 // Ensure the DOM is fully loaded before adding event listeners
 document.addEventListener('DOMContentLoaded', () => {
