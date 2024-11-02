@@ -704,7 +704,7 @@ scene.add(house);
 
 
 // Timer Setup
-let countdownTime = 120000;  // 2 minutes in milliseconds
+let countdownTime = 240000;  // 2 minutes in milliseconds
 let timerInterval;
 
 function updateTimer() {
@@ -719,18 +719,6 @@ function updateTimer() {
         clearInterval(timerInterval);
     
     }
-}
-
-function startTimer() {
-    timerInterval = setInterval(() => {
-        if (countdownTime > 0) {
-            countdownTime -= 1000; // Reduce by 1 second (1000 ms)
-            updateTimer(); // Update the timer display
-        } else {
-            clearInterval(timerInterval); // Stop the timer when it reaches zero
-            updateTimer(); // Ensure the display shows 00:00
-        }
-    }, 1000); // Run every 1 second
 }
 
 const witnesses = {
@@ -1156,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         askButton.style.opacity = '0.5';
         askButton.style.cursor = 'not-allowed';
     }
-    viewSuspectListButton = document.getElementById('view-suspect-list-button');
+  const  viewSuspectListButton = document.getElementById('view-suspect-list-button');
     if (viewSuspectListButton) {
         viewSuspectListButton.disabled = true;
         viewSuspectListButton.style.opacity = '0.5';
@@ -1199,211 +1187,150 @@ function validateClues() {
         return hasRequiredProps;
     });
 }
+
+const penaltyTime = 15000; // 15 seconds penalty in milliseconds
+
 function checkClueProximity() {
-    try {
-        // Validate essential components
-        if (!character) {
-            debugLog('Character not initialized');
-            return;
-        }
+    if (!character || !Array.isArray(clues) || clues.length === 0) return;
 
-        if (!Array.isArray(clues) || clues.length === 0) {
-            debugLog('Clues array not properly initialized');
-            return;
-        }
+    const currentClue = clues[currentClueIndex];
+    let nearestClue = null;
+    let minDistance = Infinity;
+    let isCorrectClue = false;
 
-        if (typeof currentClueIndex !== 'number' || currentClueIndex < 0) {
-            debugLog('Invalid currentClueIndex, resetting to 0');
-            currentClueIndex = 0;
-        }
+    // Find the nearest clue
+    clues.forEach((clue) => {
+        if (!clue || !clue.position || !clue.model) return;
 
+        const distance = character.position.distanceTo(clue.position);
+        if (distance < minDistance && distance <= (clue.radius || 3)) {
+            minDistance = distance;
+            nearestClue = clue;
+            isCorrectClue = clue.model === currentClue.model; // Check if this is the correct clue
+        }
+    });
+
+    const hintButton = document.getElementById('hint-button');
+    if (nearestClue) {
+        // Show hint button and set up click event
+        hintButton.style.display = 'block';
+        hintButton.onclick = () => handleHintClick(nearestClue, isCorrectClue);
+    } else {
+        hintButton.style.display = 'none';
+        hintButton.onclick = null;
+    }
+}
+
+function handleHintClick(clue, isCorrectClue) {
+    if (isCorrectClue) {
+        console.log(`Correct clue found: ${clue.model}`);
+        showEvidenceModal(clue);
+        currentClueIndex++; // Move to the next clue in sequence
+
+        // Check if this is the last clue
         if (currentClueIndex >= clues.length) {
-            debugLog('currentClueIndex out of bounds, clamping to last clue');
-            currentClueIndex = clues.length - 1;
+            enableAskAndViewButtons(); // Enable the "Ask" and "View Suspect List" buttons
         }
-
-        // Ensure current clue exists
-        const currentClue = clues[currentClueIndex];
-        if (!currentClue) {
-            debugLog(`No clue found at index ${currentClueIndex}`);
-            return;
-        }
-
-        debugLog(`Checking proximity. Current clue index: ${currentClueIndex}`);
-        debugLog(`Current target clue: ${currentClue.model}`);
-
-        let nearestClue = null;
-        let minDistance = Infinity;
-
-        // Check each clue's distance
-        for (let i = 0; i < clues.length; i++) {
-            const clue = clues[i];
-            
-            // Skip invalid clues
-            if (!clue || !clue.position || !clue.model) {
-                debugLog(`Skipping invalid clue at index ${i}`);
-                continue;
-            }
-
-            const distance = character.position.distanceTo(clue.position);
-            debugLog(`Distance to ${clue.model}: ${distance.toFixed(2)} units (radius: ${clue.radius})`);
-
-            if (distance <= (clue.radius || 3) && distance < minDistance) {
-                minDistance = distance;
-                nearestClue = clue;
-            }
-        }
-
-        // Get UI elements
-        const hintButton = document.getElementById('hint-button');
-
-
-        if (!hintButton) {
-            debugLog('Hint button not found in DOM');
-            return;
-        }
-
-        // Handle nearest clue
-        if (nearestClue) {
-            debugLog(`Nearest clue found: ${nearestClue.model}`);
-
-            if (nearestClue.model === currentClue.model) {
-                debugLog('Correct clue found!');
-                
-                hintButton.style.display = 'block';
-                hintButton.onclick = () => {
-                    handleHintClick(nearestClue);
-                    
-                    // Check for final clue
-                    if (nearestClue.nextObject && currentClueIndex < clues.length - 1) {
-                        const nextClue = clues.find(c => c && c.model === nearestClue.nextObject);
-                        if (nextClue && nextClue.riddle) {
-                            debugLog(`Next clue riddle: ${nextClue.riddle}`);
-                        }
-                    }
-                };
-            } else {
-                debugLog('No clues in range');
-                hintButton.style.display = 'none';
-                hintButton.onclick = null;
-            }
-        } else {
-            debugLog('No clues in range');
-            hintButton.style.display = 'none';
-            hintButton.onclick = null;
-        }
-    } catch (error) {
-        console.error('Error in checkClueProximity:', error);
-        debugLog(`Error details: ${error.message}`);
+    } else {
+        console.log(`Wrong clue selected: ${clue.model} - Applying 15-second penalty.`);
+        countdownTime = Math.max(0, countdownTime - penaltyTime); // Deduct 15 seconds
+        updateTimer(); // Update the timer display
+        showKillerMessage(); // Show the killer message
     }
 }
 
+ function enableAskAndViewButtons() {
+    const askButton = document.getElementById('ask-button');
+    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
 
-function handleHintClick(clue) {
-    try {
-        if (!clue || !clue.model) {
-            console.error('Invalid clue object passed to handleHintClick');
-            return;
-        }
+     if (askButton) {
+         askButton.disabled = false;
+        askButton.style.opacity = '1';
+         askButton.style.cursor = 'pointer';
+  }
 
-        console.log(`Player clicked on: ${clue.model}`);
+     if (viewSuspectListButton) {
+        viewSuspectListButton.disabled = false; 
+                viewSuspectListButton.style.opacity = '1';
+         viewSuspectListButton.style.cursor = 'pointer';
+     }
+ }
 
-        // Validate current clue index
-        if (currentClueIndex > clues.length) {
-            console.warn('currentClueIndex out of bounds, resetting to last valid index');
-            currentClueIndex = clues.length - 1;
-        }
 
-        // Check if the clicked clue matches the correct sequence object
-        if (clue.model === clues[currentClueIndex].model) {
-            console.log(`Correct object found: ${clue.model}`);
 
-            // Show evidence modal with the clue information
-            showEvidenceModal(clue);
+function showKillerMessage() {
+    const killerMessage = document.getElementById("killerMessage");
+    const closeMessage = document.getElementById("closeMessage");
+    const killerText = document.getElementById("killerText");
 
-            // Move to the next clue in sequence
-            if (currentClueIndex < clues.length - 1) {
-                currentClueIndex++;
-                console.log(`Advanced to next clue. Current index: ${currentClueIndex}`);
-            }
+    // Set a random message each time
+    const messages = [
+        "You think you're clever? But you're just wasting your time...",
+        "Close, but not close enough... Try harder, or end up like the others.",
+        "Do you really think you're safe? Guess again...",
+        "You’re just another fool walking right into my hands...",
+        "Tick-tock... Every second brings you closer to the end."
+    ];
+    killerText.innerText = messages[Math.floor(Math.random() * messages.length)];
 
-            // Check if this was the final clue (dossier)
-            if (currentClue.model === 'file') {
-                console.log('Final clue found - enabling Ask Witness button');
-                enableAskButton();
-            }
+    // Show the modal
+    killerMessage.style.display = "flex";
 
-            // Update any UI elements that show current progress
-            updateProgressIndicator();
+    // Close modal on button click
+    closeMessage.onclick = () => {
+        killerMessage.style.display = "none";
+    };
+}
+function restartGame() {
+    // Reset countdown timer
+    countdownTime = 120000; // Set back to 2 minutes or initial time in milliseconds
+    updateTimer(); // Immediately update the displayed timer
+    
+    // Reset game state variables
+    currentClueIndex = 0;
+    gameEnded = false;
+    
+    // Hide failure popup and other UI elements
+    document.getElementById("gameOverPopupFail").style.display = "none";
+    document.getElementById("ask-button").disabled = true;
+    document.getElementById("view-suspect-list-button").disabled = true;
+    document.getElementById("ask-button").style.opacity = '0.5';
+    document.getElementById("view-suspect-list-button").style.opacity = '0.5';
 
-        } else {
-            // Wrong object, apply penalty
-            if (typeof clue.timePenalty === 'number' && clue.timePenalty > 0) {
-                console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
-                
-                // Apply penalty
-                countdownTime = Math.max(0, countdownTime - clue.timePenalty);
-                
-                // Show penalty feedback to player
-                showPenaltyFeedback(clue.timePenalty);
-                
-                // Update timer immediately
-                updateTimer();
-            }
-        }
-    } catch (error) {
-        console.error('Error in handleHintClick:', error);
-    }
+    // Reset clues and progress indicators
+    resetClues();
+    resetProgressIndicator();
+
+    // Re-enable controls if they were disabled
+    enableControls();
+
+    // Restart the timer
+    clearInterval(timerInterval); // Clear any existing timer
+    startTimer();
 }
 
-// Function to show visual feedback for penalties
-function showPenaltyFeedback(penalty) {
-    try {
-        // Create or get penalty message element
-        let penaltyMsg = document.getElementById('penalty-message');
-        if (!penaltyMsg) {
-            penaltyMsg = document.createElement('div');
-            penaltyMsg.id = 'penalty-message';
-            document.body.appendChild(penaltyMsg);
-        }
-
-        // Style the penalty message
-        penaltyMsg.className = 'penalty-flash';
-        penaltyMsg.textContent = `-${penalty / 1000} seconds`;
-
-        // Show and fade out
-        penaltyMsg.style.display = 'block';
-        penaltyMsg.style.opacity = '1';
-
-        // Fade out after a short delay
-        setTimeout(() => {
-            penaltyMsg.style.opacity = '0';
-            setTimeout(() => {
-                penaltyMsg.style.display = 'none';
-            }, 1000);
-        }, 2000);
-    } catch (error) {
-        console.error('Error showing penalty feedback:', error);
-    }
+function resetClues() {
+    // Logic to reset clues to their original state
+    cluesSolved = 0;
+    // Reset visibility or other clue properties if needed
 }
 
-// Function to update progress indicator
-function updateProgressIndicator() {
-    try {
-        const progressElement = document.getElementById('progress-indicator');
-        if (progressElement) {
-            const progress = ((currentClueIndex + 1) / clues.length) * 100;
-            progressElement.textContent = `Evidence Found: ${currentClueIndex }/${clues.length}`;
-            // If you have a progress bar, update it here
-            const progressBar = document.getElementById('progress-bar');
-            if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-            }
-        }
-    } catch (error) {
-        console.error('Error updating progress indicator:', error);
-    }
+function resetProgressIndicator() {
+    const progressElement = document.getElementById('progress-indicator');
+    const progressBar = document.getElementById('progress-bar');
+    if (progressElement) progressElement.textContent = `Evidence Found: 0/${clues.length}`;
+    if (progressBar) progressBar.style.width = '0%';
 }
+
+function enableControls() {
+    // Logic to re-enable character movement and interactions
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("click", handleClick);
+}
+
+
+
 
 // CSS for penalty feedback animation
 const style = document.createElement('style');
@@ -1424,32 +1351,106 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+const clueSound = new Audio("alarm.ogg");
+const backgroundMusic = new Audio("Dark Intro.ogg");
+const successSound = new Audio("audio/success.mp3");
+const failSound = new Audio("audio/fail.mp3");
+
+// Start background music
+backgroundMusic.loop = true;
+backgroundMusic.volume = 0.5; // Adjust as needed
+backgroundMusic.play();
 
 // Validate clues when the script loads
 if (!validateClues()) {
     console.error('Clues validation failed! Game may not work properly.');
 }
-function enableAskButton() {
-    const askButton = document.getElementById('ask-button');
-    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
 
-    // Enable Ask Witness button
-    if (askButton) {
-        askButton.disabled = false;
-        askButton.style.opacity = '1';
-        askButton.style.cursor = 'pointer';
-        console.log('Ask Witness button enabled.');
-    }
+const level2Thoughts = [
+    "That flickering light can't be good... Should I trust it?",
+    "I need to focus; every wrong clue costs me time!",
+    "This doesn't feel right. Am I being led astray?",
+    "The clock is ticking, and I'm running out of options!",
+    "Which suspect should I trust? This is getting complicated.",
+    "That clue has a red light... Is it a trap?",
+    "I can't afford to waste any more time on wrong leads.",
+    "I hope my instincts are right about this one.",
+    "There’s something off about that clue…",
+    "Every second counts. I must find the primary suspect!"
+];
 
-    // Enable View Suspect List button
-    if (viewSuspectListButton) {
-        viewSuspectListButton.disabled = false;
-        viewSuspectListButton.style.opacity = '1';
-        viewSuspectListButton.style.cursor = 'pointer';
-        viewSuspectListButton.style.display = 'block';  // Ensure it's visible
-        console.log('View Suspect List button enabled.');
+
+function getRandomLevel2Thought() {
+    const randomIndex = Math.floor(Math.random() * level2Thoughts.length);
+    return level2Thoughts[randomIndex];
+}
+ 
+
+function displayLevel2Thought() {
+    const thought = getRandomLevel2Thought();
+    const thoughtDisplay = document.getElementById('thoughtDisplay');
+    thoughtDisplay.textContent = thought;
+
+    // Apply fade-in animation
+    thoughtDisplay.style.animation = 'fadeIn 0.8s forwards';
+    thoughtDisplay.style.opacity = '1'; // Ensure it's visible
+
+    // Clear the thought after a few seconds and apply fade-out animation
+    setTimeout(() => {
+        thoughtDisplay.style.animation = 'fadeOut 0.8s forwards'; // Apply fade-out animation
+        thoughtDisplay.style.opacity = '0'; // Set to hidden
+
+        // Clear the text after fading out
+        setTimeout(() => {
+            thoughtDisplay.textContent = ''; // Clear the thought text
+        }, 500); // Wait for fade-out to complete
+    }, 6000); // Display for 3 seconds
+}
+
+
+function startRandomThoughts() {
+    const totalDuration = 240000; // 4 minutes in milliseconds
+    const thoughtInterval = 10000; // Interval in milliseconds (5 seconds)
+
+    // Calculate how many thoughts can be displayed in 4 minutes
+    const maxThoughts = Math.floor(totalDuration / thoughtInterval);
+
+    // Use an index to track how many thoughts have been displayed
+    let displayedThoughts = 0;
+
+    const intervalId = setInterval(() => {
+        if (displayedThoughts < maxThoughts) {
+            displayLevel2Thought();
+            displayedThoughts++;
+        } else {
+            clearInterval(intervalId); // Stop after the max thoughts
+        }
+    }, thoughtInterval);
+}
+
+
+function restoreGameState() {
+    if (sessionStorage.getItem("countdownTime")) {
+        countdownTime = parseInt(sessionStorage.getItem("countdownTime"));
+        currentClueIndex = parseInt(sessionStorage.getItem("currentClueIndex"));
+        cluesSolved = JSON.parse(sessionStorage.getItem("cluesSolved"));
+        
+        updateTimer(); // Update the timer display
+        updateClueProgress(); // Function to reflect progress on UI
     }
 }
+
+document.addEventListener('DOMContentLoaded', restoreGameState);
+
+function handleWrongClueInteraction() {
+    countdownTime = Math.max(0, countdownTime - 15000); // Deduct 15 seconds
+    updateTimer();
+    if (countdownTime <= 0) {
+        endGame(false); // End game if time runs out
+    }
+}
+
+
 
 
 const cameraController = new ThirdPersonCamera(camera, character);
@@ -1500,29 +1501,29 @@ function animate() {
 }
 
 
+function endGame(success) {
+    clearInterval(timerInterval);
+    if (!success) {
+        showFailPopup();
+    }
+}
 
-let  gameOver = true;
-// Restart the game when the failRestartButton is clicked
+function startTimer() {
+    timerInterval = setInterval(() => {
+        countdownTime -= 1000;
+        updateTimer();
+        if (countdownTime <= 0) {
+            endGame(false); // Trigger fail popup if time runs out
+        }
+    }, 1000);
+}
+
 function showFailPopup() {
-    document.getElementById("gameOverPopupFail").style.display = "flex"; // Show the fail popup
+    document.getElementById("gameOverPopupFail").style.display = "flex";
 }
 
-// Reset game function
-function restartGame() {
-    // Reset game state
-    timeLeft = initialTime; // Reset time left
-    gameOver = false; // Reset game over flag
-    clearInterval(timer); // Clear the existing timer
-    resetGameUI(); // Reset the game UI
-    startTimer(); // Restart the timer
-    
-}
+// Restart functionality
 
-// Reset UI function
-function resetGameUI() {
-    document.getElementById("gameOverPopupFail").style.display = "none"; // Hide the fail popup
-   updateTimer(); // Update the timer display to show the initial time
-}
 
 // function updateTimerDisplay() {
 //     const minutes = Math.floor(countdownTime / 60000).toString().padStart(2, '0');
@@ -1530,22 +1531,11 @@ function resetGameUI() {
 //     document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
 // }
 // Ensure the DOM is fully loaded before adding event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const failRestartButton = document.getElementById("failRestartButton");
-    if (failRestartButton) {
-        failRestartButton.addEventListener("click", () => {
-            restartGame(); // Restart the game when button is clicked
-        });
-    } else {
-        console.error("Element with ID 'failRestartButton' not found.");
-    }
-
-    // Start the timer when the DOM is loaded only if not game over
-    if (!gameOver) {
-        startTimer();
-    }
+document.getElementById("failRestartButton").addEventListener("click", () => {
+    location.reload();
 });
 
 animate();
+startRandomThoughts();
 updateTimer();
-    
+   

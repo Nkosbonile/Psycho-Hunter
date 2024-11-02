@@ -378,7 +378,39 @@ canvas {
     50% { opacity: 0.85; }
     80% { opacity: 0.6; }
 }
+.modal2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
 
+.modal-content2 {
+    background-color: #2a2a2a;
+    color: #ff6666;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 300px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+}
+
+#closeMessage {
+    margin-top: 15px;
+    background-color: #ff4444;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
 /* Modified Witness Stress and Body Language positioning */
 /* .witness-indicators {
     position: absolute;
@@ -422,3 +454,39 @@ canvas {
         opacity: 1;
     }
 }
+.thought-display {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1.2em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0; /* Start hidden */
+    transition: opacity 0.5s ease; /* Smooth transition */
+}
+
+/* Keyframe animation for fading in */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Keyframe animation for fading out */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
