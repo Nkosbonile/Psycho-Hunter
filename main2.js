@@ -467,7 +467,18 @@ function updateCamera() {
         controls.maxPolarAngle = Math.PI / 2; // Prevent camera from going below ground
     }
 }
+function addFlickeringLight(target, color = 0xff0000, intensity = 2, range = 10) {
+    const light = new THREE.PointLight(color, intensity, range);
+    target.add(light);
 
+    // Flickering effect
+    function flicker() {
+        // Randomize the light intensity within a range
+        light.intensity = intensity * (0.5 + Math.random() * 0.5); // Flicker between 50% and 100%
+        setTimeout(flicker, Math.random() * 200); // Change every 0 to 200ms
+    }
+    flicker();
+}
 // Function to update camera based on perspective mode
 function updateCameraMode() {
     if (character) {
