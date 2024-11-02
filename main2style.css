@@ -1,5 +1,11 @@
-body { margin: 0; overflow: hidden; }
-canvas { display: block; }
+body { 
+    margin: 0; 
+    overflow: hidden; 
+}
+
+canvas { 
+    display: block; 
+}
 
 #overlay {
     position: absolute;
@@ -12,6 +18,7 @@ canvas { display: block; }
     gap: 20px;
     z-index: 1;
 }
+
 #timer {
     font-size: 20px;
     font-weight: bold;
@@ -21,7 +28,6 @@ canvas { display: block; }
     padding: 10px;
     margin-top: 40px;
     border: 2px solid #b22222;
-
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
     text-align: center;
     width: 100px;
@@ -30,6 +36,7 @@ canvas { display: block; }
     align-items: center;
     justify-content: center;
 }
+
 #controls-container {
     position: fixed;
     bottom: 20px;
@@ -64,35 +71,102 @@ canvas { display: block; }
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
 }
 
-.circular-controls #up { top: 10px; left: 50%; transform: translateX(-50%); }
-.circular-controls #down { bottom: 10px; left: 50%; transform: translateX(-50%); }
-.circular-controls #left { left: 10px; top: 50%; transform: translateY(-50%); }
-.circular-controls #right { right: 10px; top: 50%; transform: translateY(-50%); }
+.circular-controls #up { 
+    top: 10px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+}
+
+.circular-controls #down { 
+    bottom: 10px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+}
+
+.circular-controls #left { 
+    left: 10px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+}
+
+.circular-controls #right { 
+    right: 10px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+}
 
 .circular-controls button:hover {
     background-color: rgba(139, 0, 0, 0.8);
     box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
 }
 
-#ask-button {
+/* Witness Container and Buttons */
+.witness-container {
     position: fixed;
     top: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+    width: 200px;
+}
+
+.ask-button, .view-suspect-list-button {
     padding: 12px 24px;
     font-size: 16px;
-    background-color: #b22222;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    z-index: 100;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
-#ask-button:hover {
+.ask-button {
+    background-color: #b22222;
+}
+
+.ask-button:hover {
     background-color: #8b0000;
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.view-suspect-list-button {
+    background-color: #4a4a4a;
+    border: 2px solid #b22222;
+}
+
+.view-suspect-list-button:hover {
+    background-color: #b22222;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    color: white;
 }
 
 #questioning-modal {
@@ -201,32 +275,139 @@ canvas { display: block; }
     color: #b22222;
 }
 
-#investigation-log {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    max-height: 200px;
-    overflow-y: auto;
+/* Warning Message */
+.warning {
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 1.4em;
+    text-shadow: 2px 2px 6px #000, 0 0 12px #ff0000;
+    animation: pulse 1.5s infinite, flicker 2s infinite;
+    letter-spacing: 0.05em;
     background: rgba(0, 0, 0, 0.8);
-    color: white;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Game Over Popups */
+#gameOverPopupFail, #gameOverPopupSuccess {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#gameOverFailTitle, #gameOverSuccessTitle {
+    font-size: 3em;
+    margin-bottom: 10px;
+    color: #ff3d3d;
+}
+
+/* Buttons */
+#failRestartButton, #successRestartButton, #nextLevelButton {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#failRestartButton, #successRestartButton {
+    background-color: #ff0000;
+}
+
+#failRestartButton:hover, #successRestartButton:hover {
+    background-color: #e60000;
+}
+
+#nextLevelButton {
+    background-color: #28a745;
+}
+
+#nextLevelButton:hover {
+    background-color: #218838;
+}
+
+/* Hint Button */
+#hint-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 12px 24px;
+    font-size: 16px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
     z-index: 100;
 }
 
-/* Witness Information Container */
-.witness-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px; /* Move to the right corner */
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Space between the elements */
-    width: 250px; /* Width of the container */
+#hint-button:hover {
+    background-color: #388e3c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Witness Information */
+.hidden {
+    display: none ;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+    80% { opacity: 0.6; }
+}
+
+/* Modified Witness Stress and Body Language positioning */
+/* .witness-indicators {
+    position: absolute;
+    margin-bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+    width: 250px;
+}
+
+.witness-stress,
+.body-language {
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    animation: pop-up 0.5s ease;
+}
+
+.witness-stress {
+    border: 2px solid #ff6347;
+}
+
+.body-language {
+    border: 2px solid #4caf50;
+} */
+
 @keyframes pop-up {
     0% {
         transform: scale(0.5);
@@ -240,196 +421,4 @@ canvas { display: block; }
         transform: scale(1);
         opacity: 1;
     }
-}
-
-.witness-stress,
-.body-language {
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    z-index: 100;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease;
-    animation: pop-up 0.5s ease; /* Apply pop-up animation */
-}
-
-.hidden {
-    display: none;
-}
-
-/* Add border colors */
-.witness-stress {
-    border: 2px solid #ff6347;
-}
-
-.body-language {
-    border: 2px solid #4caf50;
-}
-
-.warning {
-    position: fixed; /* Fix it to the viewport */
-    top: 20px;       /* Distance from the top of the screen */
-    left: 20px;      /* Distance from the left of the screen */
-    color: #ff0000; /* Dark, intense red */
-    font-weight: bold;
-    font-size: 1.4em;
-    text-shadow: 2px 2px 6px #000, 0 0 12px #ff0000;
-    animation: pulse 1.5s infinite, flicker 2s infinite;
-    letter-spacing: 0.05em; /* Slightly spread out for emphasis */
-    background: rgba(0, 0, 0, 0.8); /* Background to make it readable */
-    padding: 10px;     /* Padding for visual spacing */
-    border-radius: 8px; /* Rounded corners for a polished look */
-    z-index: 1000;      /* Ensures it appears on top of other elements */
-}
-
-.hidden {
-    display: none;
-}
-
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.9; }
-}
-
-@keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.85; }
-    80% { opacity: 0.6; }
-}
-/* Popup for when the player fails (time runs out) */
-#gameOverPopupFail {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9); /* Semi-transparent black background */
-    color: white;
-    text-align: center;
-    padding: 20px;
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-/* Popup for when the player finds the body (success) */
-#gameOverPopupSuccess {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    text-align: center;
-    padding: 20px;
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-/* Styling for both titles */
-#gameOverFailTitle, #gameOverSuccessTitle {
-    font-size: 3em;
-    margin-bottom: 10px;
-    color: #ff3d3d;
-}
-
-#gameOverPopupFail, #gameOverPopupSuccess {
-    display: none; /* Initially hide the popups */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    z-index: 100; /* Ensure it's on top of everything */
-  }
-  
-
-/* Buttons for both popups */
-#failRestartButton, #successRestartButton, #nextLevelButton {
-    padding: 10px 20px;
-    font-size: 1.2em;
-    background-color: #ff0000;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 10px;
-    margin-top: 10px;
-    transition: background-color 0.3s ease;
-}
-
-#failRestartButton:hover, #successRestartButton:hover, #nextLevelButton:hover {
-    background-color: #e60000; /* Darken the button on hover */
-}
-
-#failRestartButton:active, #successRestartButton:active, #nextLevelButton:active {
-    background-color: #b30000; /* Even darker when clicked */
-}
-
-/* Next Level button with distinct color for success popup */
-#nextLevelButton {
-    background-color: #28a745; /* Green color for the next level button */
-}
-
-#nextLevelButton:hover {
-    background-color: #218838;
-}
-
-#nextLevelButton:active {
-    background-color: #1e7e34;
-}
-
-#hint-button {
-    position: fixed; /* Fixes the button's position */
-    top: 20px; /* Distance from the top */
-    left: 20px; /* Distance from the left */
-    padding: 12px 24px; /* Padding for button size */
-    font-size: 16px; /* Font size */
-    background-color: #4caf50; /* Green background color */
-    color: white; /* Text color */
-    border: none; /* No border */
-    border-radius: 8px; /* Rounded corners */
-    cursor: pointer; /* Pointer on hover */
-    transition: all 0.3s ease; /* Smooth transition for hover effects */
-    z-index: 100; /* Ensure it's on top of other elements */
-}
-
-#hint-button:hover {
-    background-color: #388e3c; /* Darker green on hover */
-    transform: translateY(-2px); /* Lift effect on hover */
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2); /* Shadow effect on hover */
-}
-.suspect-list-button {
-    padding: 12px 24px;  /* Makes button larger */
-    font-size: 16px;  /* Font size */
-    background-color: #4a4a4a;  /* Dark grey background */
-    color: white;  /* White text color */
-    border: 2px solid #b22222;  /* Border color matches the theme */
-    border-radius: 8px;  /* Rounded corners */
-    cursor: pointer;  /* Pointer cursor on hover */
-    transition: all 0.3s ease;  /* Smooth transition for hover effects */
-    z-index: 100;  /* Layering to appear above other elements */
-    text-align: center;  /* Center text */
-    width: 100%;  /* Full width of its container */
-}
-
-.suspect-list-button:hover {
-    background-color: #b22222;  /* Change to theme color on hover */
-    color: white;  /* Keep text white on hover */
-    box-shadow: 0 4px 8px rgba(255, 0, 0, 0.4);  /* Adds shadow effect */
-}
-
-.suspect-list-button:active {
-    background-color: #8b0000;  /* Slightly darker on click */
 }

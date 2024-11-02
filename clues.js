@@ -16,7 +16,7 @@ const clues = [
         nextObject: "bloodyCabinet",
         timePenalty: 20000,
         position: new THREE.Vector3(0, 0, 0.09375), // Position for polaroid
-        radius: 3,
+        radius: 4.5,
         note: "Pictures on the wall, some torn, showing scenes of the victim."
     },
     {
@@ -25,7 +25,7 @@ const clues = [
         nextObject: "cleaver",
         timePenalty: 25000,
         position: new THREE.Vector3(-22.5, 0, 18.5), // Position for bloody cabinet
-        radius: 3,
+        radius: 5,
         note: "Blood-stained cabinet, lock appears forced open."
     },
     {
@@ -34,7 +34,7 @@ const clues = [
         nextObject: "handcuff",
         timePenalty: 30000,
         position: new THREE.Vector3(-24, 0, 8), // Position for cleaver
-        radius: 3,
+        radius: 4.5,
         note: "A bloody cleaver found near the cabinet, used recently."
     },
     {

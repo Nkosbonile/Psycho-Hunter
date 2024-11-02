@@ -821,9 +821,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const askButton = document.getElementById('ask-button');
     const modal = document.getElementById('questioning-modal');
     const closeModal = document.getElementById('close-modal');
+    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
 
-    askButton.addEventListener('click',  () => {
-        showWarning(); 
+    // Add view suspect list button handler
+    viewSuspectListButton.addEventListener('click', () => {
+        window.location.href = 'suspect.html';
+    });
+
+    askButton.addEventListener('click', () => {
+        showWarning();
         modal.style.display = 'block';
     });
 
@@ -845,6 +851,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Start the timer when the page loads
     startTimer();
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('questioning-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+        document.getElementById('response-container').style.display = 'none';
+    }
 });
 
 // Function to load questions based on the selected suspect
@@ -1123,6 +1138,12 @@ document.addEventListener('DOMContentLoaded', () => {
         askButton.style.opacity = '0.5';
         askButton.style.cursor = 'not-allowed';
     }
+    viewSuspectListButton = document.getElementById('view-suspect-list-button');
+    if (viewSuspectListButton) {
+        viewSuspectListButton.disabled = true;
+        viewSuspectListButton.style.opacity = '0.5';
+        viewSuspectListButton.style.cursor = 'not-allowed';
+    }
 });
 
 // Enable "Ask Witness" Button
@@ -1134,73 +1155,397 @@ const hintButton = document.getElementById('hint-button');
 
 // Check Clue Proximity and Display Hint Button
 let currentClueIndex = 0; // Index to track correct order of clues
+// const DEBUG = true;
 
-function handleHintClick(clue) {
-    console.log(`Player clicked on: ${clue.model}`);
+// function debugLog(message) {
+//     if (DEBUG) {
+//         console.log(`[Debug] ${message}`);
+//     }
+// }
+
+// function handleHintClick(clue) {
+//     console.log(`Player clicked on: ${clue.model}`);
     
-    // Check if the clicked clue matches the correct sequence object
-    if (clue.model === clues[currentClueIndex].model) {
-        console.log(`Correct object found: ${clue.model}`);
+//     // Check if the clicked clue matches the correct sequence object
+//     if (clue.model === clues[currentClueIndex].model) {
+//         console.log(`Correct object found: ${clue.model}`);
         
-        // Show hint for the next object in the sequence
-        showEvidenceModal(clue);
+//         // Show hint for the next object in the sequence
+//         showEvidenceModal(clue);
         
-        // Move to the next clue in sequence
-        currentClueIndex++;
+//         // Move to the next clue in sequence
+//         currentClueIndex++;
 
-        // If the dossier (last object) is found, enable the "Ask Witness" button
-        if (currentClueIndex === clues.length) {
-            enableAskButton();
-        }
-    } else {
-        // Wrong object, apply penalty
-        console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
-        countdownTime -= clue.timePenalty;
+//         // If the dossier (last object) is found, enable the "Ask Witness" button
+//         if (currentClueIndex === clues.length) {
+//             enableAskButton();
+//         }
+//     } else {
+//         // Wrong object, apply penalty
+//         console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
+//         countdownTime -= clue.timePenalty;
         
-        // Update timer immediately to reflect penalty
-       updateTimer();
+//         // Update timer immediately to reflect penalty
+//        updateTimer();
+//     }
+// }
+
+// function checkClueProximity() {
+//     // Safety check for character
+//     if (!character) {
+//         console.warn('Character not initialized');
+//         return;
+//     }
+
+//     debugLog(`Checking proximity. Current clue index: ${currentClueIndex}`);
+//     debugLog(`Current target clue: ${clues[currentClueIndex].model}`);
+
+//     let nearestClue = null;
+//     let minDistance = Infinity;
+
+//     // Loop through each clue to check distance
+//     clues.forEach((clue, index) => {
+//         if (!clue.position) {
+//             console.error(`Clue ${clue.model} missing position data`);
+//             return;
+//         }
+
+//         const distance = character.position.distanceTo(clue.position);
+//         debugLog(`Distance to ${clue.model}: ${distance.toFixed(2)} units (radius: ${clue.radius})`);
+
+//         // Check if within radius and closer than previous finds
+//         if (distance <= clue.radius && distance < minDistance) {
+//             minDistance = distance;
+//             nearestClue = clue;
+//         }
+//     });
+
+//     const hintButton = document.getElementById('hint-button');
+//     const viewSuspectListButton = document.getElementById('view-suspect-list-button');
+    
+//     if (!hintButton) {
+//         console.error('Hint button not found');
+//         return;
+//     }
+
+//     // Handle nearest clue interaction
+//     if (nearestClue) {
+//         debugLog(`Nearest clue found: ${nearestClue.model}`);
+        
+//         // Check if it's the current target clue
+//         if (nearestClue.model === clues[currentClueIndex].model) {
+//             debugLog('Correct clue found!');
+            
+//             // Show hint button and attach handler
+//             hintButton.style.display = 'block';
+//             hintButton.onclick = () => {
+//                 handleHintClick(nearestClue);
+                
+//                 // If this was the last clue (file), enable suspect list
+//                 if (nearestClue.model === 'file') {
+//                     debugLog('Final clue found - enabling suspect list');
+//                     if (viewSuspectListButton) {
+//                         viewSuspectListButton.style.display = 'block';
+//                         viewSuspectListButton.disabled = false;
+//                         viewSuspectListButton.style.opacity = '1';
+//                         viewSuspectListButton.style.cursor = 'pointer';
+//                     }
+//                 }
+//             };
+
+//             // Display the riddle for the next clue if there is one
+//             if (nearestClue.nextObject) {
+//                 const nextClue = clues.find(c => c.model === nearestClue.nextObject);
+//                 if (nextClue) {
+//                     debugLog(`Next clue riddle: ${nextClue.riddle}`);
+//                 }
+//             }
+//         } else {
+//             // Wrong clue penalty
+//             debugLog(`Wrong clue found. Expected ${clues[currentClueIndex].model}, found ${nearestClue.model}`);
+//             if (nearestClue.timePenalty > 0) {
+//                 countdownTime -= nearestClue.timePenalty;
+//                 updateTimer();
+//                 // Optional: Add visual feedback for penalty
+//                 showPenaltyMessage(nearestClue.timePenalty);
+//             }
+//         }
+//     } else {
+//         debugLog('No clues in range');
+//         hintButton.style.display = 'none';
+//         hintButton.onclick = null;
+//     }
+// }
+
+// // Helper function to show penalty message
+// function showPenaltyMessage(penalty) {
+//     const penaltySeconds = penalty / 1000;
+//     const message = `Wrong clue! -${penaltySeconds} seconds`;
+//     // You can implement this based on your UI requirements
+//     console.warn(message);
+// }
+const DEBUG = true;
+
+function debugLog(message) {
+    if (DEBUG) {
+        console.log(`[Debug] ${message}`);
     }
 }
 
-// Function to check the player's proximity to clues
-// Corrected checkClueProximity function
-function checkClueProximity() {
-    if (!character) return;
-
-    let nearestClue = null;
-    let minDistance = Infinity;
-
-    // Loop through each clue to check distance
-    clues.forEach((clue, index) => {
-        const distance = character.position.distanceTo(clue.position);
-        console.log(`Distance to ${clue.model}: ${distance} (radius: ${clue.radius})`);
-
-        // Check if within radius and it's the next clue in the sequence
-        if (distance <= clue.radius && distance < minDistance) {
-            minDistance = distance;
-            nearestClue = clue;
-        }
-    });
-
-    if (nearestClue && nearestClue.model === clues[currentClueIndex].model) {
-        hintButton.style.display = 'block';
-        hintButton.onclick = () => handleHintClick(nearestClue);
-        console.log(`Hint displayed for: ${nearestClue.model}`);
-
-        // If all clues are found, enable the suspect list button as well
-        if (currentClueIndex === clues.length - 1) {
-            enableAskButton(); // Enables both Ask Witness and Suspect List buttons
-        }
-    } else if (nearestClue) {
-        // Apply penalty if near a clue out of sequence
-        console.log(`Incorrect clue proximity detected. Applying penalty of ${nearestClue.timePenalty / 1000} seconds.`);
-        countdownTime -= nearestClue.timePenalty;
-        updateTimer(); // Immediately update timer display
-    } else {
-        hintButton.style.display = 'none';
-        hintButton.onclick = null;
-        console.log('No clues nearby or out of sequence.');
+// Validate clues array on load
+function validateClues() {
+    if (!Array.isArray(clues)) {
+        console.error('Clues is not an array!');
+        return false;
     }
+    
+    if (clues.length === 0) {
+        console.error('Clues array is empty!');
+        return false;
+    }
+
+    // Validate each clue has required properties
+    return clues.every((clue, index) => {
+        const hasRequiredProps = clue 
+            && typeof clue.model === 'string'
+            && clue.position 
+            && typeof clue.radius === 'number';
+            
+        if (!hasRequiredProps) {
+            console.error(`Invalid clue at index ${index}:`, clue);
+        }
+        return hasRequiredProps;
+    });
+}
+function checkClueProximity() {
+    try {
+        // Validate essential components
+        if (!character) {
+            debugLog('Character not initialized');
+            return;
+        }
+
+        if (!Array.isArray(clues) || clues.length === 0) {
+            debugLog('Clues array not properly initialized');
+            return;
+        }
+
+        if (typeof currentClueIndex !== 'number' || currentClueIndex < 0) {
+            debugLog('Invalid currentClueIndex, resetting to 0');
+            currentClueIndex = 0;
+        }
+
+        if (currentClueIndex >= clues.length) {
+            debugLog('currentClueIndex out of bounds, clamping to last clue');
+            currentClueIndex = clues.length - 1;
+        }
+
+        // Ensure current clue exists
+        const currentClue = clues[currentClueIndex];
+        if (!currentClue) {
+            debugLog(`No clue found at index ${currentClueIndex}`);
+            return;
+        }
+
+        debugLog(`Checking proximity. Current clue index: ${currentClueIndex}`);
+        debugLog(`Current target clue: ${currentClue.model}`);
+
+        let nearestClue = null;
+        let minDistance = Infinity;
+
+        // Check each clue's distance
+        for (let i = 0; i < clues.length; i++) {
+            const clue = clues[i];
+            
+            // Skip invalid clues
+            if (!clue || !clue.position || !clue.model) {
+                debugLog(`Skipping invalid clue at index ${i}`);
+                continue;
+            }
+
+            const distance = character.position.distanceTo(clue.position);
+            debugLog(`Distance to ${clue.model}: ${distance.toFixed(2)} units (radius: ${clue.radius})`);
+
+            if (distance <= (clue.radius || 3) && distance < minDistance) {
+                minDistance = distance;
+                nearestClue = clue;
+            }
+        }
+
+        // Get UI elements
+        const hintButton = document.getElementById('hint-button');
+
+
+        if (!hintButton) {
+            debugLog('Hint button not found in DOM');
+            return;
+        }
+
+        // Handle nearest clue
+        if (nearestClue) {
+            debugLog(`Nearest clue found: ${nearestClue.model}`);
+
+            if (nearestClue.model === currentClue.model) {
+                debugLog('Correct clue found!');
+                
+                hintButton.style.display = 'block';
+                hintButton.onclick = () => {
+                    handleHintClick(nearestClue);
+                    
+                    // Check for final clue
+                    if (nearestClue.nextObject && currentClueIndex < clues.length - 1) {
+                        const nextClue = clues.find(c => c && c.model === nearestClue.nextObject);
+                        if (nextClue && nextClue.riddle) {
+                            debugLog(`Next clue riddle: ${nextClue.riddle}`);
+                        }
+                    }
+                };
+            } else {
+                debugLog('No clues in range');
+                hintButton.style.display = 'none';
+                hintButton.onclick = null;
+            }
+        } else {
+            debugLog('No clues in range');
+            hintButton.style.display = 'none';
+            hintButton.onclick = null;
+        }
+    } catch (error) {
+        console.error('Error in checkClueProximity:', error);
+        debugLog(`Error details: ${error.message}`);
+    }
+}
+
+
+function handleHintClick(clue) {
+    try {
+        if (!clue || !clue.model) {
+            console.error('Invalid clue object passed to handleHintClick');
+            return;
+        }
+
+        console.log(`Player clicked on: ${clue.model}`);
+
+        // Validate current clue index
+        if (currentClueIndex > clues.length) {
+            console.warn('currentClueIndex out of bounds, resetting to last valid index');
+            currentClueIndex = clues.length - 1;
+        }
+
+        // Check if the clicked clue matches the correct sequence object
+        if (clue.model === clues[currentClueIndex].model) {
+            console.log(`Correct object found: ${clue.model}`);
+
+            // Show evidence modal with the clue information
+            showEvidenceModal(clue);
+
+            // Move to the next clue in sequence
+            if (currentClueIndex < clues.length - 1) {
+                currentClueIndex++;
+                console.log(`Advanced to next clue. Current index: ${currentClueIndex}`);
+            }
+
+            // Check if this was the final clue (dossier)
+            if (currentClue.model === 'file') {
+                console.log('Final clue found - enabling Ask Witness button');
+                enableAskButton();
+            }
+
+            // Update any UI elements that show current progress
+            updateProgressIndicator();
+
+        } else {
+            // Wrong object, apply penalty
+            if (typeof clue.timePenalty === 'number' && clue.timePenalty > 0) {
+                console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
+                
+                // Apply penalty
+                countdownTime = Math.max(0, countdownTime - clue.timePenalty);
+                
+                // Show penalty feedback to player
+                showPenaltyFeedback(clue.timePenalty);
+                
+                // Update timer immediately
+                updateTimer();
+            }
+        }
+    } catch (error) {
+        console.error('Error in handleHintClick:', error);
+    }
+}
+
+// Function to show visual feedback for penalties
+function showPenaltyFeedback(penalty) {
+    try {
+        // Create or get penalty message element
+        let penaltyMsg = document.getElementById('penalty-message');
+        if (!penaltyMsg) {
+            penaltyMsg = document.createElement('div');
+            penaltyMsg.id = 'penalty-message';
+            document.body.appendChild(penaltyMsg);
+        }
+
+        // Style the penalty message
+        penaltyMsg.className = 'penalty-flash';
+        penaltyMsg.textContent = `-${penalty / 1000} seconds`;
+
+        // Show and fade out
+        penaltyMsg.style.display = 'block';
+        penaltyMsg.style.opacity = '1';
+
+        // Fade out after a short delay
+        setTimeout(() => {
+            penaltyMsg.style.opacity = '0';
+            setTimeout(() => {
+                penaltyMsg.style.display = 'none';
+            }, 1000);
+        }, 2000);
+    } catch (error) {
+        console.error('Error showing penalty feedback:', error);
+    }
+}
+
+// Function to update progress indicator
+function updateProgressIndicator() {
+    try {
+        const progressElement = document.getElementById('progress-indicator');
+        if (progressElement) {
+            const progress = ((currentClueIndex + 1) / clues.length) * 100;
+            progressElement.textContent = `Evidence Found: ${currentClueIndex }/${clues.length}`;
+            // If you have a progress bar, update it here
+            const progressBar = document.getElementById('progress-bar');
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+        }
+    } catch (error) {
+        console.error('Error updating progress indicator:', error);
+    }
+}
+
+// CSS for penalty feedback animation
+const style = document.createElement('style');
+style.textContent = `
+    .penalty-flash {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 5px;
+        font-size: 24px;
+        transition: opacity 1s;
+        pointer-events: none;
+        z-index: 1000;
+    }
+`;
+document.head.appendChild(style);
+
+// Validate clues when the script loads
+if (!validateClues()) {
+    console.error('Clues validation failed! Game may not work properly.');
 }
 function enableAskButton() {
     const askButton = document.getElementById('ask-button');
