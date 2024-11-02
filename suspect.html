@@ -3,83 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="suspect.css">
     <title>Case File: Suspects</title>
+    <link rel="stylesheet" href="suspect.css">
 </head>
 <body>
-        <nav class="navbar">
-            <div class="navbar-brand">Case File: Serial Killer Investigation</div>
-            <ul class="navbar-menu">
-                <li><a href="main2.html">Back to Investigation</a></li>
-            </ul>
-        </nav>
-
-    <!-- Suspect List Modal -->
-     <!-- Failure Popup -->
-<div id="failurePopup" class="modal2" style="display: none;">
-    <div class="modal-content2">
-        <p>"Wrong choice... Do you think you can outsmart me? Think again."</p>
-        <button id="restartButton">Restart Game</button>
+    <!-- Failure Popup -->
+    <div id="failurePopup" class="modal2" style="display: none;">
+        <div class="modal-content2">
+            <p>"Wrong choice... Do you think you can outsmart me? Think again."</p>
+            <button id="restartButton">Restart Game</button>
+        </div>
     </div>
-</div>
 
-<!-- Success Popup -->
-<div id="successPopup" class="modal2" style="display: none;">
-    <div class="modal-content2">
-        <p>"Well, well, well... You found me. But this game is far from over."</p>
-        <button id="nextLevelButton">Proceed to Next Level</button>
-        <button id="restartGameButton">Restart Game</button>
+    <!-- Success Popup -->
+    <div id="successPopup" class="modal2" style="display: none;">
+        <div class="modal-content2">
+            <p>"Well, well, well... You found me. But this game is far from over."</p>
+            <button id="nextLevelButton">Proceed to Next Level</button>
+            <button id="restartGameButton">Restart Game</button>
+        </div>
     </div>
-</div>
-      <!-- Suspect List Modal -->
-      <div id="suspectModal" class="modal">
-        <div class="modal-content">
-            <span id="closeModal" class="close">&times;</span>
-            <h1 class="title">CONFIDENTIAL - Suspect Dossiers</h1>
-            <h2>Choose a Prime Suspect</h2>
-            <div class="suspects-grid">
-                <div class="suspect-card" data-suspect="1">
-                    <img src="suspect1.webp" alt="Suspect 1" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Suspect 1</h2>
-                        <p><strong>Age:</strong> 34</p>
-                        <p><strong>Occupation:</strong> Business Executive</p>
-                        <p><strong>Motive:</strong> Jealousy</p>
-                        <p><strong>Alibi:</strong> Conference at crime time.</p>
-                        <p><strong>Last Seen:</strong> Near victim’s workplace.</p>
-                        <p><strong>Weapon:</strong> Blunt object</p>
-                        <button class="choose-button">Choose Prime Suspect</button>
-                    </div>
-                </div>
-                <div class="suspect-card" data-suspect="2">
-                    <img src="suspect2.jpg" alt="Suspect 2" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Suspect 2</h2>
-                        <p><strong>Age:</strong> 27</p>
-                        <p><strong>Occupation:</strong> Personal Trainer</p>
-                        <p><strong>Motive:</strong> Revenge</p>
-                        <p><strong>Alibi:</strong> Working with client</p>
-                        <p><strong>Last Seen:</strong> Gym near crime scene</p>
-                        <p><strong>Weapon:</strong> Knife</p>
-                        <button class="choose-button">Choose Prime Suspect</button>
-                    </div>
-                </div>
-                <div class="suspect-card" data-suspect="3">
-                    <img src="suspect3.jpg" alt="Suspect 3" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Suspect 3</h2>
-                        <p><strong>Age:</strong> 45</p>
-                        <p><strong>Occupation:</strong> Accountant</p>
-                        <p><strong>Motive:</strong> Greed</p>
-                        <p><strong>Alibi:</strong> Working late</p>
-                        <p><strong>Last Seen:</strong> Office near crime</p>
-                        <p><strong>Weapon:</strong> Poison</p>
-                        <button class="choose-button">Choose Prime Suspect</button>
-                    </div>
+
+    <!-- Suspect Content -->
+    <div id="suspectContent" class="suspect-container">
+        <h1 class="title">CONFIDENTIAL - Suspect Dossiers</h1>
+        <h2>Choose a Prime Suspect</h2>
+        <div class="suspects-grid">
+            <div class="suspect-card" data-suspect="1">
+                <img src="suspect1.webp" alt="Suspect 1" class="suspect-image">
+                <div class="card-content">
+                    <h2>Suspect 1</h2>
+                    <p><strong>Age:</strong> 34</p>
+                    <p><strong>Occupation:</strong> Business Executive</p>
+                    <p><strong>Motive:</strong> Jealousy</p>
+                    <p><strong>Alibi:</strong> Conference at crime time.</p>
+                    <p><strong>Last Seen:</strong> Near victim's workplace.</p>
+                    <p><strong>Weapon:</strong> Blunt object</p>
+                    <button class="choose-button">Choose Prime Suspect</button>
                 </div>
             </div>
-            <div id="result"></div>
+            <div class="suspect-card" data-suspect="2">
+                <img src="suspect2.jpg" alt="Suspect 2" class="suspect-image">
+                <div class="card-content">
+                    <h2>Suspect 2</h2>
+                    <p><strong>Age:</strong> 27</p>
+                    <p><strong>Occupation:</strong> Personal Trainer</p>
+                    <p><strong>Motive:</strong> Revenge</p>
+                    <p><strong>Alibi:</strong> Working with client</p>
+                    <p><strong>Last Seen:</strong> Gym near crime scene</p>
+                    <p><strong>Weapon:</strong> Knife</p>
+                    <button class="choose-button">Choose Prime Suspect</button>
+                </div>
+            </div>
+            <div class="suspect-card" data-suspect="3">
+                <img src="suspect3.jpg" alt="Suspect 3" class="suspect-image">
+                <div class="card-content">
+                    <h2>Suspect 3</h2>
+                    <p><strong>Age:</strong> 45</p>
+                    <p><strong>Occupation:</strong> Accountant</p>
+                    <p><strong>Motive:</strong> Greed</p>
+                    <p><strong>Alibi:</strong> Working late</p>
+                    <p><strong>Last Seen:</strong> Office near crime</p>
+                    <p><strong>Weapon:</strong> Poison</p>
+                    <button class="choose-button">Choose Prime Suspect</button>
+                </div>
+            </div>
         </div>
+        <div id="result"></div>
     </div>
 
     <script src="suspect.js"></script>

@@ -1,97 +1,121 @@
-const correctSuspect = Math.floor(Math.random() * 3) + 1;
-
-document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('suspectModal');
-    const closeModal = document.getElementById('closeModal');
-    const chooseButtons = document.querySelectorAll('.choose-button');
-    const resultDiv = document.getElementById('result');
-    const failurePopup = document.getElementById('failurePopup');
-    const successPopup = document.getElementById('successPopup');
-    const restartButton = document.getElementById('restartButton');
-    const restartGameButton = document.getElementById('restartGameButton');
-    const nextLevelButton = document.getElementById('nextLevelButton');
-
-    // Open the main suspect modal on page load
-    function openModal() {
-        modal.style.display = 'flex';
+class SuspectManager {
+    constructor() {
+        this.correctSuspect = Math.floor(Math.random() * 3) + 1; // Randomly select the correct suspect
+        // Update selectors to match your HTML
+        this.chooseButtons = document.querySelectorAll('.choose-button');
+        this.resultDiv = document.getElementById('result');
+        this.failurePopup = document.getElementById('failurePopup');
+        this.successPopup = document.getElementById('successPopup');
+        this.restartButton = document.getElementById('restartButton');
+        this.restartGameButton = document.getElementById('restartGameButton');
+        this.nextLevelButton = document.getElementById('nextLevelButton');
+        
+        console.log('Found buttons:', this.chooseButtons.length); // Debug log
+        console.log('Correct suspect:', this.correctSuspect); // Debug log
+        
+        this.initializeEventListeners();
     }
 
-    // Close the main suspect modal
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    // Choose suspect logic
-    chooseButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const suspectCard = event.target.closest('.suspect-card');
-            const suspectId = parseInt(suspectCard.getAttribute('data-suspect'));
-
-            if (suspectId === correctSuspect) {
-                showSuccessPopup(suspectCard);
-            } else {
-                showFailurePopup(suspectCard);
-            }
+    initializeEventListeners() {
+        this.chooseButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                console.log('Choose button clicked:', event.target); // Log button click
+                event.stopPropagation(); // Prevent the event from bubbling up to the document
+                this.handleSuspectChoice(event);
+            });
         });
-    });
+        
 
-    // Show failure popup
-    function showFailurePopup(suspectCard) {
-        displayMessage(failurePopup, `"Wrong choice... Do you think you can outsmart me? Think again."`);
-        suspectCard.classList.add('highlight');
-        disableChooseButtons();
+        if (this.restartButton) {
+            this.restartButton.addEventListener('click', () => this.restartGame());
+        }
+        if (this.restartGameButton) {
+            this.restartGameButton.addEventListener('click', () => this.restartGame());
+        }
+        if (this.nextLevelButton) {
+            this.nextLevelButton.addEventListener('click', () => this.goToNextLevel());
+        }
     }
 
-    // Show success popup
-    function showSuccessPopup(suspectCard) {
-        displayMessage(successPopup, `"Well, well, well... You found me. But this game is far from over."`);
-        highlightCorrectSuspect(suspectCard);
-        disableChooseButtons();
+    handleSuspectChoice(event) {
+        const suspectCard = event.target.closest('.suspect-card');
+        console.log("Suspect card found:", suspectCard); // Debug log
+    
+        if (!suspectCard) {
+            console.log('No suspect card found'); // Debug log
+            return;
+        }
+    
+        const suspectId = parseInt(suspectCard.getAttribute('data-suspect'));
+        console.log('Suspect chosen:', suspectId); // Debug log
+    
+        if (suspectId === this.correctSuspect) {
+            console.log('Correct suspect selected'); // Debug log
+            this.showSuccessPopup(suspectCard);
+        } else {
+            console.log('Incorrect suspect selected'); // Debug log
+            this.showFailurePopup(suspectCard);
+        }
+    }
+    
+    showFailurePopup(suspectCard) {
+        console.log('Displaying failure popup'); // Debug log
+        if (this.failurePopup) {
+            this.failurePopup.style.display = 'flex';
+            suspectCard.classList.add('highlight');
+            this.disableChooseButtons();
+        } else {
+            console.log('Failure popup not found'); // Debug log
+        }
     }
 
-    // Display the message in a popup
-    function displayMessage(popup, message) {
-        const content = popup.querySelector('p');
-        content.innerText = message;
-        popup.style.display = 'flex';
+    showSuccessPopup(suspectCard) {
+        console.log('Displaying success popup'); // Debug log
+        if (this.successPopup) {
+            this.successPopup.style.display = 'flex';
+            suspectCard.classList.add('highlight');
+            this.disableChooseButtons();
+            this.saveProgress();
+        } else {
+            console.log('Success popup not found'); // Debug log
+        }
     }
 
-    // Highlight the correct suspect card
-    function highlightCorrectSuspect(suspectCard) {
-        suspectCard.classList.add('highlight');
+    disableChooseButtons() {
+        this.chooseButtons.forEach(button => {
+            button.disabled = true;
+            button.style.pointerEvents = 'none';
+        });
     }
 
-    // Disable all choose buttons after a choice is made
-    function disableChooseButtons() {
-        chooseButtons.forEach(button => button.disabled = true);
-    }
-
-    // Restart the game
-    function restartGame() {
+    restartGame() {
+        console.log('Restarting game...'); // Debug log
         window.location.href = 'main2.html';
     }
 
-    // Proceed to the next level
-    function goToNextLevel() {
+    goToNextLevel() {
+        console.log('Going to next level...'); // Debug log
         window.location.href = 'level3.html';
     }
 
-    // Attach restart and next level event listeners
-    restartButton.addEventListener('click', restartGame);
-    restartGameButton.addEventListener('click', restartGame);
-    nextLevelButton.addEventListener('click', goToNextLevel);
+    saveProgress() {
+        console.log('Saving game progress...'); // Debug log
+        sessionStorage.setItem('suspectChosen', 'true');
+        sessionStorage.setItem('correctSuspectFound', 'true');
+    }
 
-    // Open the modal on page load
-    openModal();
-});
-function saveGameState() {
-    sessionStorage.setItem("countdownTime", countdownTime); // Save timer
-    sessionStorage.setItem("currentClueIndex", currentClueIndex); // Save current clue index
-    sessionStorage.setItem("cluesSolved", JSON.stringify(cluesSolved)); // Save clues found
-    // Save any other necessary variables
+    static loadGameState() {
+        return {
+            suspectChosen: sessionStorage.getItem('suspectChosen') === 'true',
+            correctSuspectFound: sessionStorage.getItem('correctSuspectFound') === 'true'
+        };
+    }
 }
 
-document.querySelector('.navbar-menu a').addEventListener('click', () => {
-    saveGameState();
-    window.location.href = "suspect.html";
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const suspectManager = new SuspectManager();
 });
+
+// Export the class if needed
+export default SuspectManager;

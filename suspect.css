@@ -6,147 +6,119 @@
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* Body Styling */
 body {
     background-color: #f4f1ea;
     color: #333;
+    min-height: 100vh;
 }
 
-/* Navbar Styling */
-.navbar {
-    background-color: #282828;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #e0e0e0;
-    font-weight: bold;
-    position: fixed; /* Make navbar fixed at the top */
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-}
-
-/* Navbar menu items */
-.navbar-menu li {
-    display: inline;
-    margin-left: 15px;
-}
-
-.navbar-menu a {
-    color: #e0e0e0;
-    text-decoration: none;
-    padding: 8px 12px;
-}
-
-.navbar-menu a:hover {
-    color: #ff4c4c;
-}
-
-/* Modal Styling */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow-y: auto; /* Allows scrolling within the modal */
-    padding-top: 80px; /* Adds space for the navbar */
-}
-
-.modal-content {
-    background-color: #f9f5e8;
+.suspect-container {
     padding: 20px;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh; /* Restrict modal height to fit within the viewport */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
-    border: 1px solid #ccc;
-    text-align: left;
-    margin-top: 20px;
-    box-sizing: border-box;
-    position: relative;
-    overflow-y: auto; /* Allows scrolling within the modal content */
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #4c0000 #f4f1ea; /* For Firefox */
 }
 
-.close {
-    position: absolute;
-    top: 15px;
-    right: 25px;
-    font-size: 28px;
-    cursor: pointer;
-    color: #ff4c4c;
+/* Custom scrollbar for webkit browsers */
+.suspect-container::-webkit-scrollbar {
+    width: 8px;
 }
 
+.suspect-container::-webkit-scrollbar-track {
+    background: #f4f1ea;
+}
 
+.suspect-container::-webkit-scrollbar-thumb {
+    background-color: #4c0000;
+    border-radius: 4px;
+}
+
+/* Title Styling */
 .title {
     font-size: 24px;
     color: #333;
-    margin-bottom: 10px;
+    margin: 20px 0;
+    padding-bottom: 10px;
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
+    position: sticky;
+    top: 0;
+    background: #f4f1ea;
+    z-index: 1;
 }
 
 /* Suspect Cards */
 .suspects-grid {
-    display: flex;
-    gap: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
     justify-content: center;
-    flex-wrap: wrap;
-    padding: 80px 0 20px; /* Padding to ensure space from the navbar */
 }
 
 .suspect-card {
-    background: #fff;
+    background: #070707;
     border: 1px solid #bfb0a0;
     padding: 20px;
     border-radius: 5px;
-    width: 180px;
+    height: auto;
     transition: 0.3s ease;
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
     text-align: center;
     position: relative;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
 }
 
 .suspect-card:hover {
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
+    transform: translateY(-5px);
 }
 
 .suspect-image {
     width: 100%;
+    max-height: 200px;
+    object-fit: cover;
     border-radius: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border: 2px solid #bfb0a0;
 }
 
+.card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .card-content h2 {
-    color: #333;
+    color: #e0e0e0;
     font-size: 18px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .card-content p {
-    margin: 5px 0;
+    margin: 4px 0;
     font-size: 14px;
+    line-height: 1.4;
 }
 
 .choose-button {
     background-color: #4c0000;
     color: white;
-    padding: 8px 12px;
+    padding: 12px;
     border: none;
     cursor: pointer;
     border-radius: 4px;
-    margin-top: 15px;
+    margin-top: auto;
+    width: 100%;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
 }
 
 .choose-button:hover {
@@ -157,6 +129,8 @@ body {
 .highlight {
     border: 2px solid #ff4c4c;
 }
+
+/* Popup Modals */
 .modal2 {
     position: fixed;
     top: 0;
@@ -164,7 +138,7 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
@@ -173,23 +147,53 @@ body {
 .modal-content2 {
     background-color: #2a2a2a;
     color: #ff6666;
-    padding: 20px;
+    padding: 25px;
     border-radius: 8px;
     text-align: center;
     width: 300px;
-    font-family: 'Courier New', Courier, monospace;
+    max-width: 90%;
+}
+
+.modal-content2 p {
+    margin-bottom: 15px;
+    line-height: 1.4;
 }
 
 button {
-    margin-top: 10px;
+    margin-top: 12px;
     background-color: #ff4444;
     color: #fff;
     border: none;
-    padding: 8px 12px;
+    padding: 12px;
     cursor: pointer;
     font-weight: bold;
+    width: auto;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: #ff2222;
+}
+
+/* Disabled button state */
+.choose-button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .suspects-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    .suspect-card {
+        width: 100%;
+    }
+
+    .title {
+        font-size: 20px;
+    }
 }

@@ -587,8 +587,16 @@ function updateCharacterAnimation() {
 // Raycaster setup
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-
+// main.js
 function onMouseClick(event) {
+    // Check if the click originated from a button or UI element
+    if (event.target.closest('.choose-button')) {
+        // Let the UI handle this click, exit early
+        console.log('Button click intercepted, skipping raycasting.');
+        return; // This prevents the raycasting code from running
+    }
+
+    // Raycasting logic for 3D objects
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -598,9 +606,11 @@ function onMouseClick(event) {
     if (intersects.length > 0) {
         const object = intersects[0].object;
         console.log('Clicked:', object);
+        // Add any further interactions with the clicked 3D object here
     }
 }
 
+// Add the event listener for mouse clicks
 window.addEventListener('click', onMouseClick);
 
 // Window resize handler
@@ -824,40 +834,149 @@ const witnesses = {
 // }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Modal control
-    const askButton = document.getElementById('ask-button');
-    const modal = document.getElementById('questioning-modal');
-    const closeModal = document.getElementById('close-modal');
-    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
+    // Cache DOM elements
+    const elements = {
+        askButton: document.getElementById('ask-button'),
+        questioningModal: document.getElementById('questioning-modal'),
+        viewSuspectListButton: document.getElementById('view-suspect-list-button'),
+        suspectModal: document.getElementById('suspectModal'),
+        closeModal: document.getElementById('closeModal'),
+        suspectContent: document.getElementById('suspectContent'),
+        responseContainer: document.getElementById('response-container')
+    };
 
-    // Add view suspect list button handler
-    viewSuspectListButton.addEventListener('click', () => {
-        window.location.href = 'suspect.html';
-    });
+    // Validate required elements exist
+    const validateElements = () => {
+        for (const [key, element] of Object.entries(elements)) {
+            if (!element) {
+                console.error(`Required element "${key}" not found in the DOM`);
+                return false;
+            }
+        }
+        return true;
+    };
 
-    askButton.addEventListener('click', () => {
-        showWarning();
-        modal.style.display = 'block';
-    });
+    // Modal control functions
+    const modalController = {
+        open: (modal) => {
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        },
+        close: (modal) => {
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+    };
 
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-        document.getElementById('response-container').style.display = 'none';
-    });
+    // Suspect content loader
+    const suspectContentLoader = {
+        async load() {
+            try {
+                const response = await fetch('suspect.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const html = await response.text();
+                elements.suspectContent.innerHTML = html;
+                this.initializeInteractions();
+            } catch (error) {
+                console.error('Error loading suspect content:', error);
+                elements.suspectContent.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load suspect details. Please try again later.</p>
+                        <button onclick="suspectContentLoader.load()">Retry</button>
+                    </div>`;
+            }
+        },
 
-    // Suspect button handling
-    const suspectButtons = document.querySelectorAll('.suspect-btn');
-    suspectButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            suspectButtons.forEach(btn => btn.classList.remove('active'));
+        initializeInteractions() {
+            const suspectButtons = document.querySelectorAll('.suspect-btn');
+            suspectButtons.forEach(button => {
+                button.addEventListener('click', (e) => this.handleSuspectSelection(e));
+            });
+        },
+
+        handleSuspectSelection(event) {
+            const button = event.target;
+            // Remove active class from all buttons
+            document.querySelectorAll('.suspect-btn').forEach(btn => 
+                btn.classList.remove('active')
+            );
+            // Add active class to clicked button
             button.classList.add('active');
-            someFunctionThatLoadsQuestions(button.dataset.suspect);
-            document.getElementById('response-container').style.display = 'none';
-        });
-    });
+            
+            // Load questions for selected suspect
+            if (typeof someFunctionThatLoadsQuestions === 'function') {
+                someFunctionThatLoadsQuestions(button.dataset.suspect);
+            } else {
+                console.error('Question loading function not defined');
+            }
+            
+            elements.responseContainer.style.display = 'none';
+        }
+    };
 
-    // Start the timer when the page loads
-    startTimer();
+    // Event handlers setup
+    const setupEventListeners = () => {
+        // View suspect list button
+        elements.viewSuspectListButton?.addEventListener('click', () => {
+            modalController.open(elements.suspectModal);
+            suspectContentLoader.load();
+        });
+
+        // Ask button
+        elements.askButton?.addEventListener('click', () => {
+            if (typeof showWarning === 'function') {
+                showWarning();
+            }
+            modalController.open(elements.questioningModal);
+        });
+
+        // Close modal button
+        elements.closeModal?.addEventListener('click', () => {
+            modalController.close(elements.questioningModal);
+            modalController.close(elements.suspectModal);
+            elements.responseContainer.style.display = 'none';
+        });
+
+        // Close on outside click
+        window.addEventListener('click', (event) => {
+            if (event.target === elements.questioningModal || 
+                event.target === elements.suspectModal) {
+                modalController.close(event.target);
+            }
+        });
+
+        // Add keyboard support for closing modals
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                modalController.close(elements.questioningModal);
+                modalController.close(elements.suspectModal);
+            }
+        });
+    };
+
+    // Initialize the application
+    const initialize = () => {
+        if (!validateElements()) {
+            console.error('Failed to initialize: Missing required elements');
+            return;
+        }
+
+        setupEventListeners();
+        
+        // Start timer if function exists
+        if (typeof startTimer === 'function') {
+            startTimer();
+        } else {
+            console.warn('Timer function not found');
+        }
+    };
+
+    // Start the application
+    initialize();
 });
 
 // Close modal when clicking outside
@@ -1136,21 +1255,75 @@ document.getElementById('up').addEventListener('mouseup', () => keys.w = false);
 document.getElementById('left').addEventListener('mouseup', () => keys.a = false);
 document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
 document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Disable the ask button and set its styling
     const askButton = document.getElementById('ask-button');
     if (askButton) {
         askButton.disabled = true;
         askButton.style.opacity = '0.5';
         askButton.style.cursor = 'not-allowed';
     }
-  const  viewSuspectListButton = document.getElementById('view-suspect-list-button');
+
+    // Disable the view suspect list button and set its styling
+    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
     if (viewSuspectListButton) {
         viewSuspectListButton.disabled = true;
         viewSuspectListButton.style.opacity = '0.5';
         viewSuspectListButton.style.cursor = 'not-allowed';
     }
+
+    // Suspect choice handling
+    const chooseButtons = document.querySelectorAll('.choose-button');
+    const correctSuspect = Math.floor(Math.random() * 3) + 1; // Randomly set the correct suspect for demonstration
+
+    chooseButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent the click from propagating to the raycaster
+            handleSuspectChoice(event, correctSuspect);
+        });
+    });
+
+    // Your existing mouse click functionality
+    document.addEventListener('click', onMouseClick);
 });
+
+function handleSuspectChoice(event, correctSuspect) {
+    const suspectCard = event.target.closest('.suspect-card');
+    if (!suspectCard) {
+        console.log('No suspect card found'); // Debug log
+        return;
+    }
+
+    const suspectId = parseInt(suspectCard.getAttribute('data-suspect'));
+    console.log('Suspect chosen:', suspectId); // Debug log
+
+    if (suspectId === correctSuspect) {
+        showSuccessPopup();
+    } else {
+        showFailurePopup();
+    }
+}
+
+function showFailurePopup() {
+    const failurePopup = document.getElementById('failurePopup');
+    if (failurePopup) {
+        failurePopup.style.display = 'flex';
+    } else {
+        console.log('Failure popup not found'); // Debug log
+    }
+}
+
+function showSuccessPopup() {
+    const successPopup = document.getElementById('successPopup');
+    if (successPopup) {
+        successPopup.style.display = 'flex';
+    } else {
+        console.log('Success popup not found'); // Debug log
+    }
+}
+
+// The existing onMouseClick function can remain here
+
 
 
 const hintButton = document.getElementById('hint-button');
@@ -1198,9 +1371,8 @@ function checkClueProximity() {
     let minDistance = Infinity;
     let isCorrectClue = false;
 
-    // Find the nearest clue
     clues.forEach((clue) => {
-        if (!clue || !clue.position || !clue.model) return;
+        if (!clue || !clue.position || !clue.model) return;  // Skip if clue is undefined or incomplete
 
         const distance = character.position.distanceTo(clue.position);
         if (distance < minDistance && distance <= (clue.radius || 3)) {
@@ -1215,6 +1387,11 @@ function checkClueProximity() {
         // Show hint button and set up click event
         hintButton.style.display = 'block';
         hintButton.onclick = () => handleHintClick(nearestClue, isCorrectClue);
+
+        // Trigger contextual thought if near a specific clue
+        if (contextualThoughts[nearestClue.model]) {
+            displayContextualThought(nearestClue.model);
+        }
     } else {
         hintButton.style.display = 'none';
         hintButton.onclick = null;
@@ -1366,69 +1543,167 @@ if (!validateClues()) {
     console.error('Clues validation failed! Game may not work properly.');
 }
 
-const level2Thoughts = [
-    "That flickering light can't be good... Should I trust it?",
-    "I need to focus; every wrong clue costs me time!",
-    "This doesn't feel right. Am I being led astray?",
-    "The clock is ticking, and I'm running out of options!",
-    "Which suspect should I trust? This is getting complicated.",
-    "That clue has a red light... Is it a trap?",
-    "I can't afford to waste any more time on wrong leads.",
-    "I hope my instincts are right about this one.",
-    "There’s something off about that clue…",
-    "Every second counts. I must find the primary suspect!"
-];
+// Optional: Prevent modal from closing when clicking inside it
+suspectModal.addEventListener('click', (e) => {
+    if (e.target === suspectModal) {
+        suspectModal.style.display = 'none';
+    }
+});
 
 
-function getRandomLevel2Thought() {
-    const randomIndex = Math.floor(Math.random() * level2Thoughts.length);
-    return level2Thoughts[randomIndex];
+
+const contextualThoughts = {
+    bloodyCabinet: [
+        "This cabinet... there's something sinister here.",
+        "A bloodstain? Something violent happened here.",
+        "Could this be a clue to the crime?",
+        "I wonder if someone tried to hide evidence in here."
+    ],
+    cleaver: [
+        "A weapon left out in the open... why?",
+        "This cleaver seems fresh. Was it used recently?",
+        "Who would leave a bloody cleaver behind?",
+        "This isn't just any tool... it's evidence."
+    ],
+    revolver: [
+        "A gun? This just got a lot more serious.",
+        "Is this weapon linked to the murder?",
+        "Better not touch it, but I need to remember this spot.",
+        "Looks like someone left in a hurry. Why leave a loaded gun?"
+    ],
+    polaroid: [
+        "Old photos... someone's trying to leave a message.",
+        "These look staged. Could these be clues?",
+        "There's something off about these photos... what are they hiding?",
+        "These faces seem familiar. Is there a pattern here?"
+    ],
+    brokenGlass: [
+        "Broken glass... did a struggle happen here?",
+        "Something shattered. Was it in a moment of panic?",
+        "A broken window? Or maybe someone tried to escape...",
+        "Fragments scattered around. I need to be careful here."
+    ],
+    bloodSplatter: [
+        "Blood stains... but why are they here?",
+        "This spot looks like where it all started.",
+        "The pattern tells a story. What really happened?",
+        "Was the killer trying to cover this up?"
+    ],
+    handcuff: [
+        "Handcuffs? Maybe someone was restrained here.",
+        "This wasn't just any confrontation. Someone was captured.",
+        "Whoever was here didn't leave willingly.",
+        "Were they taken away forcefully?"
+    ]
+};
+// Create a plane geometry in Three.js
+
+const selectedThoughts = {}; // This will store the chosen thought for each clue for the current game session
+
+// Function to initialize selected thoughts for each clue
+function initializeSelectedThoughts() {
+    Object.keys(contextualThoughts).forEach(clueKey => {
+        const thoughts = contextualThoughts[clueKey];
+        // Randomly select one thought for each clue
+        selectedThoughts[clueKey] = thoughts[Math.floor(Math.random() * thoughts.length)];
+    });
 }
- 
 
-function displayLevel2Thought() {
-    const thought = getRandomLevel2Thought();
-    const thoughtDisplay = document.getElementById('thoughtDisplay');
+// Call this at the start of the game
+initializeSelectedThoughts();
+
+function displayContextualThought(clueModel) {
+    const thought = selectedThoughts[clueModel];
+    if (!thought) return; // Exit if no thought exists for this clue
+
+    // Create or get the thought bubble element
+    let thoughtDisplay = document.getElementById('thoughtBubble');
+    if (!thoughtDisplay) {
+        thoughtDisplay = document.createElement('div');
+        thoughtDisplay.id = 'thoughtBubble';
+        thoughtDisplay.className = 'thought-bubble';
+        document.body.appendChild(thoughtDisplay);
+    }
+
+    // Update thought content
     thoughtDisplay.textContent = thought;
 
-    // Apply fade-in animation
-    thoughtDisplay.style.animation = 'fadeIn 0.8s forwards';
-    thoughtDisplay.style.opacity = '1'; // Ensure it's visible
+    // Get player position and convert to screen coordinates
+    const playerPosition = new THREE.Vector3();
+    character.getWorldPosition(playerPosition);
+    playerPosition.y += 2; // Adjust height above character
 
-    // Clear the thought after a few seconds and apply fade-out animation
-    setTimeout(() => {
-        thoughtDisplay.style.animation = 'fadeOut 0.8s forwards'; // Apply fade-out animation
-        thoughtDisplay.style.opacity = '0'; // Set to hidden
+    // Convert 3D position to screen coordinates
+    const widthHalf = window.innerWidth / 2;
+    const heightHalf = window.innerHeight / 2;
+    const vector = playerPosition.clone();
+    vector.project(camera);
+    
+    const x = (vector.x * widthHalf) + widthHalf;
+    const y = -(vector.y * heightHalf) + heightHalf;
 
-        // Clear the text after fading out
+    // Position thought bubble on screen
+    thoughtDisplay.style.left = `${x - 125}px`; // Center bubble (assuming 250px width)
+    thoughtDisplay.style.top = `${y - 100}px`; // Position above character
+
+    // Show the thought bubble with animation
+    thoughtDisplay.classList.remove('hide');
+    thoughtDisplay.classList.add('show');
+    thoughtDisplay.classList.add('thinking');
+
+    // Set up fade out
+    const hideThought = () => {
+        thoughtDisplay.classList.remove('show', 'thinking');
+        thoughtDisplay.classList.add('hide');
+        
+        // Remove element after animation completes
         setTimeout(() => {
-            thoughtDisplay.textContent = ''; // Clear the thought text
-        }, 500); // Wait for fade-out to complete
-    }, 6000); // Display for 3 seconds
+            if (thoughtDisplay.classList.contains('hide')) {
+                thoughtDisplay.remove();
+            }
+        }, 400); // Match hide animation duration
+    };
+
+    // Clear any existing timeout
+    if (thoughtDisplay.timeoutId) {
+        clearTimeout(thoughtDisplay.timeoutId);
+    }
+
+    // Set new timeout for hiding
+    thoughtDisplay.timeoutId = setTimeout(hideThought, 4000);
+
+    // Optional: Add resize handler to maintain position
+    const updatePosition = () => {
+        const newVector = playerPosition.clone();
+        newVector.project(camera);
+        const newX = (newVector.x * window.innerWidth / 2) + window.innerWidth / 2;
+        const newY = -(newVector.y * window.innerHeight / 2) + window.innerHeight / 2;
+        
+        thoughtDisplay.style.left = `${newX - 125}px`;
+        thoughtDisplay.style.top = `${newY - 100}px`;
+    };
+
+    window.addEventListener('resize', updatePosition);
+    
+    // Clean up resize listener when thought is removed
+    setTimeout(() => {
+        window.removeEventListener('resize', updatePosition);
+    }, 4400); // Slightly longer than display time + hide animation
 }
 
-
-function startRandomThoughts() {
-    const totalDuration = 240000; // 4 minutes in milliseconds
-    const thoughtInterval = 10000; // Interval in milliseconds (5 seconds)
-
-    // Calculate how many thoughts can be displayed in 4 minutes
-    const maxThoughts = Math.floor(totalDuration / thoughtInterval);
-
-    // Use an index to track how many thoughts have been displayed
-    let displayedThoughts = 0;
-
-    const intervalId = setInterval(() => {
-        if (displayedThoughts < maxThoughts) {
-            displayLevel2Thought();
-            displayedThoughts++;
-        } else {
-            clearInterval(intervalId); // Stop after the max thoughts
-        }
-    }, thoughtInterval);
+// Add helper function to convert world position to screen coordinates
+function worldToScreen(position, camera) {
+    const vector = position.clone();
+    vector.project(camera);
+    
+    const widthHalf = window.innerWidth / 2;
+    const heightHalf = window.innerHeight / 2;
+    
+    return {
+        x: (vector.x * widthHalf) + widthHalf,
+        y: -(vector.y * heightHalf) + heightHalf
+    };
 }
-
-
 function restoreGameState() {
     if (sessionStorage.getItem("countdownTime")) {
         countdownTime = parseInt(sessionStorage.getItem("countdownTime"));
@@ -1536,6 +1811,6 @@ document.getElementById("failRestartButton").addEventListener("click", () => {
 });
 
 animate();
-startRandomThoughts();
+//startRandomThoughts();
 updateTimer();
    
