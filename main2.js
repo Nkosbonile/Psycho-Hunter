@@ -1149,6 +1149,23 @@ document.getElementById('left').addEventListener('mouseup', () => keys.a = false
 document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
 document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
 
+document.addEventListener('DOMContentLoaded', () => {
+    const askButton = document.getElementById('ask-button');
+    if (askButton) {
+        askButton.disabled = true;
+        askButton.style.opacity = '0.5';
+        askButton.style.cursor = 'not-allowed';
+    }
+    viewSuspectListButton = document.getElementById('view-suspect-list-button');
+    if (viewSuspectListButton) {
+        viewSuspectListButton.disabled = true;
+        viewSuspectListButton.style.opacity = '0.5';
+        viewSuspectListButton.style.cursor = 'not-allowed';
+    }
+});
+
+
+const hintButton = document.getElementById('hint-button');
 const DEBUG = true;
 let currentClueIndex=0;
 function debugLog(message) {
@@ -1471,14 +1488,12 @@ function animate() {
         // }
         
     }
-    
+    if(!isFirstPerson) {
+        cameraController.update(delta);
+    }
     // Update animation mixer
     if (mixer) {
         mixer.update(delta);
-    }
-
-    if (!isFirstPerson) {
-        controls.update();
     }
     checkClueProximity()
     renderer.render(scene, camera);
