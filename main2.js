@@ -1149,7 +1149,297 @@ document.getElementById('left').addEventListener('mouseup', () => keys.a = false
 document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
 document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
 
+const DEBUG = true;
+let currentClueIndex=0;
+function debugLog(message) {
+    if (DEBUG) {
+        console.log(`[Debug] ${message}`);
+    }
+}
 
+// Validate clues array on load
+function validateClues() {
+    if (!Array.isArray(clues)) {
+        console.error('Clues is not an array!');
+        return false;
+    }
+    
+    if (clues.length === 0) {
+        console.error('Clues array is empty!');
+        return false;
+    }
+
+    // Validate each clue has required properties
+    return clues.every((clue, index) => {
+        const hasRequiredProps = clue 
+            && typeof clue.model === 'string'
+            && clue.position 
+            && typeof clue.radius === 'number';
+            
+        if (!hasRequiredProps) {
+            console.error(`Invalid clue at index ${index}:`, clue);
+        }
+        return hasRequiredProps;
+    });
+}
+function checkClueProximity() {
+    try {
+        // Validate essential components
+        if (!character) {
+            debugLog('Character not initialized');
+            return;
+        }
+
+        if (!Array.isArray(clues) || clues.length === 0) {
+            debugLog('Clues array not properly initialized');
+            return;
+        }
+
+        if (typeof currentClueIndex !== 'number' || currentClueIndex < 0) {
+            debugLog('Invalid currentClueIndex, resetting to 0');
+            currentClueIndex = 0;
+        }
+
+        if (currentClueIndex >= clues.length) {
+            debugLog('currentClueIndex out of bounds, clamping to last clue');
+            currentClueIndex = clues.length - 1;
+        }
+
+        // Ensure current clue exists
+        const currentClue = clues[currentClueIndex];
+        if (!currentClue) {
+            debugLog(`No clue found at index ${currentClueIndex}`);
+            return;
+        }
+
+        debugLog(`Checking proximity. Current clue index: ${currentClueIndex}`);
+        debugLog(`Current target clue: ${currentClue.model}`);
+
+        let nearestClue = null;
+        let minDistance = Infinity;
+
+        // Check each clue's distance
+        for (let i = 0; i < clues.length; i++) {
+            const clue = clues[i];
+            
+            // Skip invalid clues
+            if (!clue || !clue.position || !clue.model) {
+                debugLog(`Skipping invalid clue at index ${i}`);
+                continue;
+            }
+
+            const distance = character.position.distanceTo(clue.position);
+            debugLog(`Distance to ${clue.model}: ${distance.toFixed(2)} units (radius: ${clue.radius})`);
+
+            if (distance <= (clue.radius || 3) && distance < minDistance) {
+                minDistance = distance;
+                nearestClue = clue;
+            }
+        }
+
+        // Get UI elements
+        const hintButton = document.getElementById('hint-button');
+
+
+        if (!hintButton) {
+            debugLog('Hint button not found in DOM');
+            return;
+        }
+
+        // Handle nearest clue
+        if (nearestClue) {
+            debugLog(`Nearest clue found: ${nearestClue.model}`);
+
+            if (nearestClue.model === currentClue.model) {
+                debugLog('Correct clue found!');
+                
+                hintButton.style.display = 'block';
+                hintButton.onclick = () => {
+                    handleHintClick(nearestClue);
+                    
+                    // Check for final clue
+                    if (nearestClue.nextObject && currentClueIndex < clues.length - 1) {
+                        const nextClue = clues.find(c => c && c.model === nearestClue.nextObject);
+                        if (nextClue && nextClue.riddle) {
+                            debugLog(`Next clue riddle: ${nextClue.riddle}`);
+                        }
+                    }
+                };
+            } else {
+                debugLog('No clues in range');
+                hintButton.style.display = 'none';
+                hintButton.onclick = null;
+            }
+        } else {
+            debugLog('No clues in range');
+            hintButton.style.display = 'none';
+            hintButton.onclick = null;
+        }
+    } catch (error) {
+        console.error('Error in checkClueProximity:', error);
+        debugLog(`Error details: ${error.message}`);
+    }
+}
+
+
+function handleHintClick(clue) {
+    try {
+        if (!clue || !clue.model) {
+            console.error('Invalid clue object passed to handleHintClick');
+            return;
+        }
+
+        console.log(`Player clicked on: ${clue.model}`);
+
+        // Validate current clue index
+        if (currentClueIndex > clues.length) {
+            console.warn('currentClueIndex out of bounds, resetting to last valid index');
+            currentClueIndex = clues.length - 1;
+        }
+
+        // Check if the clicked clue matches the correct sequence object
+        if (clue.model === clues[currentClueIndex].model) {
+            console.log(`Correct object found: ${clue.model}`);
+
+            // Show evidence modal with the clue information
+            showEvidenceModal(clue);
+
+            // Move to the next clue in sequence
+            if (currentClueIndex < clues.length - 1) {
+                currentClueIndex++;
+                console.log(`Advanced to next clue. Current index: ${currentClueIndex}`);
+            }
+
+            // Check if this was the final clue (dossier)
+            if (currentClue.model === 'file') {
+                console.log('Final clue found - enabling Ask Witness button');
+                enableAskButton();
+            }
+
+            // Update any UI elements that show current progress
+            updateProgressIndicator();
+
+        } else {
+            // Wrong object, apply penalty
+            if (typeof clue.timePenalty === 'number' && clue.timePenalty > 0) {
+                console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
+                
+                // Apply penalty
+                countdownTime = Math.max(0, countdownTime - clue.timePenalty);
+                
+                // Show penalty feedback to player
+                showPenaltyFeedback(clue.timePenalty);
+                
+                // Update timer immediately
+                updateTimer();
+            }
+        }
+    } catch (error) {
+        console.error('Error in handleHintClick:', error);
+    }
+}
+
+// Function to show visual feedback for penalties
+function showPenaltyFeedback(penalty) {
+    try {
+        // Create or get penalty message element
+        let penaltyMsg = document.getElementById('penalty-message');
+        if (!penaltyMsg) {
+            penaltyMsg = document.createElement('div');
+            penaltyMsg.id = 'penalty-message';
+            document.body.appendChild(penaltyMsg);
+        }
+
+        // Style the penalty message
+        penaltyMsg.className = 'penalty-flash';
+        penaltyMsg.textContent = `-${penalty / 1000} seconds`;
+
+        // Show and fade out
+        penaltyMsg.style.display = 'block';
+        penaltyMsg.style.opacity = '1';
+
+        // Fade out after a short delay
+        setTimeout(() => {
+            penaltyMsg.style.opacity = '0';
+            setTimeout(() => {
+                penaltyMsg.style.display = 'none';
+            }, 1000);
+        }, 2000);
+    } catch (error) {
+        console.error('Error showing penalty feedback:', error);
+    }
+}
+
+// Function to update progress indicator
+function updateProgressIndicator() {
+    try {
+        const progressElement = document.getElementById('progress-indicator');
+        if (progressElement) {
+            const progress = ((currentClueIndex + 1) / clues.length) * 100;
+            progressElement.textContent = `Evidence Found: ${currentClueIndex }/${clues.length}`;
+            // If you have a progress bar, update it here
+            const progressBar = document.getElementById('progress-bar');
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+        }
+    } catch (error) {
+        console.error('Error updating progress indicator:', error);
+    }
+}
+
+// CSS for penalty feedback animation
+const style = document.createElement('style');
+style.textContent = `
+    .penalty-flash {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 5px;
+        font-size: 24px;
+        transition: opacity 1s;
+        pointer-events: none;
+        z-index: 1000;
+    }
+`;
+document.head.appendChild(style);
+
+// Validate clues when the script loads
+if (!validateClues()) {
+    console.error('Clues validation failed! Game may not work properly.');
+}
+function enableAskButton() {
+    const askButton = document.getElementById('ask-button');
+    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
+
+    // Enable Ask Witness button
+    if (askButton) {
+        askButton.disabled = false;
+        askButton.style.opacity = '1';
+        askButton.style.cursor = 'pointer';
+        console.log('Ask Witness button enabled.');
+    }
+
+    // Enable View Suspect List button
+    if (viewSuspectListButton) {
+        viewSuspectListButton.disabled = false;
+        viewSuspectListButton.style.opacity = '1';
+        viewSuspectListButton.style.cursor = 'pointer';
+        viewSuspectListButton.style.display = 'block';  // Ensure it's visible
+        console.log('View Suspect List button enabled.');
+    }
+}
+
+
+const cameraController = new ThirdPersonCamera(camera, character);
+// Timer Update Function
+cameraController.setOffset(0, 2, 4); // Adjust x,y,z to change camera position
+cameraController.setLookAtOffset(0, 1, 0); // Adjust where camera looks
+cameraController.setSmoothness(0.3); // Higher = smoother but more lag
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
@@ -1190,7 +1480,7 @@ function animate() {
     if (!isFirstPerson) {
         controls.update();
     }
-    
+    checkClueProximity()
     renderer.render(scene, camera);
 }
 
