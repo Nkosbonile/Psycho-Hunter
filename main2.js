@@ -13,6 +13,11 @@ let idleAction;
 let pickUpAction;
 let activeAction;
 
+// Add these camera configuration constants at the top with other constants
+const THIRD_PERSON_OFFSET = new THREE.Vector3(0, 5, -14); // Camera position relative to character
+const FIRST_PERSON_OFFSET = new THREE.Vector3(0, 10, 0.1); // Roughly eye level
+const CAMERA_LERP_FACTOR = 0.1; // How smoothly the camera follows (0-1)
+
 const HOUSE_GROUND_LEVEL = 0;
 const HOUSE_UPPER_FLOOR_LEVEL = 10; // Adjust based on your house dimensions
 let isFirstPerson = false; // Toggle for first/third person view
@@ -28,7 +33,7 @@ const keys = {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue background
 
-const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(8, 20, 5);
 camera.lookAt(0, 5, 0);
 
@@ -415,94 +420,71 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
+// Add this new function to handle camera positioning
+function updateCamera() {
+    if (!character) return;
+
+    if (isFirstPerson) {
+        // First-person view: position camera at character's head
+        const characterWorldPos = new THREE.Vector3();
+        character.getWorldPosition(characterWorldPos);
+        
+        // Add first-person offset to character position
+        camera.position.copy(characterWorldPos.add(FIRST_PERSON_OFFSET));
+        
+        // Align camera rotation with character
+        // camera.rotation.y = character.rotation.y;
+        // camera.rotation.x = 0; // Keep vertical angle level
+
+
+        // Copy the character's full rotation quaternion
+        camera.quaternion.copy(character.quaternion);
+        camera.rotateY(Math.PI); // Rotate 180 degrees to face forward
+        
+        // Disable orbit controls in first person
+        controls.enabled = false;
+    } else {
+        // Third-person view
+        const characterWorldPos = new THREE.Vector3();
+        character.getWorldPosition(characterWorldPos);
+        
+        // Calculate desired camera position behind character
+        const idealOffset = THIRD_PERSON_OFFSET.clone();
+        idealOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), character.rotation.y);
+        const idealPosition = characterWorldPos.clone().add(idealOffset);
+        
+        // Smoothly move camera to ideal position
+        camera.position.lerp(idealPosition, CAMERA_LERP_FACTOR);
+        
+        // Make camera look at character
+        camera.lookAt(characterWorldPos);
+        
+        // Enable orbit controls in third person but limit their effect
+        controls.enabled = true;
+        controls.target.copy(characterWorldPos);
+        controls.minDistance = 5;
+        controls.maxDistance = 10;
+        controls.maxPolarAngle = Math.PI / 2; // Prevent camera from going below ground
+    }
+}
+
 // Function to update camera based on perspective mode
 function updateCameraMode() {
-    if (isFirstPerson && character) {
-        // Adjust this headOffset to position the camera at the character's head level
-        const headOffset = 60; // Example offset; adjust based on character height
-        camera.position.copy(character.position);
-        camera.position.y += headOffset; // Moves the camera up to head level
-        console.log("Camera Position:", camera.position);
-        camera.rotation.copy(character.rotation);
-    } else {
-        // Reset to third-person view
-        camera.position.set(12, 14, 18);
-        camera.lookAt(5, 5, 5);
+    if (character) {
+        if (isFirstPerson) {
+            controls.enabled = false;
+        } else {
+            controls.enabled = true;
+            // Reset to default third-person view
+            const characterWorldPos = new THREE.Vector3();
+            character.getWorldPosition(characterWorldPos);
+            camera.position.copy(characterWorldPos).add(THIRD_PERSON_OFFSET);
+            camera.lookAt(characterWorldPos);
+        }
     }
 }
 
-// // load dossier
-// loader.load("./assets/models/file/scene.gltf", (gltf) => {
-//     const file = gltf.scene;
-//     file.scale.set(5, 5, 5);
-//     file.position.set(23, 0.0625, 23);
-//     scene.add(file);
-// });
-
-// // load bloody cabinet
-// loader.load("./assets/models/bloody_cabinet/scene.gltf", (gltf) => {
-//     const cabinet = gltf.scene;
-//     cabinet.scale.set(0.20, 0.20, 0.20);
-//     cabinet.position.set(-22.5, 0, 18.5);
-//     scene.add(cabinet);
-// });
-
-// // load pictures
-// loader.load("./assets/models/polaroid_pictures/scene.gltf", (gltf) => {
-//     const polaroid = gltf.scene;
-//     polaroid.scale.set(1, 1, 1);
-//     polaroid.position.set(0, 0, 0.09375);
-//     scene.add(polaroid);
-// });
-
-// // load broken glass
-// loader.load("./assets/models/broken_glass_pieces/scene.gltf", (gltf) => {
-//     const brokenGlass = gltf.scene;
-//     brokenGlass.scale.set(1, 1, 1);
-//     brokenGlass.position.set(0, 0.20, 10);
-//     scene.add(brokenGlass);
-// });
-
-// // load handcuff
-// loader.load("./assets/models/simple_handcuffs/scene.gltf", (gltf) => {
-//     const handcuff = gltf.scene;
-//     handcuff.scale.set(0.5, 0.5, 0.5);
-//     handcuff.position.set(-10, 0, -10);
-//     scene.add(handcuff);
-// });
-
-// // load cleaver
-// loader.load("./assets/models/3d_pbr_bloody_cleaver/scene.gltf", (gltf) => {
-//     const cleaver = gltf.scene;
-//     cleaver.scale.set(0.015625, 0.015625, 0.015625);
-//     cleaver.position.set(-24, 0, 8);
-//     scene.add(cleaver);
-// });
-
-// // load revolver
-// loader.load("./assets/models/revolver/scene.gltf", (gltf) => {
-//     const revolver = gltf.scene;
-//     revolver.scale.set(3.5, 3.5, 3.5);
-//     revolver.position.set(22, 1, -24);
-//     scene.add(revolver);
-// });
-
-
-// Helper function for flickering effect
-function addFlickeringLight(target, color = 0xff0000, intensity = 2, range = 10) {
-    const light = new THREE.PointLight(color, intensity, range);
-    target.add(light);
-
-    // Flickering effect
-    function flicker() {
-        // Randomize the light intensity within a range
-        light.intensity = intensity * (0.5 + Math.random() * 0.5); // Flicker between 50% and 100%
-        setTimeout(flicker, Math.random() * 200); // Change every 0 to 200ms
-    }
-    flicker();
-}
-
-// load dossier with flickering light
+// load dossier
 loader.load("./assets/models/file/scene.gltf", (gltf) => {
     const file = gltf.scene;
     file.scale.set(5, 5, 5);
@@ -623,18 +605,44 @@ const moveSpeed = 0.8;
 
 document.addEventListener('keydown', (event) => {
     switch (event.key.toLowerCase()) {
-        case 'w': keys.w = true; break;
+        case 'w': 
+            keys.w = true; 
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.s = true;
+                keys.w = false;
+            }
+            break;
+        case 's': 
+            keys.s = true;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.w = true;
+                keys.s = false;
+            }
+            break;
         case 'a': keys.a = true; break;
-        case 's': keys.s = true; break;
         case 'd': keys.d = true; break;
     }
 });
 
 document.addEventListener('keyup', (event) => {
     switch (event.key.toLowerCase()) {
-        case 'w': keys.w = false; break;
+        case 'w': 
+            keys.w = false;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.s = false;
+            }
+            break;
+        case 's': 
+            keys.s = false;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.w = false;
+            }
+            break;
         case 'a': keys.a = false; break;
-        case 's': keys.s = false; break;
         case 'd': keys.d = false; break;
     }
 });
@@ -1130,466 +1138,48 @@ document.getElementById('left').addEventListener('mouseup', () => keys.a = false
 document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
 document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
 
-// Disable "Ask Witness" Button by Default
-document.addEventListener('DOMContentLoaded', () => {
-    const askButton = document.getElementById('ask-button');
-    if (askButton) {
-        askButton.disabled = true;
-        askButton.style.opacity = '0.5';
-        askButton.style.cursor = 'not-allowed';
-    }
-    viewSuspectListButton = document.getElementById('view-suspect-list-button');
-    if (viewSuspectListButton) {
-        viewSuspectListButton.disabled = true;
-        viewSuspectListButton.style.opacity = '0.5';
-        viewSuspectListButton.style.cursor = 'not-allowed';
-    }
-});
 
-// Enable "Ask Witness" Button
-
-
-
-const hintButton = document.getElementById('hint-button');
-
-
-// Check Clue Proximity and Display Hint Button
-let currentClueIndex = 0; // Index to track correct order of clues
-// const DEBUG = true;
-
-// function debugLog(message) {
-//     if (DEBUG) {
-//         console.log(`[Debug] ${message}`);
-//     }
-// }
-
-// function handleHintClick(clue) {
-//     console.log(`Player clicked on: ${clue.model}`);
-    
-//     // Check if the clicked clue matches the correct sequence object
-//     if (clue.model === clues[currentClueIndex].model) {
-//         console.log(`Correct object found: ${clue.model}`);
-        
-//         // Show hint for the next object in the sequence
-//         showEvidenceModal(clue);
-        
-//         // Move to the next clue in sequence
-//         currentClueIndex++;
-
-//         // If the dossier (last object) is found, enable the "Ask Witness" button
-//         if (currentClueIndex === clues.length) {
-//             enableAskButton();
-//         }
-//     } else {
-//         // Wrong object, apply penalty
-//         console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
-//         countdownTime -= clue.timePenalty;
-        
-//         // Update timer immediately to reflect penalty
-//        updateTimer();
-//     }
-// }
-
-// function checkClueProximity() {
-//     // Safety check for character
-//     if (!character) {
-//         console.warn('Character not initialized');
-//         return;
-//     }
-
-//     debugLog(`Checking proximity. Current clue index: ${currentClueIndex}`);
-//     debugLog(`Current target clue: ${clues[currentClueIndex].model}`);
-
-//     let nearestClue = null;
-//     let minDistance = Infinity;
-
-//     // Loop through each clue to check distance
-//     clues.forEach((clue, index) => {
-//         if (!clue.position) {
-//             console.error(`Clue ${clue.model} missing position data`);
-//             return;
-//         }
-
-//         const distance = character.position.distanceTo(clue.position);
-//         debugLog(`Distance to ${clue.model}: ${distance.toFixed(2)} units (radius: ${clue.radius})`);
-
-//         // Check if within radius and closer than previous finds
-//         if (distance <= clue.radius && distance < minDistance) {
-//             minDistance = distance;
-//             nearestClue = clue;
-//         }
-//     });
-
-//     const hintButton = document.getElementById('hint-button');
-//     const viewSuspectListButton = document.getElementById('view-suspect-list-button');
-    
-//     if (!hintButton) {
-//         console.error('Hint button not found');
-//         return;
-//     }
-
-//     // Handle nearest clue interaction
-//     if (nearestClue) {
-//         debugLog(`Nearest clue found: ${nearestClue.model}`);
-        
-//         // Check if it's the current target clue
-//         if (nearestClue.model === clues[currentClueIndex].model) {
-//             debugLog('Correct clue found!');
-            
-//             // Show hint button and attach handler
-//             hintButton.style.display = 'block';
-//             hintButton.onclick = () => {
-//                 handleHintClick(nearestClue);
-                
-//                 // If this was the last clue (file), enable suspect list
-//                 if (nearestClue.model === 'file') {
-//                     debugLog('Final clue found - enabling suspect list');
-//                     if (viewSuspectListButton) {
-//                         viewSuspectListButton.style.display = 'block';
-//                         viewSuspectListButton.disabled = false;
-//                         viewSuspectListButton.style.opacity = '1';
-//                         viewSuspectListButton.style.cursor = 'pointer';
-//                     }
-//                 }
-//             };
-
-//             // Display the riddle for the next clue if there is one
-//             if (nearestClue.nextObject) {
-//                 const nextClue = clues.find(c => c.model === nearestClue.nextObject);
-//                 if (nextClue) {
-//                     debugLog(`Next clue riddle: ${nextClue.riddle}`);
-//                 }
-//             }
-//         } else {
-//             // Wrong clue penalty
-//             debugLog(`Wrong clue found. Expected ${clues[currentClueIndex].model}, found ${nearestClue.model}`);
-//             if (nearestClue.timePenalty > 0) {
-//                 countdownTime -= nearestClue.timePenalty;
-//                 updateTimer();
-//                 // Optional: Add visual feedback for penalty
-//                 showPenaltyMessage(nearestClue.timePenalty);
-//             }
-//         }
-//     } else {
-//         debugLog('No clues in range');
-//         hintButton.style.display = 'none';
-//         hintButton.onclick = null;
-//     }
-// }
-
-// // Helper function to show penalty message
-// function showPenaltyMessage(penalty) {
-//     const penaltySeconds = penalty / 1000;
-//     const message = `Wrong clue! -${penaltySeconds} seconds`;
-//     // You can implement this based on your UI requirements
-//     console.warn(message);
-// }
-const DEBUG = true;
-
-function debugLog(message) {
-    if (DEBUG) {
-        console.log(`[Debug] ${message}`);
-    }
-}
-
-// Validate clues array on load
-function validateClues() {
-    if (!Array.isArray(clues)) {
-        console.error('Clues is not an array!');
-        return false;
-    }
-    
-    if (clues.length === 0) {
-        console.error('Clues array is empty!');
-        return false;
-    }
-
-    // Validate each clue has required properties
-    return clues.every((clue, index) => {
-        const hasRequiredProps = clue 
-            && typeof clue.model === 'string'
-            && clue.position 
-            && typeof clue.radius === 'number';
-            
-        if (!hasRequiredProps) {
-            console.error(`Invalid clue at index ${index}:`, clue);
-        }
-        return hasRequiredProps;
-    });
-}
-function checkClueProximity() {
-    try {
-        // Validate essential components
-        if (!character) {
-            debugLog('Character not initialized');
-            return;
-        }
-
-        if (!Array.isArray(clues) || clues.length === 0) {
-            debugLog('Clues array not properly initialized');
-            return;
-        }
-
-        if (typeof currentClueIndex !== 'number' || currentClueIndex < 0) {
-            debugLog('Invalid currentClueIndex, resetting to 0');
-            currentClueIndex = 0;
-        }
-
-        if (currentClueIndex >= clues.length) {
-            debugLog('currentClueIndex out of bounds, clamping to last clue');
-            currentClueIndex = clues.length - 1;
-        }
-
-        // Ensure current clue exists
-        const currentClue = clues[currentClueIndex];
-        if (!currentClue) {
-            debugLog(`No clue found at index ${currentClueIndex}`);
-            return;
-        }
-
-        debugLog(`Checking proximity. Current clue index: ${currentClueIndex}`);
-        debugLog(`Current target clue: ${currentClue.model}`);
-
-        let nearestClue = null;
-        let minDistance = Infinity;
-
-        // Check each clue's distance
-        for (let i = 0; i < clues.length; i++) {
-            const clue = clues[i];
-            
-            // Skip invalid clues
-            if (!clue || !clue.position || !clue.model) {
-                debugLog(`Skipping invalid clue at index ${i}`);
-                continue;
-            }
-
-            const distance = character.position.distanceTo(clue.position);
-            debugLog(`Distance to ${clue.model}: ${distance.toFixed(2)} units (radius: ${clue.radius})`);
-
-            if (distance <= (clue.radius || 3) && distance < minDistance) {
-                minDistance = distance;
-                nearestClue = clue;
-            }
-        }
-
-        // Get UI elements
-        const hintButton = document.getElementById('hint-button');
-
-
-        if (!hintButton) {
-            debugLog('Hint button not found in DOM');
-            return;
-        }
-
-        // Handle nearest clue
-        if (nearestClue) {
-            debugLog(`Nearest clue found: ${nearestClue.model}`);
-
-            if (nearestClue.model === currentClue.model) {
-                debugLog('Correct clue found!');
-                
-                hintButton.style.display = 'block';
-                hintButton.onclick = () => {
-                    handleHintClick(nearestClue);
-                    
-                    // Check for final clue
-                    if (nearestClue.nextObject && currentClueIndex < clues.length - 1) {
-                        const nextClue = clues.find(c => c && c.model === nearestClue.nextObject);
-                        if (nextClue && nextClue.riddle) {
-                            debugLog(`Next clue riddle: ${nextClue.riddle}`);
-                        }
-                    }
-                };
-            } else {
-                debugLog('No clues in range');
-                hintButton.style.display = 'none';
-                hintButton.onclick = null;
-            }
-        } else {
-            debugLog('No clues in range');
-            hintButton.style.display = 'none';
-            hintButton.onclick = null;
-        }
-    } catch (error) {
-        console.error('Error in checkClueProximity:', error);
-        debugLog(`Error details: ${error.message}`);
-    }
-}
-
-
-function handleHintClick(clue) {
-    try {
-        if (!clue || !clue.model) {
-            console.error('Invalid clue object passed to handleHintClick');
-            return;
-        }
-
-        console.log(`Player clicked on: ${clue.model}`);
-
-        // Validate current clue index
-        if (currentClueIndex > clues.length) {
-            console.warn('currentClueIndex out of bounds, resetting to last valid index');
-            currentClueIndex = clues.length - 1;
-        }
-
-        // Check if the clicked clue matches the correct sequence object
-        if (clue.model === clues[currentClueIndex].model) {
-            console.log(`Correct object found: ${clue.model}`);
-
-            // Show evidence modal with the clue information
-            showEvidenceModal(clue);
-
-            // Move to the next clue in sequence
-            if (currentClueIndex < clues.length - 1) {
-                currentClueIndex++;
-                console.log(`Advanced to next clue. Current index: ${currentClueIndex}`);
-            }
-
-            // Check if this was the final clue (dossier)
-            if (currentClue.model === 'file') {
-                console.log('Final clue found - enabling Ask Witness button');
-                enableAskButton();
-            }
-
-            // Update any UI elements that show current progress
-            updateProgressIndicator();
-
-        } else {
-            // Wrong object, apply penalty
-            if (typeof clue.timePenalty === 'number' && clue.timePenalty > 0) {
-                console.log(`Incorrect object. Applying time penalty of ${clue.timePenalty / 1000} seconds.`);
-                
-                // Apply penalty
-                countdownTime = Math.max(0, countdownTime - clue.timePenalty);
-                
-                // Show penalty feedback to player
-                showPenaltyFeedback(clue.timePenalty);
-                
-                // Update timer immediately
-                updateTimer();
-            }
-        }
-    } catch (error) {
-        console.error('Error in handleHintClick:', error);
-    }
-}
-
-// Function to show visual feedback for penalties
-function showPenaltyFeedback(penalty) {
-    try {
-        // Create or get penalty message element
-        let penaltyMsg = document.getElementById('penalty-message');
-        if (!penaltyMsg) {
-            penaltyMsg = document.createElement('div');
-            penaltyMsg.id = 'penalty-message';
-            document.body.appendChild(penaltyMsg);
-        }
-
-        // Style the penalty message
-        penaltyMsg.className = 'penalty-flash';
-        penaltyMsg.textContent = `-${penalty / 1000} seconds`;
-
-        // Show and fade out
-        penaltyMsg.style.display = 'block';
-        penaltyMsg.style.opacity = '1';
-
-        // Fade out after a short delay
-        setTimeout(() => {
-            penaltyMsg.style.opacity = '0';
-            setTimeout(() => {
-                penaltyMsg.style.display = 'none';
-            }, 1000);
-        }, 2000);
-    } catch (error) {
-        console.error('Error showing penalty feedback:', error);
-    }
-}
-
-// Function to update progress indicator
-function updateProgressIndicator() {
-    try {
-        const progressElement = document.getElementById('progress-indicator');
-        if (progressElement) {
-            const progress = ((currentClueIndex + 1) / clues.length) * 100;
-            progressElement.textContent = `Evidence Found: ${currentClueIndex }/${clues.length}`;
-            // If you have a progress bar, update it here
-            const progressBar = document.getElementById('progress-bar');
-            if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-            }
-        }
-    } catch (error) {
-        console.error('Error updating progress indicator:', error);
-    }
-}
-
-// CSS for penalty feedback animation
-const style = document.createElement('style');
-style.textContent = `
-    .penalty-flash {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(255, 0, 0, 0.8);
-        color: white;
-        padding: 20px;
-        border-radius: 5px;
-        font-size: 24px;
-        transition: opacity 1s;
-        pointer-events: none;
-        z-index: 1000;
-    }
-`;
-document.head.appendChild(style);
-
-// Validate clues when the script loads
-if (!validateClues()) {
-    console.error('Clues validation failed! Game may not work properly.');
-}
-function enableAskButton() {
-    const askButton = document.getElementById('ask-button');
-    const viewSuspectListButton = document.getElementById('view-suspect-list-button');
-
-    // Enable Ask Witness button
-    if (askButton) {
-        askButton.disabled = false;
-        askButton.style.opacity = '1';
-        askButton.style.cursor = 'pointer';
-        console.log('Ask Witness button enabled.');
-    }
-
-    // Enable View Suspect List button
-    if (viewSuspectListButton) {
-        viewSuspectListButton.disabled = false;
-        viewSuspectListButton.style.opacity = '1';
-        viewSuspectListButton.style.cursor = 'pointer';
-        viewSuspectListButton.style.display = 'block';  // Ensure it's visible
-        console.log('View Suspect List button enabled.');
-    }
-}
-
-
-const cameraController = new ThirdPersonCamera(camera, character);
-// Timer Update Function
-cameraController.setOffset(0, 2, 4); // Adjust x,y,z to change camera position
-cameraController.setLookAtOffset(0, 1, 0); // Adjust where camera looks
-cameraController.setSmoothness(0.3); // Higher = smoother but more lag
 // Animation Loop
 function animate() {
     requestAnimationFrame(animate);
+    
     const delta = clock.getDelta();
-
-    if (character && camera) {
-        moveCharacter(camera, keys, character, isFirstPerson, HOUSE_GROUND_LEVEL, HOUSE_UPPER_FLOOR_LEVEL, characterSpeedMain2);
-        checkClueProximity();  // Ensure this function is called here
-        if (!isFirstPerson) {
-            cameraController.update(delta);
-        }
+    
+    if (character) {
+        // Move character using the imported moveCharacter function
+        moveCharacter(
+            camera,
+            keys,
+            character,
+            isFirstPerson,
+            HOUSE_GROUND_LEVEL,
+            HOUSE_UPPER_FLOOR_LEVEL,
+            characterSpeedMain2
+        );
+        
+        // Update character animations
+        updateCharacterAnimation();
+        updateCamera();
+        // Update camera position in third-person mode
+        // if (!isFirstPerson) {
+        //     // Adjust these values to bring the camera closer to the player
+        //     const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
+        //     const targetPosition = character.position.clone().add(cameraOffset);
+        //     camera.position.lerp(targetPosition, 0.1);
+        //     camera.lookAt(character.position);
+        // }
+        
+    }
+    
+    // Update animation mixer
+    if (mixer) {
+        mixer.update(delta);
     }
 
-    if (mixer) mixer.update(delta);
-    controls.update();
+    if (!isFirstPerson) {
+        controls.update();
+    }
+    
     renderer.render(scene, camera);
 }
 
