@@ -22,7 +22,7 @@ const CAMERA_LERP_FACTOR = 0.1; // How smoothly the camera follows (0-1)
 const HOUSE_GROUND_LEVEL = 0;
 const HOUSE_UPPER_FLOOR_LEVEL = 10;
 
-const fiveMinutes = 60 * 1
+
 // Scene, Camera, Renderer Setup
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue background
@@ -47,7 +47,7 @@ controls.minDistance = 5;
 controls.maxDistance = 50;
 controls.maxPolarAngle = Math.PI / 2;
 controls.minPolarAngle = 0.1;
-const characterSpeedMain2 = 0.1;  // Different speed for character in main2.js
+const characterSpeedMain2 = 0.8;  // Different speed for character in main2.js
 // Modified texture loading
 
 
@@ -195,7 +195,7 @@ function createLightingSystem() {
     allLights.hemisphere = groundLight;
 
     // Timer variables
-    const totalDuration = 1* 60 * 1000; // 5 minutes in milliseconds
+    const totalDuration = 3* 60 * 1000; // 5 minutes in milliseconds
     const interval = 15 * 1000; // 15 seconds between dims
     const totalSteps = totalDuration / interval;
     let currentStep = 0;
@@ -310,7 +310,7 @@ styleSheet.textContent += fadeAnimation;
     }
 
     // Start both timer and flicker effects
-    const fiveMinutes = 60 * 1;
+    const fiveMinutes = 60 * 3;
     const display = document.querySelector('#timer');
     startTimer(fiveMinutes, display);
     flickerHouseLights();
