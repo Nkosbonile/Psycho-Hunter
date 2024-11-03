@@ -354,7 +354,7 @@ loader.load(
             character = gltf.scene;
             
             // Set initial position and rotation
-            character.position.set(0, HOUSE_GROUND_LEVEL, 3);
+            character.position.set(5, HOUSE_GROUND_LEVEL, -16);
             character.rotation.y = Math.PI;
             character.scale.set(5, 5, 5); // Adjust scale as needed
             
