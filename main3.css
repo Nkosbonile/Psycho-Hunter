@@ -1,0 +1,400 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: "Courier New", monospace;
+    background-color: #000;
+}
+
+#timer-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border: 2px solid #ff0000;
+    color: #ff0000;
+    font-size: 24px;
+    text-shadow: 0 0 10px #ff0000;
+    z-index: 1000;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+}
+
+#instructions {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border: 1px solid #ff0000;
+    color: #ff0000;
+    font-size: 16px;
+    z-index: 1000;
+}
+
+.blood-drip {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background: #ff0000;
+    animation: drip 2s infinite;
+}
+
+@keyframes drip {
+    0% {
+        height: 0;
+        opacity: 1;
+    }
+    70% {
+        height: 20px;
+        opacity: 1;
+    }
+    100% {
+        height: 20px;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+.flicker {
+    animation: flicker 3s infinite;
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+    25%, 75% { opacity: 0.9; }
+    10%, 90% { opacity: 0.7; }
+}
+.button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #1a0000;
+    color: #ff0000;
+    border: 2px solid #ff0000;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: fixed;
+    top: 80px;  /* Positions it below the timer */
+    left: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.button:hover {
+    background-color: #ff0000;
+    color: #000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    transform: scale(1.05);
+}
+
+/* Add a subtle flicker effect on hover */
+.button:hover {
+    animation: buttonFlicker 2s infinite;
+}
+
+@keyframes buttonFlicker {
+    0% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.8; }
+    94% { opacity: 1; }
+    97% { opacity: 0.9; }
+    98% { opacity: 1; }
+    99% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #000;
+    color: #ff0000;
+    overflow: hidden;
+}
+
+/* Timer Container Styling */
+#timer-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ff0000;
+    z-index: 1000;
+    font-size: 24px;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+/* Blood drip effect */
+.blood-drip {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, #ff0000);
+    animation: drip 2s infinite;
+}
+
+@keyframes drip {
+    0% { height: 0; opacity: 1; }
+    70% { height: 20px; opacity: 1; }
+    100% { height: 20px; opacity: 0; }
+}
+
+/* Instructions Panel */
+#instructions {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ff0000;
+    z-index: 1000;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* Hint Button */
+.hint-button {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    background-color: #ff0000;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+
+.hint-button:hover {
+    background-color: #cc0000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #1a0000;
+    margin: 15% auto;
+    padding: 30px;
+    width: 80%;
+    max-width: 600px;
+    border: 3px solid #ff0000;
+    color: #ff0000;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+}
+
+.officer-info {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.officer {
+    padding: 15px;
+    border: 1px solid #ff0000;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+.officer h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    text-shadow: 0 0 5px #ff0000;
+}
+.subtle-detail {
+    color: #ff6666;
+    font-size: 0.9em;
+    margin-top: 8px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.case-note {
+    color: #ff4444;
+    border-left: 2px solid #ff0000;
+    padding-left: 10px;
+    margin-top: 12px;
+    font-size: 0.9em;
+}
+
+.officer {
+    position: relative;
+    padding: 20px;
+}
+
+.officer:hover {
+    background-color: rgba(255, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+}
+
+.officer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ff0000, transparent);
+}
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #ff0000;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close:hover {
+    color: #ff4444;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+/* Flicker Animation */
+.flicker {
+    animation: textFlicker 2s infinite;
+}
+
+@keyframes textFlicker {
+    0% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.8; }
+    94% { opacity: 1; }
+    97% { opacity: 0.9; }
+    98% { opacity: 1; }
+    99% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+/* Hint Modal */
+.hint-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #1a0000;
+    padding: 20px;
+    border: 2px solid #ff0000;
+    color: #ff0000;
+    z-index: 2000;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+.hint-modal p {
+    margin: 20px 0;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.hint-modal button {
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
+}
+
+.hint-modal button:hover {
+    background-color: #cc0000;
+}
+
+#controls-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1;
+}
+
+.circular-controls {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    border: 2px solid #b22222;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+.circular-controls button {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 16px;
+    background-color: rgba(30, 30, 30, 0.8);
+    color: #b22222;
+    border: 1px solid #ff6347;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+}
+
+.circular-controls #up { 
+    top: 10px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+}
+
+.circular-controls #down { 
+    bottom: 10px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+}
+
+.circular-controls #left { 
+    left: 10px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+}
+
+.circular-controls #right { 
+    right: 10px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+}
+
+.circular-controls button:hover {
+    background-color: rgba(139, 0, 0, 0.8);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}

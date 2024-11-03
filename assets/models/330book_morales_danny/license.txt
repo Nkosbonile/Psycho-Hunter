@@ -1,0 +1,11 @@
+Model Information:
+* title:	330Book_Morales_Danny
+* source:	https://sketchfab.com/3d-models/330book-morales-danny-c629bec241ac48e8b0af8a0bf6c07577
+* author:	Danny Morales (https://sketchfab.com/s.morales.danny)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "330Book_Morales_Danny" (https://sketchfab.com/3d-models/330book-morales-danny-c629bec241ac48e8b0af8a0bf6c07577) by Danny Morales (https://sketchfab.com/s.morales.danny) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

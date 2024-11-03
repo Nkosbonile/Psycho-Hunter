@@ -1,0 +1,11 @@
+Model Information:
+* title:	International Military Police Badge
+* source:	https://sketchfab.com/3d-models/international-military-police-badge-ab9174065f1d42d19b8d93c74bf7297c
+* author:	Slipdogg (https://sketchfab.com/Slipdogg)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "International Military Police Badge" (https://sketchfab.com/3d-models/international-military-police-badge-ab9174065f1d42d19b8d93c74bf7297c) by Slipdogg (https://sketchfab.com/Slipdogg) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
