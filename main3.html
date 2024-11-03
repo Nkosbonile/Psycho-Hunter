@@ -3,12 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js House with Two Rooms</title>
+    <title>Murder House</title>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+   <link rel="stylesheet" href="main3.css">
 </head>
 <body>
-    <!-- Include Three.js Library from CDN -->
-    
-    <!-- Link to your JavaScript file -->
-   <script type="module" src="main3.js"></script>
+    <div id="controls-container">
+        <div class="circular-controls">
+            <button id="up">W</button>
+            <button id="down">S</button>
+            <button id="left">A</button>
+            <button id="right">D</button>
+        </div>
+    </div>
+    <div id="timer-container" class="flicker">
+        <div class="blood-drip"></div>
+        Time Remaining: <span id="timer">5:00</span>
+    </div>
+    <div id="hint-modal" class="hint-modal">
+        <p id="hint-text"></p>
+        <button onclick="closeHintModal()">Close</button>
+    </div>
+    <button id="view-officers" class="button">View Officers</button>
+    <div id="officer-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Police Officers on the Case</h2>
+            <div class="officer-info">
+                <div class="officer">
+                    <h3>Detective Sarah Martinez</h3>
+                    <p>Department: Homicide</p>
+                    <p>Years of Service: 12</p>
+                    <p>Notable Cases: 15 solved murders</p>
+                    <p class="subtle-detail">Recent Leave: 3 months stress-related absence</p>
+                    <p class="subtle-detail">Special Note: Exceptional knowledge of crime scene cleanup procedures</p>
+                    <p class="case-note">Current Status: Requested sole jurisdiction over last 5 similar cases</p>
+                </div>
+                <div class="officer">
+                    <h3>Dr. James Wilson</h3>
+                    <p>Department: Crime Lab</p>
+                    <p>Years of Service: 8</p>
+                    <p>Specialization: Forensic Analysis</p>
+                    <p class="subtle-detail">Previous Experience: Advanced surgical training</p>
+                    <p class="subtle-detail">Research Focus: Blood pattern analysis and decomposition</p>
+                    <p class="case-note">Note: Recently requested transfer from night shift</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main3.js"></script>
 </body>
 </html>

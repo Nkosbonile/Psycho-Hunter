@@ -3,85 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="level3.css">
-    <title>Suspect Details</title>
+    <title>Case File: Suspects</title>
+    <link rel="stylesheet" href="suspect.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-brand">Serial Killer Case</div>
-        <ul class="navbar-menu">
-            <li><a href="#" id="suspect-button">Suspects</a></li>
-            <li><a href="#" id="officer-button">Police Officers</a></li>
-            <li><a href="#" id="case-button">Case Files</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <h1 class="title">SUSPECTS</h1>
-        <div id="suspects-section" class="hidden">
-            <h2>Suspects</h2>
-            <div class="suspects-grid">
-                <div class="suspect-card">
-                    <img src="suspect1.webp" alt="Suspect 1" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Suspect 1</h2>
-                        <p><strong>Age:</strong> 34</p>
-                        <p><strong>Motive:</strong> Jealousy</p>
-                        <p><strong>Last Seen:</strong> Downtown</p>
-                        <button class="info-button">More Info</button>
-                    </div>
-                </div>
-                <div class="suspect-card">
-                    <img src="suspect2.jpg" alt="Suspect 2" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Suspect 2</h2>
-                        <p><strong>Age:</strong> 27</p>
-                        <p><strong>Motive:</strong> Revenge</p>
-                        <p><strong>Last Seen:</strong> Park</p>
-                        <button class="info-button">More Info</button>
-                    </div>
-                </div>
-                <div class="suspect-card">
-                    <img src="suspect3.jpg" alt="Suspect 3" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Suspect 3</h2>
-                        <p><strong>Age:</strong> 45</p>
-                        <p><strong>Motive:</strong> Greed</p>
-                        <p><strong>Last Seen:</strong> Office</p>
-                        <button class="info-button">More Info</button>
-                    </div>
-                </div>
-            </div>
+    <!-- Failure Popup -->
+    <div id="failurePopup" class="modal2" style="display: none;">
+        <div class="modal-content2">
+            <p>"Wrong choice... Do you think you can outsmart me? Think again."</p>
+            <button id="restartButton">Restart Game</button>
         </div>
-
-        <div id="officers-section" class="hidden">
-            <h2>Police Officers</h2>
-            <div class="suspects-grid">
-                <div class="suspect-card officer">
-                    <img src="police1.webp" alt="Officer 1" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Officer 1</h2>
-                        <p><strong>Badge Number:</strong> 1234</p>
-                        <p><strong>Department:</strong> Homicide</p>
-                        <button class="info-button">More Info</button>
-                    </div>
-                </div>
-                <div class="suspect-card officer">
-                    <img src="police2.webp" alt="Officer 2" class="suspect-image">
-                    <div class="card-content">
-                        <h2>Officer 2</h2>
-                        <p><strong>Badge Number:</strong> 5678</p>
-                        <p><strong>Department:</strong> Investigation</p>
-                        <button class="info-button">More Info</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="result"></div>
-        <button id="reveal-suspect">Reveal Actual Suspect</button>
     </div>
 
-    <script src="level3.js"></script>
+    <!-- Success Popup -->
+    <div id="successPopup" class="modal2" style="display: none;">
+        <div class="modal-content2">
+            <p>"Well, well, well... You found me. But this game is far from over."</p>
+            <button id="nextLevelButton">Proceed to Next Level</button>
+            <button id="restartGameButton">Restart Game</button>
+        </div>
+    </div>
+
+    <!-- Suspect Content -->
+    <div id="suspectContent" class="suspect-container">
+        <h1 class="title">CONFIDENTIAL - Suspect Dossiers</h1>
+        <h2> Suspect List</h2>
+        <div class="suspects-grid">
+            <div class="suspect-card" data-suspect="1">
+                <img src="suspect1.webp" alt="Suspect 1" class="suspect-image">
+                <div class="card-content">
+                    <h2>Suspect 1</h2>
+                    <p><strong>Age:</strong> 34</p>
+                    <p><strong>Occupation:</strong> Business Executive</p>
+                    <p><strong>Motive:</strong> Jealousy</p>
+                    <p><strong>Alibi:</strong> Conference at crime time.</p>
+                    <p><strong>Last Seen:</strong> Near victim's workplace.</p>
+                    <p><strong>Weapon:</strong> Blunt object</p>
+                  
+                </div>
+            </div>
+            <div class="suspect-card" data-suspect="2">
+                <img src="suspect2.jpg" alt="Suspect 2" class="suspect-image">
+                <div class="card-content">
+                    <h2>Suspect 2</h2>
+                    <p><strong>Age:</strong> 27</p>
+                    <p><strong>Occupation:</strong> Personal Trainer</p>
+                    <p><strong>Motive:</strong> Revenge</p>
+                    <p><strong>Alibi:</strong> Working with client</p>
+                    <p><strong>Last Seen:</strong> Gym near crime scene</p>
+                    <p><strong>Weapon:</strong> Knife</p>
+                    
+                </div>
+            </div>
+            <div class="suspect-card" data-suspect="3">
+                <img src="suspect3.jpg" alt="Suspect 3" class="suspect-image">
+                <div class="card-content">
+                    <h2>Suspect 3</h2>
+                    <p><strong>Age:</strong> 45</p>
+                    <p><strong>Occupation:</strong> Accountant</p>
+                    <p><strong>Motive:</strong> Greed</p>
+                    <p><strong>Alibi:</strong> Working late</p>
+                    <p><strong>Last Seen:</strong> Office near crime</p>
+                    <p><strong>Weapon:</strong> Poison</p>
+                   
+                </div>
+            </div>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script src="suspect.js"></script>
 </body>
 </html>

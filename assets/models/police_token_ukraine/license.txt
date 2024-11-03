@@ -1,0 +1,11 @@
+Model Information:
+* title:	Police Token Ukraine
+* source:	https://sketchfab.com/3d-models/police-token-ukraine-34371002737b48c4ad13b546af264b05
+* author:	DeadLink (https://sketchfab.com/d43dLink)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Police Token Ukraine" (https://sketchfab.com/3d-models/police-token-ukraine-34371002737b48c4ad13b546af264b05) by DeadLink (https://sketchfab.com/d43dLink) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

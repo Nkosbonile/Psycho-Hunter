@@ -1,5 +1,27 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { createCharacter, moveCharacter } from "./character.js";
+import { ThirdPersonCamera } from './thirdPersonCamera.js';
+
+
+
+
+const clock = new THREE.Clock();
+let character;
+let mixer;
+let walkAction;
+let idleAction;
+let pickUpAction;
+let activeAction;
+let isFirstPerson = false;
+// Add these camera configuration constants at the top with other constants
+const THIRD_PERSON_OFFSET = new THREE.Vector3(0, 5, -14); // Camera position relative to character
+const FIRST_PERSON_OFFSET = new THREE.Vector3(0, 10, 0.1); // Roughly eye level
+const CAMERA_LERP_FACTOR = 0.1; // How smoothly the camera follows (0-1)
+const HOUSE_GROUND_LEVEL = 0;
+const HOUSE_UPPER_FLOOR_LEVEL = 10;
+
 
 // Scene, Camera, Renderer Setup
 const scene = new THREE.Scene();
@@ -25,168 +47,276 @@ controls.minDistance = 5;
 controls.maxDistance = 50;
 controls.maxPolarAngle = Math.PI / 2;
 controls.minPolarAngle = 0.1;
-let bloodPrintTexture;
-// Enhanced Materials
-class TextureGenerator {
-    constructor(width = 512, height = 512) {
-        this.width = width;
-        this.height = height;
-    }
+const characterSpeedMain2 = 0.8;  // Different speed for character in main2.js
+// Modified texture loading
 
-    createCanvas() {
-        const canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        return canvas;
-    }
-
-    generateNoiseTexture(scale = 30, octaves = 4) {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                let noise = 0;
-                let amplitude = 1;
-                let frequency = 1;
-                
-                // Generate multiple octaves of noise
-                for (let i = 0; i < octaves; i++) {
-                    noise += (Math.random() - 0.5) * amplitude;
-                    amplitude *= 0.5;
-                    frequency *= 2;
-                }
-                
-                const value = Math.floor((noise + 1) * 128);
-                ctx.fillStyle = `rgb(${value},${value},${value})`;
-                ctx.fillRect(x, y, 1, 1);
-            }
-        }
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateCrackedTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        // Base dark color
-        ctx.fillStyle = '#2c2c2c';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // Generate cracks
-        for (let i = 0; i < 20; i++) {
-            const startX = Math.random() * this.width;
-            const startY = Math.random() * this.height;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            
-            // Create branching cracks
-            this.generateCrackPath(ctx, startX, startY, 0, 3);
-            
-            ctx.strokeStyle = '#1a1a1a';
-            ctx.lineWidth = 1 + Math.random() * 2;
-            ctx.stroke();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-
-    generateCrackPath(ctx, x, y, depth, maxDepth) {
-        if (depth >= maxDepth) return;
-
-        const length = 30 + Math.random() * 50;
-        const angle = Math.random() * Math.PI * 2;
-        
-        const endX = x + Math.cos(angle) * length;
-        const endY = y + Math.sin(angle) * length;
-        
-        ctx.lineTo(endX, endY);
-        
-        // Branch the crack
-        if (Math.random() < 0.7) {
-            this.generateCrackPath(ctx, endX, endY, depth + 1, maxDepth);
-        }
-    }
-
-    generateRottenWoodTexture() {
-        const canvas = this.createCanvas();
-        const ctx = canvas.getContext('2d');
-        
-        // Base wood color
-        ctx.fillStyle = '#4a3728';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // Add wood grain
-        for (let i = 0; i < this.height; i += 4) {
-            ctx.beginPath();
-            ctx.moveTo(0, i);
-            
-            // Wavy line for wood grain
-            for (let x = 0; x < this.width; x += 10) {
-                const y = i + Math.sin(x * 0.03) * 2;
-                ctx.lineTo(x, y);
-            }
-            
-            ctx.strokeStyle = `rgba(30, 20, 10, ${Math.random() * 0.3})`;
-            ctx.lineWidth = 1 + Math.random() * 2;
-            ctx.stroke();
-        }
-
-        // Add rot spots
-        for (let i = 0; i < 30; i++) {
-            const x = Math.random() * this.width;
-            const y = Math.random() * this.height;
-            const radius = 5 + Math.random() * 20;
-            
-            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(40, 30, 20, 0.8)');
-            gradient.addColorStop(1, 'rgba(40, 30, 20, 0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-    }
-}
-
-// Usage example:
-const textureGen = new TextureGenerator(512, 512);
 
 const textures = {
     walls: {
-        color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(20, 3),
-        roughness: textureGen.generateNoiseTexture(10, 4),
+        color: textureLoader.load('wall.jpg'),
+        normal: textureLoader.load('wall.jpg'),
+        roughness: textureLoader.load('wall.jpg')
     },
     wood: {
-        color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(15, 3),
-        roughness: textureGen.generateNoiseTexture(8, 4),
-    },
-    floor: {
-        color: textureGen.generateRottenWoodTexture(),
-        normal: textureGen.generateNoiseTexture(25, 4),
-        roughness: textureGen.generateNoiseTexture(12, 3),
+        color: textureLoader.load('wood_color.jpg'),
+        normal: textureLoader.load('wood_color.jpg'),
+        roughness: textureLoader.load('wood_roughness.jpg')
     },
     roof: {
-        color: textureGen.generateCrackedTexture(),
-        normal: textureGen.generateNoiseTexture(30, 4),
+        color: textureLoader.load('r2.jpg'),
+        normal: textureLoader.load('r2.jpg')
+    },
+    floor: {
+        color: textureLoader.load('tile2.jpg'),
+        normal: textureLoader.load('tile2.jpg'),
+        roughness: textureLoader.load('tile2.jpg')
     },
     grass: {
-        color: textureGen.generateNoiseTexture(40, 3),
-        normal: textureGen.generateNoiseTexture(35, 3),
+        color: textureLoader.load('grass2.jpg'),
+        normal: textureLoader.load('grass2.jpg')
     }
 };
+
+const restartStyles = `
+.restart-button {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 15px 30px;
+    background-color: #ff0000;
+    color: #000;
+    border: 2px solid #990000;
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    z-index: 2000;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+
+.restart-button:hover {
+    background-color: #990000;
+    color: #fff;
+    transform: translate(-50%, -50%) scale(1.1);
+    transition: all 0.3s ease;
+}
+`;
+
+// Add the styles to the document
+const styleSheet = document.createElement('style');
+styleSheet.textContent = restartStyles;
+document.head.appendChild(styleSheet);
+
+// Create the restart button
+const restartButton = document.createElement('button');
+restartButton.className = 'restart-button';
+restartButton.textContent = 'RESTART INVESTIGATION';
+restartButton.style.display = 'none';
+document.body.appendChild(restartButton);
+
+// Add click handler for restart
+restartButton.addEventListener('click', () => {
+    location.reload();
+});
+
+function createLightingSystem() {
+    // Track all lights for dimming
+    const allLights = {
+        ambient: null,
+        directional: null,
+        points: [],
+        spot: null,
+        hemisphere: null
+    };
+
+    // Increased ambient light with warmer tint
+    const ambientLight = new THREE.AmbientLight(0x996666, 0.6);
+    scene.add(ambientLight);
+    allLights.ambient = ambientLight;
+
+    // Main directional light with softer red tint
+    const sunLight = new THREE.DirectionalLight(0xff6666, 0.8);
+    sunLight.position.set(50, 50, 50);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    scene.add(sunLight);
+    allLights.directional = sunLight;
+
+    // Create all house lights with unified color scheme
+    const pointLightPositions = [
+        { x: 0, y: 15, z: 0, color: 0xff6666, intensity: 1.8 },
+        { x: -15, y: 10, z: 15, color: 0xff6666, intensity: 1.8 },
+        { x: 15, y: 10, z: 15, color: 0xff6666, intensity: 1.8 },
+        { x: 0, y: 10, z: -15, color: 0xff6666, intensity: 1.8 },
+        { x: -25, y: 12, z: 0, color: 0xff6666, intensity: 1.8 },
+        { x: 25, y: 12, z: 0, color: 0xff6666, intensity: 1.8 },
+        { x: 0, y: 12, z: 25, color: 0xff6666, intensity: 1.8 },
+        { x: 0, y: 12, z: -25, color: 0xff6666, intensity: 1.8 }
+    ];
+
+    pointLightPositions.forEach((pos) => {
+        const light = new THREE.PointLight(pos.color, pos.intensity, 40);
+        light.position.set(pos.x, pos.y, pos.z);
+        light.castShadow = true;
+        light.shadow.mapSize.width = 512;
+        light.shadow.mapSize.height = 512;
+        scene.add(light);
+        allLights.points.push(light);
+    });
+
+    // Unified spotlight
+    const spotlight = new THREE.SpotLight(0xff4d4d, 1.7);
+    spotlight.position.set(0, 30, 0);
+    spotlight.angle = Math.PI / 3.5;
+    spotlight.penumbra = 0.2;
+    spotlight.decay = 1.3;
+    spotlight.distance = 60;
+    spotlight.castShadow = true;
+    scene.add(spotlight);
+    allLights.spot = spotlight;
+
+    // Warmer ground light
+    const groundLight = new THREE.HemisphereLight(
+        0xff8080,
+        0x664444,
+        0.6
+    );
+    scene.add(groundLight);
+    allLights.hemisphere = groundLight;
+
+    // Timer variables
+    const totalDuration = 3 * 60 *1000 ; // 5 minutes in milliseconds
+    const interval = 15 * 1000; // 15 seconds between dims
+    const totalSteps = totalDuration / interval;
+    let currentStep = 0;
+    let timerStarted = false;
+
+
+    // Initial intensities
+    const initialIntensities = {
+        ambient: ambientLight.intensity,
+        directional: sunLight.intensity,
+        points: pointLightPositions.map(p => p.intensity),
+        spot: spotlight.intensity,
+        hemisphere: groundLight.intensity
+    };
+
+    // Dimming function
+    function dimLights() {
+        if (currentStep >= totalSteps) {
+            console.log("Timer complete - lights at minimum");
+            return;
+        }
+
+        const dimFactor = Math.max(0.3, 1 - (currentStep / totalSteps));
+        
+        // Dim all lights proportionally
+        allLights.ambient.intensity = initialIntensities.ambient * dimFactor;
+        allLights.directional.intensity = initialIntensities.directional * dimFactor;
+        allLights.points.forEach((light, index) => {
+            light.intensity = initialIntensities.points[index] * dimFactor;
+        });
+        allLights.spot.intensity = initialIntensities.spot * dimFactor;
+        allLights.hemisphere.intensity = initialIntensities.hemisphere * dimFactor;
+
+        currentStep++;
+        
+        // Schedule next dimming
+        if (currentStep < totalSteps) {
+            setTimeout(dimLights, interval);
+        }
+    }
+    function startTimer(duration, display) {
+        let timer = duration;
+    timerStarted = true;
+    
+    // Start the dimming process
+    dimLights();
+    
+    const countdown = setInterval(function () {
+        const minutes = parseInt(timer / 60, 10);
+        const seconds = parseInt(timer % 60, 10);
+
+        display.textContent = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+       
+        if (--timer < 0) {
+            clearInterval(countdown);
+            display.textContent = "TIME'S UP";
+            display.style.animation = "flicker 0.5s infinite";
+            
+            // Show restart button with dramatic effect
+            restartButton.style.display = 'block';
+            
+            // Optional: Add a dark overlay to emphasize the game over state
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 1999;
+                animation: fadeIn 1s ease;
+            `;
+            document.body.appendChild(overlay);
+        }
+    }, 1000);
+    }
+    const fadeAnimation = `
+    @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+`;
+styleSheet.textContent += fadeAnimation;
+    // Flicker effect modified to work with dimming
+    function flickerHouseLights() {
+        if (!timerStarted) return;
+
+        const dimFactor = 1 - (currentStep / totalSteps);
+        const globalFlicker = Math.random();
+        const globalIntensityMod = 
+            globalFlicker < 0.1 ? 0.4 :
+            globalFlicker < 0.2 ? 0.7 :
+            globalFlicker < 0.3 ? 1.3 :
+            1.0;
+
+        allLights.points.forEach((light, index) => {
+            const individualVar = 0.8 + Math.random() * 0.4;
+            const baseIntensity = initialIntensities.points[index] * dimFactor;
+            const finalIntensity = baseIntensity * globalIntensityMod * individualVar;
+            light.intensity = Math.max(0.2, Math.min(2.5, finalIntensity));
+
+            const hue = 0.02 + Math.random() * 0.02;
+            const saturation = 0.7 + Math.random() * 0.2;
+            const lightness = 0.4 + Math.random() * 0.3;
+            light.color.setHSL(hue, saturation, lightness);
+        });
+
+        allLights.spot.intensity = initialIntensities.spot * dimFactor * globalIntensityMod;
+
+        setTimeout(flickerHouseLights, Math.random() * 150 + 50);
+    }
+
+    // Start both timer and flicker effects
+    const fiveMinutes = 60 * 5;
+    const display = document.querySelector('#timer');
+    startTimer(fiveMinutes, display);
+    flickerHouseLights();
+
+    return allLights;
+}
 
 // Add texture repeat settings
 Object.values(textures).forEach(textureSet => {
@@ -249,46 +379,31 @@ const materials = {
     })
 };
 
-const wallMaterial = new THREE.MeshStandardMaterial({
-    map: bloodPrintTexture,
-    roughness: 0.9,   // Optional: increase roughness for a less shiny look
-    metalness: 0      // Optional: remove metallic effect
-  });
-// Enhanced Lighting System
-function createLightingSystem() {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambientLight);
- 
-    // Sunlight
-    const sunLight = new THREE.DirectionalLight(0xffffeb, 1.0);
-    sunLight.position.set(50, 50, 50);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 500;
-    sunLight.shadow.camera.left = -50;
-    sunLight.shadow.camera.right = 50;
-    sunLight.shadow.camera.top = 50;
-    sunLight.shadow.camera.bottom = -50;
-    scene.add(sunLight);
+function createDoor(width, height, thickness) {
+    const doorGroup = new THREE.Group();
+    
+    // Door frame
+    const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(width + 0.4, height + 0.4, thickness + 0.2),
+        materials.wood
+    );
+    doorGroup.add(frame);
 
-    // Interior lights
-    const rooms = [
-        { x: -15, z: 0 },
-        { x: 15, z: 0 }
-    ];
-
-    rooms.forEach(pos => {
-        const light = new THREE.PointLight(0xfff2e6, 0.8, 30);
-        light.position.set(pos.x, 10, pos.z);
-        light.castShadow = true;
-        light.shadow.mapSize.width = 512;
-        light.shadow.mapSize.height = 512;
-        scene.add(light);
-    });
+    // Door (slightly smaller than frame)
+    const door = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, thickness),
+        materials.door
+    );
+    
+    // Position door to swing from one edge
+    door.position.x = width / 2;
+    door.rotation.y = Math.PI / 4; // Open at 45 degrees
+    
+    doorGroup.add(door);
+    
+    return doorGroup;
 }
+
 
 
 function createHouse() {
@@ -319,98 +434,69 @@ function createHouse() {
 
     const wallHeight = 18;
     const wallThickness = 0.5;
+    const doorWidth = 4;
+    const doorHeight = 10;
 
-    // Create Wall With Windows Function
-    function createWallWithWindows(width, height, depth, windowConfig) {
-        const wallGroup = new THREE.Group();
-
-        // Main wall
+    // Function to create solid walls without windows
+    function createSolidWall(width, height, depth) {
         const wall = new THREE.Mesh(
             new THREE.BoxGeometry(width, height, depth),
             materials.walls
         );
         wall.castShadow = true;
         wall.receiveShadow = true;
-        wallGroup.add(wall);
-
-        // Add windows
-        if (windowConfig) {
-            windowConfig.forEach(config => {
-                const windowFrame = new THREE.Mesh(
-                    new THREE.BoxGeometry(config.width + 0.4, config.height + 0.4, depth + 0.1),
-                    materials.wood
-                );
-                windowFrame.position.set(config.x, config.y, 0);
-                wallGroup.add(windowFrame);
-
-                const windowPane = new THREE.Mesh(
-                    new THREE.BoxGeometry(config.width, config.height, depth + 0.2),
-                    materials.window
-                );
-                windowPane.position.set(config.x, config.y, 0);
-                wallGroup.add(windowPane);
-            });
-        }
-
-        return wallGroup;
+        return wall;
     }
 
-    // Exterior Walls
-    // Front wall with door and windows
-    const frontWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: -15, y: 5 },
-        { width: 4, height: 6, x: 15, y: 5 }
-    ]);
+    // Exterior Walls - All solid without windows
+    const frontWall = createSolidWall(50, wallHeight, wallThickness);
     frontWall.position.set(0, wallHeight / 2, 25);
     house.add(frontWall);
 
-    // Main entrance door
-    const mainDoor = new THREE.Mesh(
-        new THREE.BoxGeometry(4, 8, wallThickness + 0.1),
-        materials.door
-    );
-    mainDoor.position.set(0, 4, 25);
-    house.add(mainDoor);
-
-    // Back wall
-    const backWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: -15, y: 5 },
-        { width: 4, height: 6, x: 15, y: 5 }
-    ]);
+    const backWall = createSolidWall(50, wallHeight, wallThickness);
     backWall.position.set(0, wallHeight / 2, -25);
     house.add(backWall);
 
-    // Side walls
-    const leftWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: 0, y: 5 }
-    ]);
+    const leftWall = createSolidWall(50, wallHeight, wallThickness);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-25, wallHeight / 2, 0);
     house.add(leftWall);
 
-    const rightWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: 0, y: 5 }
-    ]);
+    const rightWall = createSolidWall(50, wallHeight, wallThickness);
     rightWall.rotation.y = Math.PI / 2;
     rightWall.position.set(25, wallHeight / 2, 0);
     house.add(rightWall);
 
     // Interior Walls
-    // Horizontal wall dividing the house
-    const horizontalWall = new THREE.Mesh(
-        new THREE.BoxGeometry(50, wallHeight, wallThickness),
-        materials.walls
-    );
-    horizontalWall.position.set(0, wallHeight / 2, 0);
-    house.add(horizontalWall);
+    
+    // Horizontal middle wall with doorway near the left exterior wall
+    // Left section (very small piece)
+    const midWallLeft = createSolidWall(4, wallHeight, wallThickness);
+    midWallLeft.position.set(-23, wallHeight / 2, 0);
+    house.add(midWallLeft);
 
-    // Vertical wall dividing the front section
-    const verticalWall = new THREE.Mesh(
-        new THREE.BoxGeometry(wallThickness, wallHeight, 25),
-        materials.walls
-    );
-    verticalWall.position.set(0, wallHeight / 2, 12.5);
-    house.add(verticalWall);
+    // Right section (main piece)
+    const midWallRight = createSolidWall(42, wallHeight, wallThickness);
+    midWallRight.position.set(4, wallHeight / 2, 0);
+    house.add(midWallRight);
+
+    // Top section above door
+    const midWallTop = createSolidWall(doorWidth, wallHeight - doorHeight, wallThickness);
+    midWallTop.position.set(-19, wallHeight - (wallHeight - doorHeight) / 2, 0);
+    house.add(midWallTop);
+
+    // Vertical wall (divides front section into two rooms) with doorway
+    // Bottom section
+    const verticalWallBottom = createSolidWall((25 - doorWidth) / 2, wallHeight, wallThickness);
+    verticalWallBottom.rotation.y = Math.PI / 2;
+    verticalWallBottom.position.set(0, wallHeight / 2, 25 - (25 - doorWidth) / 4);
+    house.add(verticalWallBottom);
+
+    // Top section
+    const verticalWallTop = createSolidWall((25 - doorWidth) / 2, wallHeight, wallThickness);
+    verticalWallTop.rotation.y = Math.PI / 2;
+    verticalWallTop.position.set(0, wallHeight / 2, 25 - (25 + doorWidth) / 4);
+    house.add(verticalWallTop);
 
     // Roof
     const roofHeight = 8;
@@ -421,7 +507,7 @@ function createHouse() {
     roof.castShadow = true;
     house.add(roof);
 
-    // Furniture
+    // Furniture remains the same
     const furniture = [
         // Living Room (Front Right)
         { type: 'sofa', pos: [15, 1.5, 15], size: [8, 3, 4], rot: Math.PI },
@@ -452,17 +538,21 @@ function createHouse() {
         house.add(mesh);
     });
 
-    // Carpets
+    // Carpets with different colors
     const carpets = [
-        { pos: [-15, 0.01, 15], radius: 6 }, // Bedroom
-        { pos: [15, 0.01, 15], radius: 6 },  // Living Room
-        { pos: [0, 0.01, -15], radius: 8 }   // Study Room
+        { pos: [-15, 0.01, 15], radius: 6, color: 0x8B4513 },  // Bedroom - Brown
+        { pos: [15, 0.01, 15], radius: 6, color: 0x4B0082 },   // Living Room - Indigo
+        { pos: [0, 0.01, -15], radius: 8, color: 0x006400 }    // Study Room - Dark Green
     ];
 
     carpets.forEach(carpet => {
         const mesh = new THREE.Mesh(
             new THREE.CircleGeometry(carpet.radius, 32),
-            materials.carpet
+            new THREE.MeshStandardMaterial({
+                color: carpet.color,
+                roughness: 0.8,
+                metalness: 0.1
+            })
         );
         mesh.rotation.x = -Math.PI / 2;
         mesh.position.set(...carpet.pos);
@@ -470,26 +560,173 @@ function createHouse() {
         house.add(mesh);
     });
 
-    // Interior Doors
-    const interiorDoors = [
-        { pos: [0, 4, 5], rot: 0 },           // Door to study room
-        { pos: [-8, 4, 12.5], rot: Math.PI/2 }, // Door to bedroom
-        { pos: [8, 4, 12.5], rot: Math.PI/2 }   // Door to living room
-    ];
-
-    interiorDoors.forEach(doorInfo => {
-        const interiorDoor = new THREE.Mesh(
-            new THREE.BoxGeometry(4, 8, wallThickness),
-            materials.door
-        );
-        interiorDoor.position.set(...doorInfo.pos);
-        interiorDoor.rotation.y = doorInfo.rot;
-        house.add(interiorDoor);
-    });
-
     return house;
 }
+const house = createHouse();
+scene.add(house);
 
+const loader = new GLTFLoader();
+
+
+const furniturePositions = {
+    coffeeTable: { 
+        x: 15, 
+        y: 2.5,  // 1.0 (table height) + 1.5 (object placement height)
+        z: 10 
+    },
+    nightstand: {
+        x: 0,  // From the original createHouse function
+        y: 2,    // 2 (nightstand height) + 1 (object placement height)
+        z: -12    // From the original createHouse function
+    },
+    brownCarpet: {
+        x: -15,  // Bedroom area (brown carpet)
+        y: 2.5,  // Height of table + offset for object
+        z: 15
+    }
+};
+
+function loadModelWithSpotlight(modelPath, position, rotation = 0, scale = 1) {
+    loader.load(modelPath, (gltf) => {
+        const model = gltf.scene;
+        
+        // Apply position, rotation and scale
+        model.position.set(position.x, position.y, position.z);
+        model.rotation.y = rotation;
+        model.scale.set(scale, scale, scale);
+        
+        // Enable shadows for all meshes in the model
+        model.traverse((node) => {
+            if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+                
+                // Optimize materials
+                const material = node.material;
+                material.normalMap = null;
+                material.roughnessMap = null;
+                material.aoMap = null;
+                material.needsUpdate = true;
+            }
+        });
+        
+        // Add model to scene
+        scene.add(model);
+        
+        // Create spotlight for the model
+        const spotlight = new THREE.SpotLight(0xffffff, 2.0);
+        spotlight.position.set(
+            position.x,
+            position.y + 5, // Increased height for better illumination
+            position.z
+        );
+        
+        spotlight.target = model;
+        spotlight.angle = Math.PI / 6;
+        spotlight.penumbra = 0.3;
+        spotlight.distance = 15; // Increased distance for better coverage
+        spotlight.decay = 2;
+        spotlight.castShadow = true;
+        
+        // Configure shadow properties
+        spotlight.shadow.mapSize.width = 512;
+        spotlight.shadow.mapSize.height = 512;
+        spotlight.shadow.camera.near = 0.5;
+        spotlight.shadow.camera.far = 20; // Increased far plane for shadows
+        
+        scene.add(spotlight);
+        scene.add(spotlight.target);
+        
+        console.log(`Model loaded successfully at position:`, position);
+    },
+    undefined,
+    (error) => console.error('Error loading model:', error));
+}
+
+// // Load the bloody glasses on the coffee table
+// loadModelWithSpotlight(
+//     "./assets/models/international_military_police_badge/scene.gltf",
+//     {
+//         x: furniturePositions.coffeeTable.x-2,
+//         y: furniturePositions.coffeeTable.y,
+//         z: furniturePositions.coffeeTable.z
+//     },
+//     Math.PI / 4,  // Slight rotation for natural placement
+//     4.0          // Adjusted scale for better proportions
+// );
+
+// // Place military hat on the black carpet in living room
+// loadModelWithSpotlight(
+//     "./assets/models/plastic_evidence_bag/scene.gltf",
+//     {
+//         x: furniturePositions.nightstand.x,
+//         y: furniturePositions.nightstand.y+2,
+//         z: furniturePositions.nightstand.z
+//     },
+//     Math.PI / 4,  // Slight rotation for natural placement
+//     0.06          // Kept the small scale for the evidence bag
+// );
+
+// // Place book on the table in bedroom (brown carpet area)
+// loadModelWithSpotlight(
+//     "./assets/models/330book_morales_danny/scene.gltf",
+//     {
+//         x: furniturePositions.brownCarpet.x,
+//         y: furniturePositions.brownCarpet.y,
+//         z: furniturePositions.brownCarpet.z
+//     },
+//     Math.PI / 6,  // Slight angle for natural placement
+//     1.5          // Adjusted scale to look natural on table
+// );
+
+
+const cluePositions = {
+    plastic_evidence: new THREE.Vector3(
+        furniturePositions.nightstand.x,
+        furniturePositions.nightstand.y + 2,
+        furniturePositions.nightstand.z
+        
+    ),
+    police_badge: new THREE.Vector3(
+        furniturePositions.coffeeTable.x,
+        furniturePositions.coffeeTable.y - 1.5,
+        furniturePositions.coffeeTable.z
+    ),
+    book: new THREE.Vector3(
+        furniturePositions.brownCarpet.x,
+        furniturePositions.brownCarpet.y+0.6,
+        furniturePositions.brownCarpet.z
+    )
+};
+
+function loadClues() {
+    const loader = new GLTFLoader();
+    
+    // Load plastic evidence bag
+    loader.load('./assets/models/plastic_evidence_bag/scene.gltf', (gltf) => {
+        const model = gltf.scene;
+        model.position.copy(cluePositions.plastic_evidence);
+        model.scale.set(0.06, 0.06, 0.06);
+        scene.add(model);
+    });
+
+    // Load police badge
+    loader.load('./assets/models/international_military_police_badge/scene.gltf', (gltf) => {
+        const model = gltf.scene;
+        model.position.copy(cluePositions.police_badge);
+        model.scale.set(4.0, 4.0, 4.0);
+        scene.add(model);
+    });
+
+    // Load book
+    loader.load('./assets/models/330book_morales_danny/scene.gltf', (gltf) => {
+        const model = gltf.scene;
+        model.position.copy(cluePositions.book);
+        model.scale.set(0.5, 0.5, 0.5);
+        scene.add(model);
+    });
+}
+// Remove or comment out the original loader.load calls that were commented out
 // Raycaster setup
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -518,7 +755,7 @@ window.addEventListener('resize', () => {
 
 // Movement controls
 const keys = { w: false, a: false, s: false, d: false };
-const moveSpeed = 0.2;
+
 
 document.addEventListener('keydown', (event) => {
     switch (event.key.toLowerCase()) {
@@ -571,18 +808,756 @@ function setCameraConstraints(xMin, xMax, zMin, zMax) {
     camera.position.z = THREE.MathUtils.clamp(camera.position.z, zMin, zMax);
 }
 
+loader.load(
+    "./assets/models/iwi_male_character_02/scene.gltf", 
+    (gltf) => {
+        try {
+            character = gltf.scene;
+            
+            // Set initial position and rotation
+            character.position.set(5, HOUSE_GROUND_LEVEL, 3);
+            character.rotation.y = Math.PI;
+            character.scale.set(5, 5, 5); // Adjust scale as needed
+            
+            scene.add(character);
+            
+            // Set up animation mixer
+            mixer = new THREE.AnimationMixer(character);
+            
+            // Find and set up animations
+            const animations = gltf.animations;
+            console.log('Available animations:', animations.map(a => a.name));
+            
+            // Set up animations (adjust animation names based on your model)
+            walkAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "walk") ||
+                THREE.AnimationClip.findByName(animations, "Rig|walk")
+            );
+            
+            idleAction = mixer.clipAction(
+                THREE.AnimationClip.findByName(animations, "idle") ||
+                THREE.AnimationClip.findByName(animations, "Rig|idle")
+            );
+            
+            // Start with idle animation
+            if (idleAction) {
+                activeAction = idleAction;
+                idleAction.play();
+            }
+            
+            // Add debug helper to visualize character position
+            const helper = new THREE.BoxHelper(character, 0xff0000);
+            //scene.add(helper);
+            
+        } catch (error) {
+            console.error('Error setting up character:', error);
+        }
+    },
+    (xhr) => {
+        console.log(`Character loading: ${(xhr.loaded / xhr.total * 100)}% loaded`);
+    },
+    (error) => {
+        console.error('Error loading character:', error);
+    }
+);
+
+// Add keyboard event listeners
+document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+        keys[key] = true;
+    }
+    // Add perspective toggle
+    if (key === 'v') {
+        isFirstPerson = !isFirstPerson;
+        updateCameraMode();
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+        keys[key] = false;
+    }
+});
+
+// Add this new function to handle camera positioning
+function updateCamera() {
+    if (!character) return;
+
+    if (isFirstPerson) {
+        // First-person view: position camera at character's head
+        const characterWorldPos = new THREE.Vector3();
+        character.getWorldPosition(characterWorldPos);
+        
+        // Add first-person offset to character position
+        camera.position.copy(characterWorldPos.add(FIRST_PERSON_OFFSET));
+        
+        // Align camera rotation with character
+        // camera.rotation.y = character.rotation.y;
+        // camera.rotation.x = 0; // Keep vertical angle level
+
+
+        // Copy the character's full rotation quaternion
+        camera.quaternion.copy(character.quaternion);
+        camera.rotateY(Math.PI); // Rotate 180 degrees to face forward
+        
+        // Disable orbit controls in first person
+        controls.enabled = false;
+    } else {
+        // Third-person view
+        const characterWorldPos = new THREE.Vector3();
+        character.getWorldPosition(characterWorldPos);
+        
+        // Calculate desired camera position behind character
+        const idealOffset = THIRD_PERSON_OFFSET.clone();
+        idealOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), character.rotation.y);
+        const idealPosition = characterWorldPos.clone().add(idealOffset);
+        
+        // Smoothly move camera to ideal position
+        camera.position.lerp(idealPosition, CAMERA_LERP_FACTOR);
+        
+        // Make camera look at character
+        camera.lookAt(characterWorldPos);
+        
+        // Enable orbit controls in third person but limit their effect
+        controls.enabled = true;
+        controls.target.copy(characterWorldPos);
+        controls.minDistance = 5;
+        controls.maxDistance = 10;
+        controls.maxPolarAngle = Math.PI / 2; // Prevent camera from going below ground
+    }
+}
+
+function updateCameraMode() {
+    if (character) {
+        if (isFirstPerson) {
+            controls.enabled = false;
+        } else {
+            controls.enabled = true;
+            // Reset to default third-person view
+            const characterWorldPos = new THREE.Vector3();
+            character.getWorldPosition(characterWorldPos);
+            camera.position.copy(characterWorldPos).add(THIRD_PERSON_OFFSET);
+            camera.lookAt(characterWorldPos);
+        }
+    }
+}
+
+function updateCharacterAnimation() {
+    if (!mixer || !character) return;
+    
+    // Check if character is moving
+    const isMoving = keys['w'] || keys['s'];
+    
+    // Switch between walk and idle animations
+    if (isMoving && walkAction && activeAction !== walkAction) {
+        // Transition to walk animation
+        walkAction.reset().fadeIn(0.2);
+        if (activeAction) {
+            activeAction.fadeOut(0.2);
+        }
+        activeAction = walkAction;
+        walkAction.play();
+    } else if (!isMoving && idleAction && activeAction !== idleAction) {
+        // Transition to idle animation
+        idleAction.reset().fadeIn(0.2);
+        if (activeAction) {
+            activeAction.fadeOut(0.2);
+        }
+        activeAction = idleAction;
+        idleAction.play();
+    }
+}
+const moveSpeed = 0.8;
+
+document.addEventListener('keydown', (event) => {
+    switch (event.key.toLowerCase()) {
+        case 'w': 
+            keys.w = true; 
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.s = true;
+                keys.w = false;
+            }
+            break;
+        case 's': 
+            keys.s = true;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.w = true;
+                keys.s = false;
+            }
+            break;
+        case 'a': keys.a = true; break;
+        case 'd': keys.d = true; break;
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    switch (event.key.toLowerCase()) {
+        case 'w': 
+            keys.w = false;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.s = false;
+            }
+            break;
+        case 's': 
+            keys.s = false;
+            // If in first person, also set opposite key
+            if (isFirstPerson) {
+                keys.w = false;
+            }
+            break;
+        case 'a': keys.a = false; break;
+        case 'd': keys.d = false; break;
+    }
+});
+const cameraController = new ThirdPersonCamera(camera, character);
+// Timer Update Function
+cameraController.setOffset(0, 2, 4); // Adjust x,y,z to change camera position
+cameraController.setLookAtOffset(0, 1, 0); // Adjust where camera looks
+cameraController.setSmoothness(0.3); // Higher = smoother but more lag
 // Initialize scene
 createLightingSystem();
-const house = createHouse();
-scene.add(house);
 
 // Animation Loop
+const clueHints = {
+    plastic_evidence: "DNA analysis results show contamination with lab-grade chemicals. Only someone with access to the crime lab could have handled this evidence.",
+    police_badge: "The badge shows signs of tampering - serial numbers have been carefully altered. This requires intimate knowledge of police identification systems.",
+    book: "A forensics textbook with specific pages on evidence contamination marked. Recent access logs show it was checked out from the department library."
+};
+const gameState = {
+    hintsRemaining: 1,
+    cluesFound: {
+        plastic_evidence: false,
+        police_badge: false,
+        book: false
+    },
+    proximityThreshold: 8,
+    activeClue: null,
+    gameStarted: false
+};
+
+const warningModalHTML = `
+<div id="warning-modal" class="modal">
+    <div class="modal-content">
+        <h2 class="flicker">⚠ WARNING ⚠</h2>
+        <p>You can only examine ONE piece of evidence in this investigation.</p>
+        <p>Choose wisely. This decision cannot be undone.</p>
+        <div class="warning-buttons">
+            <button id="proceed-hint" class="warning-btn">Examine Evidence</button>
+            <button id="cancel-hint" class="warning-btn">Wait</button>
+        </div>
+    </div>
+</div>
+`;
+
+// Add these styles to your CSS
+const warningStyles = `
+.warning-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+    gap: 20px;
+}
+
+.warning-btn {
+    padding: 10px 20px;
+    background-color: #1a0000;
+    color: #ff0000;
+    border: 2px solid #ff0000;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.warning-btn:hover {
+    background-color: #ff0000;
+    color: #000;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+#warning-modal h2 {
+    color: #ff0000;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+#warning-modal p {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 18px;
+    line-height: 1.5;
+}
+`;
+
+function createUIElements() {
+    // Create hint button
+    const hintButton = document.createElement('button');
+    hintButton.className = 'hint-button';
+    hintButton.textContent = 'Examine Clue';
+    hintButton.style.display = 'none';
+    hintButton.addEventListener('click', showHint);
+    document.body.appendChild(hintButton);
+
+    // Create hint modal if it doesn't exist
+    if (!document.getElementById('hint-modal')) {
+        const hintModal = document.createElement('div');
+        hintModal.id = 'hint-modal';
+        hintModal.className = 'hint-modal';
+        hintModal.innerHTML = `
+            <p id="hint-text"></p>
+            <button onclick="closeHintModal()">Close</button>
+        `;
+        document.body.appendChild(hintModal);
+    }
+    const warningModalDiv = document.createElement('div');
+    warningModalDiv.innerHTML = warningModalHTML;
+    document.body.appendChild(warningModalDiv);
+
+    // Add warning styles
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = warningStyles;
+    document.head.appendChild(styleSheet);
+}
+
+function checkClueProximity() {
+    const playerPosition = character.position;
+    let nearestClue = null;
+    let shortestDistance = Infinity;
+
+    Object.entries(cluePositions).forEach(([clueId, position]) => {
+        const distance = playerPosition.distanceTo(position);
+        
+        if (distance < gameState.proximityThreshold && distance < shortestDistance) {
+            nearestClue = clueId;
+            shortestDistance = distance;
+        }
+    });
+
+    gameState.activeClue = nearestClue;
+    const hintButton = document.querySelector('.hint-button');
+    
+    if (nearestClue && gameState.hintsRemaining > 0) {
+        hintButton.style.display = 'block';
+    } else {
+        hintButton.style.display = 'none';
+    }
+}
+
+// Handle hint interaction
+function showHint() {
+    if (gameState.activeClue && gameState.hintsRemaining > 0) {
+        const warningModal = document.getElementById('warning-modal');
+        warningModal.style.display = 'block';
+
+        // Add event listeners for the warning buttons
+        document.getElementById('proceed-hint').onclick = () => {
+            warningModal.style.display = 'none';
+            revealHint();
+        };
+
+        document.getElementById('cancel-hint').onclick = () => {
+            warningModal.style.display = 'none';
+        };
+    }
+}
+const suspectSelectionStyles = `
+    .suspect-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.95);
+        border: 2px solid #ff0000;
+        padding: 30px;
+        z-index: 2000;
+        width: 80%;
+        max-width: 600px;
+        color: #ff0000;
+        font-family: 'Courier New', monospace;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+    }
+
+    .suspect-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: flicker 2s infinite;
+    }
+
+    .suspect-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .suspect-button {
+        padding: 15px;
+        background-color: #1a0000;
+        color: #ff0000;
+        border: 2px solid #ff0000;
+        cursor: pointer;
+        font-family: inherit;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .suspect-button:hover {
+        background-color: #ff0000;
+        color: #000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        transform: scale(1.05);
+    }
+
+    .result-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.95);
+        border: 2px solid #ff0000;
+        padding: 30px;
+        z-index: 2001;
+        text-align: center;
+        color: #ff0000;
+        max-width: 800px;
+        width: 90%;
+    }
+
+    .twist-revelation {
+        font-size: 1.2em;
+        margin: 20px 0;
+        line-height: 1.6;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 1s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dramatic-text {
+        font-size: 1.4em;
+        margin: 15px 0;
+        color: #ff0000;
+        text-shadow: 0 0 10px #ff0000;
+        opacity: 0;
+        animation: dramaticReveal 2s forwards;
+        animation-delay: 1s;
+    }
+
+    @keyframes dramaticReveal {
+        to {
+            opacity: 1;
+        }
+    }
+
+    .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .action-button {
+        padding: 10px 20px;
+        background-color: #1a0000;
+        color: #ff0000;
+        border: 2px solid #ff0000;
+        cursor: pointer;
+        font-family: inherit;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .action-button:hover {
+        background-color: #ff0000;
+        color: #000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    }
+`;
+
+const suspectSelectionHTML = `
+    <div class="suspect-modal" id="suspect-modal">
+        <h2 class="suspect-title">Confirm Your Killer</h2>
+        <div class="suspect-options">
+            <button class="suspect-button" data-suspect="martinez">Detective Sarah Martinez</button>
+            <button class="suspect-button" data-suspect="wilson">Dr. James Wilson</button>
+            <button class="suspect-button" data-suspect="rodriguez">Prime Suspect</button>
+        </div>
+    </div>
+
+    <div class="result-modal" id="result-modal">
+        <div id="result-message"></div>
+        <div class="action-buttons">
+            <button class="action-button" onclick="location.reload()">Restart Investigation</button>
+            <button class="action-button" onclick="location.href='index.html'">Return to HQ</button>
+        </div>
+    </div>
+`;
+
+function initializeSuspectSelection() {
+    // Add styles
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = suspectSelectionStyles;
+    document.head.appendChild(styleSheet);
+
+    // Add HTML
+    const container = document.createElement('div');
+    container.innerHTML = suspectSelectionHTML;
+    document.body.appendChild(container);
+
+    // Add click handlers for suspect buttons
+    const suspectButtons = document.querySelectorAll('.suspect-button');
+    
+    suspectButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedSuspect = button.dataset.suspect;
+            if (selectedSuspect === 'martinez') {
+                revealTwist();
+            } else if (selectedSuspect === 'wilson') {
+                showIncorrectResult();
+            } else {
+                showStandardFailure();
+            }
+        });
+    });
+}
+
+function revealTwist() {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    resultMessage.innerHTML = `
+        <h2 class="dramatic-text">SHOCKING REVELATION</h2>
+        <div class="twist-revelation">
+            You were right to suspect Detective Martinez. As you piece together the evidence,
+            a darker truth emerges: she has been orchestrating these crimes from within the department.
+        </div>
+        <div class="twist-revelation" style="animation-delay: 2s;">
+            The odd behavior, the convenient alibis, the missing evidence - it all points to an
+            inside job. Martinez has been using her position to cover her tracks all along.
+        </div>
+        <div class="twist-revelation" style="animation-delay: 4s;">
+            By uncovering this conspiracy, you've exposed corruption at the highest level.
+            But be careful... you don't know how deep this goes.
+        </div>
+    `;
+}
+
+function showIncorrectResult() {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    resultMessage.innerHTML = `
+        <h2 class="dramatic-text">INVESTIGATION MISLED</h2>
+        <div class="twist-revelation">
+            Dr. Wilson seemed like the obvious suspect, but you've fallen for the carefully laid misdirection.
+            The true killer remains at large, watching from within the police force...
+        </div>
+    `;
+}
+
+function showStandardFailure() {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    resultMessage.innerHTML = `
+        <h2 class="dramatic-text">INVESTIGATION FAILED</h2>
+        <div class="twist-revelation">
+            Your investigation has led you down the wrong path.
+            The killer's true identity remains hidden, protected by their badge...
+        </div>
+    `;
+}
+
+
+function showSuspectSelection() {
+    document.getElementById('suspect-modal').style.display = 'block';
+}
+
+function showResult(isCorrect) {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    if (isCorrect) {
+        resultMessage.innerHTML = `
+            <h2 class="win-message">INVESTIGATION SUCCESSFUL</h2>
+            <p>You've identified the killer correctly!</p>
+        `;
+    } else {
+        resultMessage.innerHTML = `
+            <h2 class="fail-message">INVESTIGATION FAILED</h2>
+            <p>The killer remains at large...</p>
+        `;
+    }
+}
+function revealHint() {
+    const hintModal = document.getElementById('hint-modal');
+    const hintText = document.getElementById('hint-text');
+    const hintButton = document.querySelector('.hint-button');
+    
+    // Show the hint text
+    hintText.textContent = clueHints[gameState.activeClue];
+    hintModal.style.display = 'block';
+    
+    // Update game state
+    gameState.hintsRemaining--;
+    gameState.cluesFound[gameState.activeClue] = true;
+    
+    // Ensure the hint button stays visible
+    hintButton.style.display = 'block';
+    
+    // Show the suspect selection modal after a short delay
+    setTimeout(() => {
+        showSuspectSelection();
+        
+        // Add a semi-transparent overlay behind the suspect modal
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1998;
+            animation: fadeIn 1s ease;
+        `;
+        document.body.appendChild(overlay);
+        
+        // Optionally close the hint modal
+        hintModal.style.display = 'none';
+    }, 3000); // Shows killer selection after 3 seconds
+}
+
+// You can also add this utility function to manually trigger the killer selection
+function showKillerSelection() {
+    showSuspectSelection();
+}
+
+// Add to your existing close modal function
+function closeHintModal() {
+    document.getElementById('hint-modal').style.display = 'none';
+    document.getElementById('warning-modal').style.display = 'none';
+}
+
+// Add click outside to close for warning modal
+window.onclick = function(event) {
+    const warningModal = document.getElementById('warning-modal');
+    if (event.target == warningModal) {
+        warningModal.style.display = 'none';
+    }
+}
+
+// Get the modal
+const officerModal = document.getElementById("officer-modal");
+
+// Get the button that opens the modal
+const officerBtn = document.getElementById("view-officers");
+
+// Get the <span> element that closes the modal
+const closeBtn = document.querySelector("#officer-modal .close");
+
+// When the user clicks the button, open the modal
+officerBtn.onclick = function() {
+    officerModal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+closeBtn.onclick = function() {
+    officerModal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+// On-screen Controls
+document.getElementById('up').addEventListener('mousedown', () => keys.w = true);
+document.getElementById('left').addEventListener('mousedown', () => keys.a = true);
+document.getElementById('down').addEventListener('mousedown', () => keys.s = true);
+document.getElementById('right').addEventListener('mousedown', () => keys.d = true);
+
+document.getElementById('up').addEventListener('mouseup', () => keys.w = false);
+document.getElementById('left').addEventListener('mouseup', () => keys.a = false);
+document.getElementById('down').addEventListener('mouseup', () => keys.s = false);
+document.getElementById('right').addEventListener('mouseup', () => keys.d = false);
 function animate() {
     requestAnimationFrame(animate);
-    updateCameraPosition();
-    setCameraConstraints(-20, 20, -20, 20, 0); // Ensure camera stays within bounds
-    controls.update();
+    
+    const delta = clock.getDelta();
+    
+    if (character) {
+        // Move character using the imported moveCharacter function
+        moveCharacter(
+            camera,
+            keys,
+            character,
+            isFirstPerson,
+            HOUSE_GROUND_LEVEL,
+            HOUSE_UPPER_FLOOR_LEVEL,
+            characterSpeedMain2
+        );
+        
+        // Update character animations
+        updateCharacterAnimation();
+        updateCamera();
+        // Update camera position in third-person mode
+        // if (!isFirstPerson) {
+        //     // Adjust these values to bring the camera closer to the player
+        //     const cameraOffset = new THREE.Vector3(5, 5, 12); // Closer values for zoom effect
+        //     const targetPosition = character.position.clone().add(cameraOffset);
+        //     camera.position.lerp(targetPosition, 0.1);
+        //     camera.lookAt(character.position);
+        // }
+        
+    }
+    if(!isFirstPerson) {
+        cameraController.update(delta);
+    }
+    // Update animation mixer
+    if (mixer) {
+        mixer.update(delta);
+    }
+   checkClueProximity()
     renderer.render(scene, camera);
 }
 
+
+createUIElements();
+loadClues();
+closeHintModal();
+showHint();
+initializeSuspectSelection();
 animate();
