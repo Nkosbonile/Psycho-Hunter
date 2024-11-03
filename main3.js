@@ -195,7 +195,7 @@ function createLightingSystem() {
     allLights.hemisphere = groundLight;
 
     // Timer variables
-    const totalDuration = 3* 60 * 1000; // 5 minutes in milliseconds
+    const totalDuration = 3 * 60 *1000 ; // 5 minutes in milliseconds
     const interval = 15 * 1000; // 15 seconds between dims
     const totalSteps = totalDuration / interval;
     let currentStep = 0;
@@ -310,7 +310,7 @@ styleSheet.textContent += fadeAnimation;
     }
 
     // Start both timer and flicker effects
-    const fiveMinutes = 60 * 3;
+    const fiveMinutes = 60 * 5;
     const display = document.querySelector('#timer');
     startTimer(fiveMinutes, display);
     flickerHouseLights();
