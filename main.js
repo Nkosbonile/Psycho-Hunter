@@ -23,7 +23,7 @@ let isFirstPerson = false;
 let houseGroundLevel = 0; // Ground level of the house
 const walls = [];
 let houseUpperFloorLevel = 0;
-const characterSpeedMain = 0.02;  // Speed for character in main.js
+const characterSpeedMain = 0.02; // Speed for character in main.js
 
 let currentClueIndex = 0;
 let timeLeft = 160;
@@ -75,15 +75,15 @@ function createFlashlight() {
 
   // Create the spotlight for the flashlight
   flashlightLight = new THREE.SpotLight(0xffcc00, 1, 10, Math.PI / 4, 0.1);
-  flashlightLight.position.set(0, 0.3, 0); 
+  flashlightLight.position.set(0, 0.3, 0);
   flashlightLight.angle = Math.PI / 6;
-  flashlightLight.penumbra = 0.2; 
-  flashlightLight.decay = 2; 
+  flashlightLight.penumbra = 0.2;
+  flashlightLight.decay = 2;
   flashlightLight.castShadow = true;
 
   // Create and add the target for the spotlight
   flashlightTarget = new THREE.Object3D();
-  flashlightTarget.position.set(0, 0, -1); 
+  flashlightTarget.position.set(0, 0, -1);
   flashlightModel.add(flashlightTarget);
   flashlightLight.target = flashlightTarget;
 
@@ -111,7 +111,7 @@ function addFlashlightGlow() {
   const glowMaterial = new THREE.MeshBasicMaterial({
     color: 0xffcc00,
     transparent: true,
-    opacity: 0.5, 
+    opacity: 0.5,
   });
 
   const glow = new THREE.Mesh(glowGeometry, glowMaterial);
@@ -229,7 +229,7 @@ function updateFlashlight() {
     // Update flashlight position and rotation
     flashlightModel.position.copy(flashlightPosition);
     flashlightModel.rotation.copy(character.rotation);
-    flashlightModel.rotateX(Math.PI/2 ); // Angle the flashlight slightly upward
+    flashlightModel.rotateX(Math.PI / 2); // Angle the flashlight slightly upward
 
     // Update the light target position
     const targetDistance = 5;
@@ -254,7 +254,7 @@ function toggleFlashlight() {
   lensMaterial.emissiveIntensity = isFlashlightOn ? 0.5 : 0;
 
   // Adjust fog density
- scene.fog.density = isFlashlightOn ? 0.2 : 0.4;
+  scene.fog.density = isFlashlightOn ? 0.2 : 0.4;
 }
 
 // Initialize the scene
@@ -283,12 +283,10 @@ function init() {
   );
 
   // Add basic lighting
- 
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 10, 7.5);
   scene.add(directionalLight);
-
-  
 
   // Load the house model
   const loader = new GLTFLoader();
@@ -471,7 +469,7 @@ function restartGame() {
   cluesSolved = 0;
 
   timeLeft = 150; // Reset timer
-  
+
   // Reset visibility of objects
   weapon.visible = false;
   shoe.visible = false;
@@ -723,7 +721,7 @@ let gameEnded = false; // Track if the game has ended
 
 // Function to check if the player is near the dead body and end the game
 function checkIfNearDeadBody() {
-  if (isNearClue(deadBody)) {
+  if (isNearClue(deadBody) && cluesSolved === 3) {
     // Check if player is near the dead body
     console.log("Player found the dead body!");
     endGame(true); // End game with success when near the dead body
