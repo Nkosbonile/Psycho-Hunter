@@ -435,174 +435,69 @@ function createHouse() {
     const wallHeight = 18;
     const wallThickness = 0.5;
     const doorWidth = 4;
-    const doorHeight = 8;
+    const doorHeight = 10;
 
-    // Modified Wall Creation Function - Now doesn't create door gaps in exterior walls
-    function createWallWithWindows(width, height, depth, windowConfig, isExterior = true) {
-        const wallGroup = new THREE.Group();
-
-        // Create a solid wall regardless of door status for exterior walls
+    // Function to create solid walls without windows
+    function createSolidWall(width, height, depth) {
         const wall = new THREE.Mesh(
             new THREE.BoxGeometry(width, height, depth),
             materials.walls
         );
         wall.castShadow = true;
         wall.receiveShadow = true;
-        wallGroup.add(wall);
-
-        // Add windows
-        if (windowConfig) {
-            windowConfig.forEach(config => {
-                const windowFrame = new THREE.Mesh(
-                    new THREE.BoxGeometry(config.width + 0.4, config.height + 0.4, depth + 0.1),
-                    materials.wood
-                );
-                windowFrame.position.set(config.x, config.y, 0);
-                wallGroup.add(windowFrame);
-
-                const windowPane = new THREE.Mesh(
-                    new THREE.BoxGeometry(config.width, config.height, depth + 0.2),
-                    materials.window
-                );
-                windowPane.position.set(config.x, config.y, 0);
-                wallGroup.add(windowPane);
-            });
-        }
-
-        return wallGroup;
+        return wall;
     }
 
-    // Exterior Walls - All solid now
-    const frontWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: -15, y: 5 },
-        { width: 4, height: 6, x: 15, y: 5 }
-    ]);
+    // Exterior Walls - All solid without windows
+    const frontWall = createSolidWall(50, wallHeight, wallThickness);
     frontWall.position.set(0, wallHeight / 2, 25);
     house.add(frontWall);
 
-    const backWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: -15, y: 5 },
-        { width: 4, height: 6, x: 15, y: 5 }
-    ]);
+    const backWall = createSolidWall(50, wallHeight, wallThickness);
     backWall.position.set(0, wallHeight / 2, -25);
     house.add(backWall);
 
-    const leftWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: 0, y: 5 }
-    ]);
+    const leftWall = createSolidWall(50, wallHeight, wallThickness);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-25, wallHeight / 2, 0);
     house.add(leftWall);
 
-    const rightWall = createWallWithWindows(50, wallHeight, wallThickness, [
-        { width: 4, height: 6, x: 0, y: 5 }
-    ]);
+    const rightWall = createSolidWall(50, wallHeight, wallThickness);
     rightWall.rotation.y = Math.PI / 2;
     rightWall.position.set(25, wallHeight / 2, 0);
     house.add(rightWall);
 
-    // Interior Walls with Doorframes
-    function createDoorframe(width, height, depth) {
-        const frame = new THREE.Group();
-        
-        // Top of doorframe
-        const top = new THREE.Mesh(
-            new THREE.BoxGeometry(width, 0.5, depth),
-            materials.wood
-        );
-        top.position.y = height;
-        frame.add(top);
-        
-        // Left side of doorframe
-        const left = new THREE.Mesh(
-            new THREE.BoxGeometry(0.5, height, depth),
-            materials.wood
-        );
-        left.position.set(-width/2 + 0.25, height/2, 0);
-        frame.add(left);
-        
-        // Right side of doorframe
-        const right = new THREE.Mesh(
-            new THREE.BoxGeometry(0.5, height, depth),
-            materials.wood
-        );
-        right.position.set(width/2 - 0.25, height/2, 0);
-        frame.add(right);
-        
-        return frame;
-    }
+    // Interior Walls
+    
+    // Horizontal middle wall with doorway near the left exterior wall
+    // Left section (very small piece)
+    const midWallLeft = createSolidWall(4, wallHeight, wallThickness);
+    midWallLeft.position.set(-23, wallHeight / 2, 0);
+    house.add(midWallLeft);
 
-    // Interior Walls - Modified to ensure proper connections
-    const horizontalWallLength = 25;
-    
-    // Left section wall (extend to meet vertical wall)
-    const leftHorizontalWall = new THREE.Mesh(
-        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
-        materials.walls
-    );
-    leftHorizontalWall.position.set(-horizontalWallLength/2 - doorWidth/4, wallHeight/2, 0);
-    house.add(leftHorizontalWall);
-    
-    // Right section of left wall
-    const leftHorizontalWall2 = new THREE.Mesh(
-        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
-        materials.walls
-    );
-    leftHorizontalWall2.position.set(-horizontalWallLength/4, wallHeight/2, 0);
-    house.add(leftHorizontalWall2);
-    
-    // Left doorframe
-    const leftDoorframe = createDoorframe(doorWidth, doorHeight, wallThickness);
-    leftDoorframe.position.set(-12.5, 0, 0);
-    house.add(leftDoorframe);
-    
-    // Right section wall (extend to meet vertical wall)
-    const rightHorizontalWall = new THREE.Mesh(
-        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
-        materials.walls
-    );
-    rightHorizontalWall.position.set(horizontalWallLength/2 + doorWidth/4, wallHeight/2, 0);
-    house.add(rightHorizontalWall);
-    
-    // Left section of right wall
-    const rightHorizontalWall2 = new THREE.Mesh(
-        new THREE.BoxGeometry((horizontalWallLength - doorWidth)/2, wallHeight, wallThickness),
-        materials.walls
-    );
-    rightHorizontalWall2.position.set(horizontalWallLength/4, wallHeight/2, 0);
-    house.add(rightHorizontalWall2);
-    
-    // Right doorframe
-    const rightDoorframe = createDoorframe(doorWidth, doorHeight, wallThickness);
-    rightDoorframe.position.set(12.5, 0, 0);
-    house.add(rightDoorframe);
+    // Right section (main piece)
+    const midWallRight = createSolidWall(42, wallHeight, wallThickness);
+    midWallRight.position.set(4, wallHeight / 2, 0);
+    house.add(midWallRight);
 
-    // Vertical wall sections (extended to meet horizontal walls)
-    const verticalWallLength = 25;
-    
-    // Upper section
-    const upperVerticalWall = new THREE.Mesh(
-        new THREE.BoxGeometry(wallThickness, wallHeight, (verticalWallLength - doorWidth)/2),
-        materials.walls
-    );
-    upperVerticalWall.position.set(0, wallHeight/2, verticalWallLength/2 + doorWidth/4);
-    house.add(upperVerticalWall);
-    
-    // Lower section
-    const lowerVerticalWall = new THREE.Mesh(
-        new THREE.BoxGeometry(wallThickness, wallHeight, (verticalWallLength - doorWidth)/2),
-        materials.walls
-    );
-    lowerVerticalWall.position.set(0, wallHeight/2, -verticalWallLength/4);
-    house.add(lowerVerticalWall);
-    
-    // Vertical doorframe
-    const verticalDoorframe = createDoorframe(doorWidth, doorHeight, wallThickness);
-    verticalDoorframe.rotation.y = Math.PI/2;
-    verticalDoorframe.position.set(0, 0, 12.5);
-    house.add(verticalDoorframe);
+    // Top section above door
+    const midWallTop = createSolidWall(doorWidth, wallHeight - doorHeight, wallThickness);
+    midWallTop.position.set(-19, wallHeight - (wallHeight - doorHeight) / 2, 0);
+    house.add(midWallTop);
 
-    // Rest of the house components remain the same
+    // Vertical wall (divides front section into two rooms) with doorway
+    // Bottom section
+    const verticalWallBottom = createSolidWall((25 - doorWidth) / 2, wallHeight, wallThickness);
+    verticalWallBottom.rotation.y = Math.PI / 2;
+    verticalWallBottom.position.set(0, wallHeight / 2, 25 - (25 - doorWidth) / 4);
+    house.add(verticalWallBottom);
+
+    // Top section
+    const verticalWallTop = createSolidWall((25 - doorWidth) / 2, wallHeight, wallThickness);
+    verticalWallTop.rotation.y = Math.PI / 2;
+    verticalWallTop.position.set(0, wallHeight / 2, 25 - (25 + doorWidth) / 4);
+    house.add(verticalWallTop);
+
     // Roof
     const roofHeight = 8;
     const roofGeometry = new THREE.ConeGeometry(35, roofHeight, 4);
@@ -612,7 +507,7 @@ function createHouse() {
     roof.castShadow = true;
     house.add(roof);
 
-    // Furniture
+    // Furniture remains the same
     const furniture = [
         // Living Room (Front Right)
         { type: 'sofa', pos: [15, 1.5, 15], size: [8, 3, 4], rot: Math.PI },
@@ -664,20 +559,8 @@ function createHouse() {
         mesh.receiveShadow = true;
         house.add(mesh);
     });
- // Main entrance door (solid, attached to front wall)
- const mainDoor = new THREE.Mesh(
-    new THREE.BoxGeometry(doorWidth, doorHeight, wallThickness/2),
-    materials.wood
-);
-mainDoor.position.set(0, doorHeight/2, 25 - wallThickness/4);
-house.add(mainDoor);
 
-// Main entrance doorframe
-const mainDoorframe = createDoorframe(doorWidth + 0.5, doorHeight + 0.25, wallThickness);
-mainDoorframe.position.set(0, 0, 25);
-house.add(mainDoorframe);
-
-return house;
+    return house;
 }
 const house = createHouse();
 scene.add(house);
@@ -802,10 +685,11 @@ const cluePositions = {
         furniturePositions.nightstand.x,
         furniturePositions.nightstand.y + 2,
         furniturePositions.nightstand.z
+        
     ),
     police_badge: new THREE.Vector3(
-        furniturePositions.coffeeTable.x - 2,
-        furniturePositions.coffeeTable.y,
+        furniturePositions.coffeeTable.x,
+        furniturePositions.coffeeTable.y - 1.5,
         furniturePositions.coffeeTable.z
     ),
     book: new THREE.Vector3(
@@ -814,6 +698,7 @@ const cluePositions = {
         furniturePositions.brownCarpet.z
     )
 };
+
 function loadClues() {
     const loader = new GLTFLoader();
     
@@ -930,7 +815,7 @@ loader.load(
             character = gltf.scene;
             
             // Set initial position and rotation
-            character.position.set(0, HOUSE_GROUND_LEVEL, 3);
+            character.position.set(5, HOUSE_GROUND_LEVEL, 3);
             character.rotation.y = Math.PI;
             character.scale.set(5, 5, 5); // Adjust scale as needed
             
