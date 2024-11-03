@@ -1514,10 +1514,10 @@ function initializeLevel2Selection() {
     document.head.appendChild(styleSheet);
 
     // Create and shuffle suspects array
-    let shuffledSuspects = [...level2Suspects].sort(() => Math.random() - 0.5);
+    let shuffledSuspects = [...level2Suspects];
     
     // Randomly select the correct suspect
-    const correctSuspectIndex = Math.floor(Math.random() * shuffledSuspects.length);
+    const correctSuspectIndex =1;
     const correctSuspect = shuffledSuspects[correctSuspectIndex];
 
     // Create HTML for suspect selection
