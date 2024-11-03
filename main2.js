@@ -821,17 +821,6 @@ const witnesses = {
     ]
 };
 
-// function startTimer() {
-//     timerInterval = setInterval(() => {
-//         if (countdownTime > 0) {
-//             countdownTime -= 1000; // Reduce by 1 second (1000 ms)
-//            updateTimer();
-//         } else {
-//             clearInterval(timerInterval); // Stop the timer when it reaches zero
-//             alert("Time's up!"); // Optional: Handle time-out scenario
-//         }
-//     }, 1000); // Run every 1 second
-// }
 
 document.addEventListener('DOMContentLoaded', () => {
     // Cache DOM elements
@@ -1008,29 +997,13 @@ function someFunctionThatLoadsQuestions(suspect) {
     }
 }
 
-const stressIndicators = [
-    "appears calm and collected",
-    "shows slight nervousness",
-    "fidgets occasionally",
-    "appears visibly stressed",
-    "shows signs of extreme anxiety"
-];
-
-const bodyLanguageDescriptions = [
-    "maintains steady eye contact",
-    "avoids direct eye contact",
-    "crosses arms defensively",
-    "speaks with a trembling voice",
-    "frequently touches face while speaking"
-];
 
 function animateResponse(witnessKey, questionIndex) {
     const response = witnesses[witnessKey][questionIndex];
     const responseContainer = document.getElementById('response-container');
     const witnessImage = document.getElementById('witnessImage');
     const responseText = document.getElementById('responseText');
-    const stressIndicator = document.getElementById('stressIndicator');
-    const bodyLanguage = document.getElementById('bodyLanguage');
+    
 
     responseContainer.style.opacity = '0';
     responseContainer.style.display = 'block';
@@ -1040,8 +1013,6 @@ function animateResponse(witnessKey, questionIndex) {
         responseContainer.style.opacity = '1';
     }, 100);
 
-    const stressLevel = Math.floor(response.stressLevel * (stressIndicators.length - 1));
-    const bodyLanguageIndex = Math.floor(Math.random() * bodyLanguageDescriptions.length);
 
     setTimeout(() => {
         witnessImage.src = response.image;
@@ -1060,12 +1031,7 @@ function animateResponse(witnessKey, questionIndex) {
 
     setTimeout(typeWriter, 1000);
 
-    setTimeout(() => {
-        stressIndicator.textContent = `Witness ${stressIndicators[stressLevel]}`;
-        bodyLanguage.textContent = `Witness ${bodyLanguageDescriptions[bodyLanguageIndex]}`;
-        stressIndicator.classList.add('visible');
-        bodyLanguage.classList.add('visible');
-    }, 2000);
+   
 
     const timePenalty = Math.floor((1 - response.reliability) * 30000);
     countdownTime -= timePenalty;
@@ -1282,7 +1248,18 @@ document.addEventListener('DOMContentLoaded', () => {
             handleSuspectChoice(event, correctSuspect);
         });
     });
+    initializeLevel2Selection();
 
+    // Enable the "Select Primary Suspect" button and update its styling
+    const selectPrimarySuspectButton = document.getElementById('select-primary-suspect-button');
+    if (selectPrimarySuspectButton) {
+        selectPrimarySuspectButton.disabled = false;
+        selectPrimarySuspectButton.style.opacity = '1';
+        selectPrimarySuspectButton.style.cursor = 'pointer';
+        
+        // Add click handler to show suspect selection
+        selectPrimarySuspectButton.addEventListener('click', showLevel2SuspectSelection);
+    }
     // Your existing mouse click functionality
     document.addEventListener('click', onMouseClick);
 });
@@ -1415,11 +1392,270 @@ function handleHintClick(clue, isCorrectClue) {
         showKillerMessage(); // Show the killer message
     }
 }
+const level2SuspectSelectionStyles = `
+    .suspect-modal-l2 {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.95);
+        border: 2px solid #ff0000;
+        padding: 30px;
+        z-index: 2000;
+        width: 80%;
+        max-width: 600px;
+        color: #ff0000;
+        font-family: 'Courier New', monospace;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+    }
 
+    .suspect-title-l2 {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: flicker 2s infinite;
+    }
+
+    .suspect-options-l2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .suspect-button-l2 {
+        padding: 15px;
+        background-color: #1a0000;
+        color: #ff0000;
+        border: 2px solid #ff0000;
+        cursor: pointer;
+        font-family: inherit;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .suspect-button-l2:hover {
+        background-color: #ff0000;
+        color: #000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        transform: scale(1.05);
+    }
+
+  .result-modal-l2{
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.95);
+        border: 2px solid #ff0000;
+        padding: 30px;
+        z-index: 2001;
+        text-align: center;
+        color: #ff0000;
+        max-width: 800px;
+        width: 90%;
+    }
+        .action-button {
+    font-size: 1.2em;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, #7f0000, #330000); /* Dark red gradient */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 5px;
+    margin: 10px;
+}
+
+.action-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.8);
+}
+
+.restart-button {
+    background-color: #b20000; /* Blood red */
+}
+
+.next-level-button {
+    background-color: #006400; /* Dark green, symbolizing progress */
+}
+
+.dramatic-text {
+    color: #7f0000;
+    font-family: 'Creepster', cursive;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.twist-revelation {
+    color: #d4d4d4;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+
+`;
+
+const level2Suspects = [
+    { id: 1, name: "Suspect 1", description: "Business Executive with a spotless record" },
+    { id: 3, name: "Suspect 3", description: " Accountant with mysterious connections" },
+    { id: 2, name: "Suspect 2", description: "Personal Trainer with hidden motives" }
+];
+
+function initializeLevel2Selection() {
+    // Add styles
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = level2SuspectSelectionStyles;
+    document.head.appendChild(styleSheet);
+
+    // Create and shuffle suspects array
+    let shuffledSuspects = [...level2Suspects].sort(() => Math.random() - 0.5);
+    
+    // Randomly select the correct suspect
+    const correctSuspectIndex = Math.floor(Math.random() * shuffledSuspects.length);
+    const correctSuspect = shuffledSuspects[correctSuspectIndex];
+
+    // Create HTML for suspect selection
+    const modalHTML = `
+        <div class="suspect-modal-l2" id="suspect-modal-l2">
+            <h2 class="suspect-title-l2">Select Primary Suspect</h2>
+            <div class="suspect-options-l2">
+                ${shuffledSuspects.map(suspect => `
+                    <button class="suspect-button-l2" data-suspect-id="${suspect.id}">
+                        ${suspect.name}<br>
+                        <small>${suspect.description}</small>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="result-modal-l2" id="result-modal-l2">
+            <div id="result-message-l2"></div>
+             <div class="action-buttons">
+            <button class="action-button" onclick="location.reload()">Restart Investigation</button>
+            <button class="action-button" onclick="location.href='level3.html'">Next Level</button>
+        </div>
+        </div>
+    `;
+
+    // Add HTML to document
+    const container = document.createElement('div');
+    container.innerHTML = modalHTML;
+    document.body.appendChild(container);
+
+    // Add event listeners
+    document.querySelectorAll('.suspect-button-l2').forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedSuspectId = parseInt(button.dataset.suspectId);
+            handleLevel2SuspectChoice(selectedSuspectId, correctSuspect.id);
+        });
+    });
+
+    // Store correct suspect ID in a data attribute
+    document.getElementById('suspect-modal-l2').dataset.correctSuspectId = correctSuspect.id;
+}
+
+function handleLevel2SuspectChoice(selectedSuspectId, correctSuspectId) {
+    const resultModal = document.getElementById('result-modal-l2');
+    const resultMessage = document.getElementById('result-message-l2');
+    const suspectModal = document.getElementById('suspect-modal-l2');
+    const actionButtons = document.querySelector('.action-buttons');
+    
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    if (selectedSuspectId === correctSuspectId) {
+        resultMessage.innerHTML = `
+            <h2 class="dramatic-text">INVESTIGATION SUCCESSFUL</h2>
+            <div class="twist-revelation">
+                Your instincts were right. You've successfully identified the primary suspect.
+                This brings you one step closer to unraveling the greater conspiracy.
+            </div>
+        `;
+        // Show both Restart and Next Level buttons
+        actionButtons.innerHTML = `
+            <button class="action-button restart-button">Restart Investigation</button>
+            <button class="action-button next-level-button">Next Level</button>
+        `;
+        setTimeout(() => {
+            document.querySelector('.next-level-button').onclick = () => location.href = 'level3.html';
+        }, 5000);
+    } else {
+        resultMessage.innerHTML = `
+            <h2 class="dramatic-text">INVESTIGATION COMPROMISED</h2>
+            <div class="twist-revelation">
+                Your judgment was clouded. The true suspect remains at large,
+                and time is running out...
+            </div>
+        `;
+        // Show only the Restart button
+        actionButtons.innerHTML = `
+            <button class="action-button restart-button">Restart Investigation</button>
+        `;
+    }
+    
+    document.querySelector('.restart-button').onclick = () => location.reload();
+}
+
+
+function showLevel2SuspectSelection() {
+    document.getElementById('suspect-modal-l2').style.display = 'block';
+}
+
+function restartLevel() {
+    // Clean up existing modals
+    const oldModals = document.querySelectorAll('.suspect-modal-l2, .result-modal-l2');
+    oldModals.forEach(modal => modal.remove());
+
+    // Reinitialize the selection system
+    initializeLevel2Selection();
+    showLevel2SuspectSelection();
+}
+
+function progressToNextLevel() {
+    // Create container div for buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.textAlign = 'center';
+    buttonContainer.style.marginTop = '20px';
+    
+    // Create restart button
+    const restartButton = document.createElement('button');
+    restartButton.textContent = 'Restart Level';
+    restartButton.onclick = function() {
+        // Reload current page to restart level
+        location.reload();
+    };
+    restartButton.style.margin = '10px';
+    restartButton.style.padding = '10px 20px';
+    
+    // Create next level button
+    const nextLevelButton = document.createElement('button');
+    nextLevelButton.textContent = 'Next Level';
+    nextLevelButton.onclick = function() {
+        // Go to next level
+        location.href = 'level3.html';
+    };
+    nextLevelButton.style.margin = '10px';
+    nextLevelButton.style.padding = '10px 20px';
+    
+    // Add buttons to container
+    buttonContainer.appendChild(restartButton);
+    buttonContainer.appendChild(nextLevelButton);
+    
+    // Add container to document body
+    document.body.appendChild(buttonContainer);
+ }
+ 
  function enableAskAndViewButtons() {
     const askButton = document.getElementById('ask-button');
     const viewSuspectListButton = document.getElementById('view-suspect-list-button');
-
+    const suspect = document.getElementById('select-primary-suspect-button');
+    
      if (askButton) {
          askButton.disabled = false;
         askButton.style.opacity = '1';
@@ -1431,6 +1667,12 @@ function handleHintClick(clue, isCorrectClue) {
                 viewSuspectListButton.style.opacity = '1';
          viewSuspectListButton.style.cursor = 'pointer';
      }
+     if (suspect) {
+        suspect.disabled = false;
+        suspect.style.opacity = '1';
+        suspect.style.cursor = 'pointer';
+ }
+     
  }
 
 

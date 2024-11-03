@@ -248,7 +248,7 @@ function createLightingSystem() {
         const seconds = parseInt(timer % 60, 10);
 
         display.textContent = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
-
+       
         if (--timer < 0) {
             clearInterval(countdown);
             display.textContent = "TIME'S UP";
@@ -1283,18 +1283,305 @@ function showHint() {
         };
     }
 }
+const suspectSelectionStyles = `
+    .suspect-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.95);
+        border: 2px solid #ff0000;
+        padding: 30px;
+        z-index: 2000;
+        width: 80%;
+        max-width: 600px;
+        color: #ff0000;
+        font-family: 'Courier New', monospace;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+    }
 
+    .suspect-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: flicker 2s infinite;
+    }
+
+    .suspect-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .suspect-button {
+        padding: 15px;
+        background-color: #1a0000;
+        color: #ff0000;
+        border: 2px solid #ff0000;
+        cursor: pointer;
+        font-family: inherit;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .suspect-button:hover {
+        background-color: #ff0000;
+        color: #000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        transform: scale(1.05);
+    }
+
+    .result-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.95);
+        border: 2px solid #ff0000;
+        padding: 30px;
+        z-index: 2001;
+        text-align: center;
+        color: #ff0000;
+        max-width: 800px;
+        width: 90%;
+    }
+
+    .twist-revelation {
+        font-size: 1.2em;
+        margin: 20px 0;
+        line-height: 1.6;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 1s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dramatic-text {
+        font-size: 1.4em;
+        margin: 15px 0;
+        color: #ff0000;
+        text-shadow: 0 0 10px #ff0000;
+        opacity: 0;
+        animation: dramaticReveal 2s forwards;
+        animation-delay: 1s;
+    }
+
+    @keyframes dramaticReveal {
+        to {
+            opacity: 1;
+        }
+    }
+
+    .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .action-button {
+        padding: 10px 20px;
+        background-color: #1a0000;
+        color: #ff0000;
+        border: 2px solid #ff0000;
+        cursor: pointer;
+        font-family: inherit;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .action-button:hover {
+        background-color: #ff0000;
+        color: #000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    }
+`;
+
+const suspectSelectionHTML = `
+    <div class="suspect-modal" id="suspect-modal">
+        <h2 class="suspect-title">Confirm Your Killer</h2>
+        <div class="suspect-options">
+            <button class="suspect-button" data-suspect="martinez">Detective Sarah Martinez</button>
+            <button class="suspect-button" data-suspect="wilson">Dr. James Wilson</button>
+            <button class="suspect-button" data-suspect="rodriguez">Prime Suspect</button>
+        </div>
+    </div>
+
+    <div class="result-modal" id="result-modal">
+        <div id="result-message"></div>
+        <div class="action-buttons">
+            <button class="action-button" onclick="location.reload()">Restart Investigation</button>
+            <button class="action-button" onclick="location.href='index.html'">Return to HQ</button>
+        </div>
+    </div>
+`;
+
+function initializeSuspectSelection() {
+    // Add styles
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = suspectSelectionStyles;
+    document.head.appendChild(styleSheet);
+
+    // Add HTML
+    const container = document.createElement('div');
+    container.innerHTML = suspectSelectionHTML;
+    document.body.appendChild(container);
+
+    // Add click handlers for suspect buttons
+    const suspectButtons = document.querySelectorAll('.suspect-button');
+    
+    suspectButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedSuspect = button.dataset.suspect;
+            if (selectedSuspect === 'martinez') {
+                revealTwist();
+            } else if (selectedSuspect === 'wilson') {
+                showIncorrectResult();
+            } else {
+                showStandardFailure();
+            }
+        });
+    });
+}
+
+function revealTwist() {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    resultMessage.innerHTML = `
+        <h2 class="dramatic-text">SHOCKING REVELATION</h2>
+        <div class="twist-revelation">
+            You were right to suspect Detective Martinez. As you piece together the evidence,
+            a darker truth emerges: she has been orchestrating these crimes from within the department.
+        </div>
+        <div class="twist-revelation" style="animation-delay: 2s;">
+            The odd behavior, the convenient alibis, the missing evidence - it all points to an
+            inside job. Martinez has been using her position to cover her tracks all along.
+        </div>
+        <div class="twist-revelation" style="animation-delay: 4s;">
+            By uncovering this conspiracy, you've exposed corruption at the highest level.
+            But be careful... you don't know how deep this goes.
+        </div>
+    `;
+}
+
+function showIncorrectResult() {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    resultMessage.innerHTML = `
+        <h2 class="dramatic-text">INVESTIGATION MISLED</h2>
+        <div class="twist-revelation">
+            Dr. Wilson seemed like the obvious suspect, but you've fallen for the carefully laid misdirection.
+            The true killer remains at large, watching from within the police force...
+        </div>
+    `;
+}
+
+function showStandardFailure() {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    resultMessage.innerHTML = `
+        <h2 class="dramatic-text">INVESTIGATION FAILED</h2>
+        <div class="twist-revelation">
+            Your investigation has led you down the wrong path.
+            The killer's true identity remains hidden, protected by their badge...
+        </div>
+    `;
+}
+
+
+function showSuspectSelection() {
+    document.getElementById('suspect-modal').style.display = 'block';
+}
+
+function showResult(isCorrect) {
+    const resultModal = document.getElementById('result-modal');
+    const resultMessage = document.getElementById('result-message');
+    const suspectModal = document.getElementById('suspect-modal');
+
+    suspectModal.style.display = 'none';
+    resultModal.style.display = 'block';
+
+    if (isCorrect) {
+        resultMessage.innerHTML = `
+            <h2 class="win-message">INVESTIGATION SUCCESSFUL</h2>
+            <p>You've identified the killer correctly!</p>
+        `;
+    } else {
+        resultMessage.innerHTML = `
+            <h2 class="fail-message">INVESTIGATION FAILED</h2>
+            <p>The killer remains at large...</p>
+        `;
+    }
+}
 function revealHint() {
     const hintModal = document.getElementById('hint-modal');
     const hintText = document.getElementById('hint-text');
+    const hintButton = document.querySelector('.hint-button');
+    
+    // Show the hint text
     hintText.textContent = clueHints[gameState.activeClue];
     hintModal.style.display = 'block';
     
+    // Update game state
     gameState.hintsRemaining--;
     gameState.cluesFound[gameState.activeClue] = true;
     
-    // Hide the examine button after using the hint
-    document.querySelector('.hint-button').style.display = 'none';
+    // Ensure the hint button stays visible
+    hintButton.style.display = 'block';
+    
+    // Show the suspect selection modal after a short delay
+    setTimeout(() => {
+        showSuspectSelection();
+        
+        // Add a semi-transparent overlay behind the suspect modal
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1998;
+            animation: fadeIn 1s ease;
+        `;
+        document.body.appendChild(overlay);
+        
+        // Optionally close the hint modal
+        hintModal.style.display = 'none';
+    }, 3000); // Shows killer selection after 3 seconds
+}
+
+// You can also add this utility function to manually trigger the killer selection
+function showKillerSelection() {
+    showSuspectSelection();
 }
 
 // Add to your existing close modal function
@@ -1387,5 +1674,5 @@ createUIElements();
 loadClues();
 closeHintModal();
 showHint();
-
+initializeSuspectSelection();
 animate();

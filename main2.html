@@ -21,10 +21,11 @@
     <div class="witness-container">
         <button class="ask-button" id="ask-button">Ask Witness</button>
         <button class="view-suspect-list-button" id="view-suspect-list-button">View Suspect List</button> <!-- Added button -->
+       
         <div id="warning-message" class="warning hidden">
             ⚠️ One question. Choose wisely... or risk everything.
         </div>
-       
+        <button   class="select-primary-suspect-button" id="select-primary-suspect-button">Select Primary Suspect</button> 
         <button id="hint-button" style="display: none;">Hint</button>
     </div>
     <div id="evidence-modal" class="modal">
@@ -67,15 +68,9 @@
         <button id="nextLevelButton">Delve Deeper into Darkness</button>
         <button id="successRestartButton">Rewind Time</button>
     </div>
+   
     
-    <div class="witness-container">
-        <div id="stressIndicator" class="witness-stress"></div>
-    
-        <div class="body-language">
-            <div id="bodyLanguage" class="body-language"></div>
-        </div>
-    </div>
-    
+
     <div id="suspect-buttons" style="display: none;">
         <button class="suspect-btn" data-suspect="suspect1">Suspect 1</button>
         <button class="suspect-btn" data-suspect="suspect2">Suspect 2</button>
